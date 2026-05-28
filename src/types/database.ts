@@ -2058,6 +2058,7 @@ export type Database = {
         Args: { p_invite_token: string }
         Returns: string
       }
+      employer_activations_state: { Args: { p_org_id: string }; Returns: Json }
       has_permission: {
         Args: { org_id: string; permission_key: string }
         Returns: boolean
@@ -2078,6 +2079,7 @@ export type Database = {
         Returns: boolean
       }
       is_self: { Args: { person_id: string }; Returns: boolean }
+      placement_activate: { Args: { p_placement_id: string }; Returns: Json }
       placement_execute: {
         Args: {
           p_consent_id: string

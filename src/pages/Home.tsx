@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { AlertTriangle, Briefcase, Smartphone, Users } from 'lucide-react'
+import { AlertTriangle, Briefcase, Building2, Smartphone, Users } from 'lucide-react'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
 import { envReady } from '../lib/browser-supabase.js'
 
@@ -55,6 +55,25 @@ export function HomePage() {
                 <p className="mt-3 text-sm text-muted leading-relaxed">
                   Drive the full lifecycle on the seeded Senior Backend Engineer requisition:
                   invite → consent → take → score → fit → decide → place.
+                </p>
+              </CardBody>
+            </Card>
+          </Link>
+
+          <Link to="/activations" className="block group">
+            <Card className="h-full group-hover:shadow-soft transition-shadow">
+              <CardBody>
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="w-10 h-10 rounded-lg bg-interview-bg text-role flex items-center justify-center">
+                    <Building2 size={18} strokeWidth={2} />
+                  </span>
+                  <CardEyebrow>Phase 2 · Employer</CardEyebrow>
+                </div>
+                <CardTitle className="mt-1 text-2xl">Activations</CardTitle>
+                <p className="mt-3 text-sm text-muted leading-relaxed">
+                  Receive newly-placed candidates at FjordTech. Activate from inherited data,
+                  capture ongoing-management consent (legal basis: contract), unlock the
+                  post-hire surfaces.
                 </p>
               </CardBody>
             </Card>

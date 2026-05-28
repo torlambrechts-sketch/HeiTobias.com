@@ -4,6 +4,7 @@ import { HomePage } from './pages/Home.js'
 import { CandidateTakePage } from './pages/CandidateTake.js'
 import { CandidateConsentsPage } from './pages/CandidateConsents.js'
 import { RecruiterRequisitionPage } from './pages/RecruiterRequisition.js'
+import { EmployerActivationsPage } from './pages/EmployerActivations.js'
 import { EnvBoundary } from './components/EnvBoundary.js'
 
 export function App() {
@@ -16,6 +17,7 @@ export function App() {
           <Route path="/take/:token" element={<CandidateTakePage />} />
           <Route path="/me/:token" element={<CandidateConsentsPage />} />
           <Route path="/requisitions/:id" element={<RecruiterRequisitionPage />} />
+          <Route path="/activations" element={<EmployerActivationsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
