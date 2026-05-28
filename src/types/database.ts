@@ -1947,6 +1947,25 @@ export type Database = {
         Returns: string
       }
       _invite_from_header: { Args: never; Returns: string }
+      assessment_capture_consent: { Args: { p_token: string }; Returns: string }
+      assessment_invite_create: {
+        Args: {
+          p_assessment_type?: Database["public"]["Enums"]["assessment_type"]
+          p_expires_in_days?: number
+          p_instrument_key: string
+          p_org_id: string
+          p_person_id: string
+        }
+        Returns: Json
+      }
+      assessment_run_scoring: {
+        Args: { p_assessment_id: string }
+        Returns: number
+      }
+      assessment_submit_response: {
+        Args: { p_item_id: string; p_response_json: Json; p_token: string }
+        Returns: string
+      }
       audit_log_event: {
         Args: {
           p_action: string
