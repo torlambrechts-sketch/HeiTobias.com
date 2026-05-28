@@ -7,22 +7,39 @@
     "node": ">=20"
   },
   "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
     "db:migrate": "supabase db push",
     "db:types": "supabase gen types typescript --linked --schema public > src/types/database.ts",
+    "db:seed": "supabase db reset",
+    "setup:demo-passwords": "node scripts/setup-demo-passwords.mjs",
     "test:sql": "node scripts/run-sql-tests.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
-    "pg": "^8.13.0"
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.460.0",
+    "pg": "^8.13.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
     "@types/pg": "^8.11.10",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
     "dotenv": "^16.4.7",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
     "typescript": "^5.7.2",
+    "vite": "^5.4.11",
     "vitest": "^2.1.8"
   }
 }

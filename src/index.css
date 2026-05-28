@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* DESIGN.md tokens — see DESIGN.md §3 for the full spec. */
+:root {
+  --paper:        #f4f1ea;
+  --surface:      #fbfaf6;
+  --ink:          #13131a;
+  --muted:        #6a675e;
+  --line:         #2a2a35;
+  --hairline:     #cfcabd;
+
+  --accent:       #e8593a;
+  --role:         #3b5b8c;
+  --person:       #2f6f5e;
+  --highlight:    #c9a227;
+
+  --fit-grow:     #c9a227;
+  --fit-flight:   #e8593a;
+  --fit-stable:   #2f6f5e;
+  --fit-misfit:   #b23a2a;
+
+  --border-weight: 2px;
+  --border-strong: 2.5px;
+  --shadow-hard:   6px 6px 0 var(--ink);
+  --radius:        4px;
+}
+
+html, body, #root {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Archivo', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* Editorial display heading default */
+h1, h2, h3 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 700;
+}
+
+/* Mono eyebrow / metric / label */
+.eyebrow {
+  font-family: 'Space Mono', ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.69rem;
+  color: var(--muted);
+}
+
+/* Section rule pattern from DESIGN.md §3.5 */
+.section-rule {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.section-rule::before,
+.section-rule::after {
+  content: '';
+  flex: 1;
+  border-top: 1px dashed var(--hairline);
+}
