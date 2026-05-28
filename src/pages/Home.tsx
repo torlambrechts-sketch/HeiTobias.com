@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom'
+import { AlertTriangle } from 'lucide-react'
 import { Card, CardEyebrow, CardTitle } from '../components/ui/card.js'
+import { envReady } from '../lib/browser-supabase.js'
 
 export function HomePage() {
+  const env = envReady()
   return (
     <main className="min-h-screen bg-paper px-4 py-12">
       <div className="max-w-3xl mx-auto">
@@ -13,6 +16,27 @@ export function HomePage() {
             a mobile-first candidate flow under <code className="font-mono text-sm">/take/&lt;token&gt;</code>.
           </p>
         </header>
+
+        {!env.ok && (
+          <Card className="mb-6 border-accent">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+              <div>
+                <CardEyebrow className="text-accent">Setup incomplete</CardEyebrow>
+                <CardTitle className="mt-1 text-lg">Supabase env not configured</CardTitle>
+                <p className="mt-2 font-body text-sm text-ink">
+                  Missing: <code className="font-mono text-xs">{env.missing.join(', ')}</code>. The
+                  app loaded, but it can&apos;t talk to the database until you set these.
+                </p>
+                <ol className="mt-3 list-decimal pl-5 font-body text-sm text-ink space-y-1">
+                  <li>Copy <code className="font-mono text-xs">.env.example</code> to <code className="font-mono text-xs">.env.local</code>.</li>
+                  <li>Fill <code className="font-mono text-xs">VITE_SUPABASE_URL</code> and <code className="font-mono text-xs">VITE_SUPABASE_ANON_KEY</code> from the Supabase dashboard.</li>
+                  <li>Restart the dev server: <code className="font-mono text-xs">npm run dev</code>.</li>
+                </ol>
+              </div>
+            </div>
+          </Card>
+        )}
 
         <div className="grid sm:grid-cols-2 gap-4">
           <Link to="/people" className="block">
