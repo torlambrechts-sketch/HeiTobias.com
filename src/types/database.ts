@@ -18,6 +18,336 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessment_instruments: {
+        Row: {
+          body_json: Json
+          created_at: string
+          id: string
+          key: string
+          licensed_by: string | null
+          name: string
+          org_id: string | null
+          updated_at: string
+          validity_status: Database["public"]["Enums"]["validity_status"]
+          vendor: string | null
+          version: string
+        }
+        Insert: {
+          body_json?: Json
+          created_at?: string
+          id?: string
+          key: string
+          licensed_by?: string | null
+          name: string
+          org_id?: string | null
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+          vendor?: string | null
+          version?: string
+        }
+        Update: {
+          body_json?: Json
+          created_at?: string
+          id?: string
+          key?: string
+          licensed_by?: string | null
+          name?: string
+          org_id?: string | null
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+          vendor?: string | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_instruments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_invites: {
+        Row: {
+          assessment_id: string
+          consent_recorded_id: string | null
+          consent_required: boolean
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          org_id: string
+          person_id: string
+          token: string
+          updated_at: string
+          used_at: string | null
+        }
+        Insert: {
+          assessment_id: string
+          consent_recorded_id?: string | null
+          consent_required?: boolean
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          org_id: string
+          person_id: string
+          token: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Update: {
+          assessment_id?: string
+          consent_recorded_id?: string | null
+          consent_required?: boolean
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          org_id?: string
+          person_id?: string
+          token?: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_invites_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_invites_consent_recorded_id_fkey"
+            columns: ["consent_recorded_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_invites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_invites_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_invites_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_items: {
+        Row: {
+          _dev_stub: boolean
+          created_at: string
+          id: string
+          instrument_id: string
+          item_json: Json
+          item_type: string
+          key: string
+          prompt: string
+          updated_at: string
+        }
+        Insert: {
+          _dev_stub?: boolean
+          created_at?: string
+          id?: string
+          instrument_id: string
+          item_json?: Json
+          item_type: string
+          key: string
+          prompt: string
+          updated_at?: string
+        }
+        Update: {
+          _dev_stub?: boolean
+          created_at?: string
+          id?: string
+          instrument_id?: string
+          item_json?: Json
+          item_type?: string
+          key?: string
+          prompt?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_items_instrument_id_fkey"
+            columns: ["instrument_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_instruments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_responses: {
+        Row: {
+          assessment_id: string
+          consent_id: string
+          created_at: string
+          id: string
+          item_id: string
+          org_id: string
+          person_id: string
+          response_json: Json
+          updated_at: string
+        }
+        Insert: {
+          assessment_id: string
+          consent_id: string
+          created_at?: string
+          id?: string
+          item_id: string
+          org_id: string
+          person_id: string
+          response_json?: Json
+          updated_at?: string
+        }
+        Update: {
+          assessment_id?: string
+          consent_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          org_id?: string
+          person_id?: string
+          response_json?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_responses_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_responses_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_responses_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_responses_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_responses_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_scores: {
+        Row: {
+          _dev_stub: boolean
+          assessment_id: string
+          computed_at: string
+          consent_id: string
+          created_at: string
+          id: string
+          norm_band: string | null
+          org_id: string
+          person_id: string
+          raw_score: number | null
+          scale_key: string
+          scaled_score: number | null
+          updated_at: string
+          validity_flags_json: Json
+          validity_status: Database["public"]["Enums"]["validity_status"]
+        }
+        Insert: {
+          _dev_stub?: boolean
+          assessment_id: string
+          computed_at?: string
+          consent_id: string
+          created_at?: string
+          id?: string
+          norm_band?: string | null
+          org_id: string
+          person_id: string
+          raw_score?: number | null
+          scale_key: string
+          scaled_score?: number | null
+          updated_at?: string
+          validity_flags_json?: Json
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+        }
+        Update: {
+          _dev_stub?: boolean
+          assessment_id?: string
+          computed_at?: string
+          consent_id?: string
+          created_at?: string
+          id?: string
+          norm_band?: string | null
+          org_id?: string
+          person_id?: string
+          raw_score?: number | null
+          scale_key?: string
+          scaled_score?: number | null
+          updated_at?: string
+          validity_flags_json?: Json
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_scores_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_scores_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_scores_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_scores_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessments: {
         Row: {
           completed_at: string | null
@@ -132,6 +462,60 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competency_frameworks: {
+        Row: {
+          body_json: Json
+          created_at: string
+          id: string
+          key: string
+          name: string
+          org_id: string | null
+          status: Database["public"]["Enums"]["role_status"]
+          supersedes_id: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          body_json?: Json
+          created_at?: string
+          id?: string
+          key: string
+          name: string
+          org_id?: string | null
+          status?: Database["public"]["Enums"]["role_status"]
+          supersedes_id?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          body_json?: Json
+          created_at?: string
+          id?: string
+          key?: string
+          name?: string
+          org_id?: string | null
+          status?: Database["public"]["Enums"]["role_status"]
+          supersedes_id?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competency_frameworks_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competency_frameworks_supersedes_id_fkey"
+            columns: ["supersedes_id"]
+            isOneToOne: false
+            referencedRelation: "competency_frameworks"
             referencedColumns: ["id"]
           },
         ]
@@ -261,6 +645,161 @@ export type Database = {
             columns: ["parent_department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fit_results: {
+        Row: {
+          _dev_stub: boolean
+          computed_at: string
+          consent_id: string
+          created_at: string
+          fit_json: Json
+          id: string
+          org_id: string
+          person_id: string
+          requisition_id: string
+          role_id: string
+          updated_at: string
+          validity_status: Database["public"]["Enums"]["validity_status"]
+        }
+        Insert: {
+          _dev_stub?: boolean
+          computed_at?: string
+          consent_id: string
+          created_at?: string
+          fit_json?: Json
+          id?: string
+          org_id: string
+          person_id: string
+          requisition_id: string
+          role_id: string
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+        }
+        Update: {
+          _dev_stub?: boolean
+          computed_at?: string
+          consent_id?: string
+          created_at?: string
+          fit_json?: Json
+          id?: string
+          org_id?: string
+          person_id?: string
+          requisition_id?: string
+          role_id?: string
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fit_results_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fit_results_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fit_results_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fit_results_requisition_id_fkey"
+            columns: ["requisition_id"]
+            isOneToOne: false
+            referencedRelation: "requisitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fit_results_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hiring_decisions: {
+        Row: {
+          created_at: string
+          decided_at: string
+          decided_by: string
+          decision: Database["public"]["Enums"]["hiring_decision"]
+          fit_result_id: string | null
+          id: string
+          org_id: string
+          overrode_recommendation: boolean
+          rationale: string
+          recommendation_summary: string | null
+          requisition_candidate_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string
+          decided_by: string
+          decision: Database["public"]["Enums"]["hiring_decision"]
+          fit_result_id?: string | null
+          id?: string
+          org_id: string
+          overrode_recommendation?: boolean
+          rationale: string
+          recommendation_summary?: string | null
+          requisition_candidate_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string
+          decided_by?: string
+          decision?: Database["public"]["Enums"]["hiring_decision"]
+          fit_result_id?: string | null
+          id?: string
+          org_id?: string
+          overrode_recommendation?: boolean
+          rationale?: string
+          recommendation_summary?: string | null
+          requisition_candidate_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hiring_decisions_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hiring_decisions_fit_result_id_fkey"
+            columns: ["fit_result_id"]
+            isOneToOne: false
+            referencedRelation: "fit_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hiring_decisions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hiring_decisions_requisition_candidate_id_fkey"
+            columns: ["requisition_candidate_id"]
+            isOneToOne: false
+            referencedRelation: "requisition_candidates"
             referencedColumns: ["id"]
           },
         ]
@@ -498,6 +1037,84 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      placement_reports: {
+        Row: {
+          created_at: string
+          fit_result_id: string
+          generated_at: string
+          generated_by: string | null
+          id: string
+          org_id: string
+          person_id: string
+          report_html: string | null
+          report_pdf_url: string | null
+          requisition_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fit_result_id: string
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          org_id: string
+          person_id: string
+          report_html?: string | null
+          report_pdf_url?: string | null
+          requisition_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fit_result_id?: string
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          org_id?: string
+          person_id?: string
+          report_html?: string | null
+          report_pdf_url?: string | null
+          requisition_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "placement_reports_fit_result_id_fkey"
+            columns: ["fit_result_id"]
+            isOneToOne: false
+            referencedRelation: "fit_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "placement_reports_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "placement_reports_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "placement_reports_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "placement_reports_requisition_id_fkey"
+            columns: ["requisition_id"]
+            isOneToOne: false
+            referencedRelation: "requisitions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       placements: {
         Row: {
@@ -944,6 +1561,129 @@ export type Database = {
           },
         ]
       }
+      role_definition_evaluations: {
+        Row: {
+          created_at: string
+          evaluator_id: string
+          id: string
+          org_id: string
+          ratings_json: Json
+          requisition_id: string
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          evaluator_id: string
+          id?: string
+          org_id: string
+          ratings_json?: Json
+          requisition_id: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          evaluator_id?: string
+          id?: string
+          org_id?: string
+          ratings_json?: Json
+          requisition_id?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_definition_evaluations_evaluator_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_definition_evaluations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_definition_evaluations_requisition_id_fkey"
+            columns: ["requisition_id"]
+            isOneToOne: false
+            referencedRelation: "requisitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      role_definition_reconciliations: {
+        Row: {
+          created_at: string
+          divergence_json: Json
+          id: string
+          org_id: string
+          produced_role_id: string | null
+          reconciled_at: string | null
+          reconciled_by: string | null
+          reconciled_json: Json
+          requisition_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          divergence_json?: Json
+          id?: string
+          org_id: string
+          produced_role_id?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          reconciled_json?: Json
+          requisition_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          divergence_json?: Json
+          id?: string
+          org_id?: string
+          produced_role_id?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          reconciled_json?: Json
+          requisition_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_definition_reconciliations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_definition_reconciliations_produced_role_id_fkey"
+            columns: ["produced_role_id"]
+            isOneToOne: false
+            referencedRelation: "roles_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_definition_reconciliations_reconciled_by_fkey"
+            columns: ["reconciled_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_definition_reconciliations_requisition_id_fkey"
+            columns: ["requisition_id"]
+            isOneToOne: false
+            referencedRelation: "requisitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roles_catalog: {
         Row: {
           authored_by_json: Json
@@ -1193,14 +1933,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      role_version_create: {
-        Args: { p_role_id: string; p_new_definition: Json; p_new_authored_by?: Json }
+      _caller_has_submitted_evaluation: {
+        Args: { p_requisition_id: string }
+        Returns: boolean
+      }
+      _dev_stub_score: {
+        Args: {
+          p_assessment_id: string
+          p_consent_id: string
+          p_person_id: string
+          p_scale_key: string
+        }
         Returns: string
       }
-      placement_execute: {
-        Args: { p_requisition_id: string; p_person_id: string; p_to_org_id: string; p_consent_id: string }
-        Returns: string
-      }
+      _invite_from_header: { Args: never; Returns: string }
       audit_log_event: {
         Args: {
           p_action: string
@@ -1223,6 +1969,23 @@ export type Database = {
         Returns: boolean
       }
       is_self: { Args: { person_id: string }; Returns: boolean }
+      placement_execute: {
+        Args: {
+          p_consent_id: string
+          p_person_id: string
+          p_requisition_id: string
+          p_to_org_id: string
+        }
+        Returns: string
+      }
+      role_version_create: {
+        Args: {
+          p_new_authored_by?: Json
+          p_new_definition: Json
+          p_role_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       assessment_status: "invited" | "in_progress" | "completed" | "expired"
@@ -1236,6 +1999,8 @@ export type Database = {
         | "research_anonymized"
       consent_status: "active" | "revoked" | "expired"
       data_region: "eu" | "us" | "apac"
+      fit_band_status: "in" | "below" | "above"
+      hiring_decision: "advance" | "reject" | "hire" | "withdraw"
       membership_status: "invited" | "active" | "suspended" | "removed"
       module_status: "alpha" | "beta" | "stable" | "deprecated"
       org_status: "active" | "suspended" | "archived"
@@ -1270,6 +2035,7 @@ export type Database = {
         | "notification"
         | "workflow"
       template_status: "draft" | "active" | "archived"
+      validity_status: "dev_stub" | "licensed" | "validated"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1409,6 +2175,8 @@ export const Constants = {
       ],
       consent_status: ["active", "revoked", "expired"],
       data_region: ["eu", "us", "apac"],
+      fit_band_status: ["in", "below", "above"],
+      hiring_decision: ["advance", "reject", "hire", "withdraw"],
       membership_status: ["invited", "active", "suspended", "removed"],
       module_status: ["alpha", "beta", "stable", "deprecated"],
       org_status: ["active", "suspended", "archived"],
@@ -1447,6 +2215,7 @@ export const Constants = {
         "workflow",
       ],
       template_status: ["draft", "active", "archived"],
+      validity_status: ["dev_stub", "licensed", "validated"],
     },
   },
 } as const
