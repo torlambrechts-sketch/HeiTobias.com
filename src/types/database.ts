@@ -1959,6 +1959,10 @@ export type Database = {
         }
         Returns: string
       }
+      compute_role_definition_divergence: {
+        Args: { p_requisition_id: string }
+        Returns: Json
+      }
       consent_active: { Args: { consent_grant_id: string }; Returns: boolean }
       has_permission: {
         Args: { org_id: string; permission_key: string }
@@ -1976,6 +1980,10 @@ export type Database = {
           p_requisition_id: string
           p_to_org_id: string
         }
+        Returns: string
+      }
+      reconcile_role_definition: {
+        Args: { p_reconciled_weights: Json; p_requisition_id: string }
         Returns: string
       }
       role_instantiate_from_template: {
