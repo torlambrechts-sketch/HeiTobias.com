@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build Plan & Feature Spec — Talent Lifecycle Platform</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Mono:wght@400;700&family=Archivo:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --ink:#13131a;--paper:#f4f1ea;--line:#2a2a35;
+    --accent:#e8593a;--accent2:#2f6f5e;--accent3:#c9a227;--accent4:#3b5b8c;
+    --muted:#6a675e;--card:#fbfaf6;--shadow:6px 6px 0 var(--ink);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--paper);color:var(--ink);font-family:'Archivo',sans-serif;line-height:1.5;
+    padding:0 0 90px;
+    background-image:radial-gradient(var(--ink) 0.5px,transparent 0.5px);
+    background-size:22px 22px;background-position:-11px -11px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+
+  header{border-bottom:3px solid var(--ink);padding:48px 0 28px;margin-bottom:40px}
+  .eyebrow{font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:3px;font-size:12px;color:var(--accent);font-weight:700;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:34px;height:2px;background:var(--accent)}
+  h1{font-family:'Fraunces',serif;font-size:clamp(34px,6vw,58px);font-weight:600;line-height:1;margin:16px 0 14px;letter-spacing:-1.5px}
+  h1 em{font-style:italic;color:var(--accent)}
+  .sub{max-width:720px;font-size:17px;color:var(--muted)}
+
+  .section-rule{display:flex;align-items:center;gap:16px;margin:48px 0 26px}
+  .section-rule::before,.section-rule::after{content:"";height:2px;background:var(--ink);flex:1}
+  .section-rule span{font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:700;white-space:nowrap}
+
+  /* PHASE TIMELINE */
+  .timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:10px}
+  .phase{border:2.5px solid var(--ink);background:var(--card);box-shadow:var(--shadow);position:relative;display:flex;flex-direction:column}
+  .phase + .phase{border-left:none}
+  .phase:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--ink);transition:.15s}
+  .ph-top{padding:14px 15px;border-bottom:2.5px solid var(--ink)}
+  .ph-p1 .ph-top{background:var(--accent)}
+  .ph-p2 .ph-top{background:var(--accent3)}
+  .ph-p3 .ph-top{background:var(--accent2)}
+  .ph-p4 .ph-top{background:var(--accent4)}
+  .ph-num{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--paper);letter-spacing:1px;opacity:.85}
+  .ph-name{font-family:'Fraunces',serif;font-size:21px;font-weight:600;color:var(--paper);line-height:1.05;margin-top:3px}
+  .ph-when{font-family:'Space Mono',monospace;font-size:10.5px;color:var(--paper);opacity:.8;margin-top:5px;text-transform:uppercase;letter-spacing:.5px}
+  .ph-body{padding:14px 15px;flex:1;display:flex;flex-direction:column;gap:9px}
+  .ph-goal{font-size:13px;color:var(--ink);font-weight:600}
+  .ph-list{display:flex;flex-direction:column;gap:5px;margin-top:2px}
+  .ph-list span{font-size:12px;color:var(--muted);padding-left:15px;position:relative;line-height:1.4}
+  .ph-list span::before{content:"";position:absolute;left:0;top:6px;width:7px;height:7px;border:1.5px solid var(--ink);background:var(--paper)}
+  .ph-metric{margin-top:auto;font-family:'Space Mono',monospace;font-size:10.5px;background:var(--ink);color:var(--paper);padding:8px 10px;letter-spacing:.3px;line-height:1.4}
+  .ph-metric b{color:var(--accent3)}
+
+  .arrowstrip{display:flex;align-items:center;justify-content:center;gap:12px;font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:16px 0 4px}
+  .arrowstrip b{color:var(--accent)}
+
+  /* FEATURE MODULES */
+  .mod{border:2.5px solid var(--ink);background:var(--card);box-shadow:var(--shadow);margin-bottom:22px;overflow:hidden}
+  .mod-head{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:2.5px solid var(--ink);background:var(--ink)}
+  .mod-icon{width:34px;height:34px;border:2px solid var(--paper);display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-weight:700;font-size:15px;color:var(--paper);flex-shrink:0}
+  .mod-i1{background:var(--accent)}.mod-i2{background:var(--accent3)}.mod-i3{background:var(--accent2)}.mod-i4{background:var(--accent4)}
+  .mod-title{font-family:'Fraunces',serif;font-size:23px;font-weight:600;color:var(--paper);letter-spacing:-.5px;line-height:1}
+  .mod-sub{font-family:'Space Mono',monospace;font-size:10.5px;color:var(--paper);opacity:.7;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+  .mod-phase{margin-left:auto;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:5px 9px;border:2px solid var(--paper);color:var(--paper);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+  .mod-body{padding:20px}
+  .mod-intro{font-size:14.5px;color:var(--ink);max-width:880px;margin-bottom:18px;line-height:1.55}
+  .mod-intro strong{color:var(--ink)}
+  .mod-intro em{font-style:italic;color:var(--accent)}
+
+  .feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .feat{border:2px solid var(--ink);padding:13px 15px;background:var(--paper)}
+  .feat-t{font-weight:800;font-size:14px;margin-bottom:5px;display:flex;align-items:center;gap:8px}
+  .feat-t .pin{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:2px 6px;background:var(--ink);color:var(--paper);letter-spacing:.5px}
+  .feat-t .pin.p1{background:var(--accent)}.feat-t .pin.p2{background:var(--accent3)}.feat-t .pin.p3{background:var(--accent2)}.feat-t .pin.p4{background:var(--accent4)}
+  .feat-d{font-size:12.5px;color:var(--muted);line-height:1.5}
+  .feat-d b{color:var(--ink)}
+
+  .flag{margin-top:16px;padding:12px 16px;border:2px solid var(--accent);background:#f9ece8;font-size:13px;line-height:1.5}
+  .flag b{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px}
+
+  /* CORE / FOUNDATION */
+  .core-intro{border:2.5px solid var(--ink);background:var(--card);box-shadow:var(--shadow);padding:18px 22px;margin-bottom:18px}
+  .core-intro p{font-size:14.5px;color:var(--ink);line-height:1.55;max-width:920px}
+  .core-intro em{font-style:italic;color:var(--accent)}
+  .core-block{margin-bottom:16px}
+  .core-head{display:flex;align-items:center;gap:12px;font-family:'Fraunces',serif;font-size:20px;font-weight:600;letter-spacing:-.5px;margin-bottom:12px}
+  .core-tag{font-family:'Space Mono',monospace;font-weight:700;font-size:13px;background:var(--ink);color:var(--paper);width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .core-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .citem{border:2px solid var(--ink);background:var(--paper);padding:13px 14px;display:flex;flex-direction:column}
+  .ci-t{font-weight:800;font-size:14px;margin-bottom:5px}
+  .ci-d{font-size:12.5px;color:var(--muted);line-height:1.48;flex:1}
+  .ci-d b{color:var(--ink)}
+  .ci-meta{font-family:'Space Mono',monospace;font-size:9.5px;color:var(--ink);text-transform:uppercase;letter-spacing:.4px;margin-top:10px;padding-top:9px;border-top:1.5px dashed #cfcabd}
+
+  .tech-row{margin-top:14px;font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink);text-transform:uppercase;letter-spacing:.5px;padding-top:12px;border-top:1.5px dashed #cfcabd}
+  .tech-row b{color:var(--muted)}
+
+  /* pricing / motion strip */
+  .motion{border:2.5px dashed var(--ink);background:repeating-linear-gradient(45deg,#fbfaf6,#fbfaf6 10px,#f2efe6 10px,#f2efe6 20px);padding:22px 24px;box-shadow:var(--shadow)}
+  .motion h3{font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin-bottom:10px}
+  .motion p{font-size:14px;color:var(--ink);max-width:880px;line-height:1.55}
+  .price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+  .price{background:var(--card);border:2.5px solid var(--ink);padding:15px 16px}
+  .price-w{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);font-weight:700}
+  .price-n{font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin:3px 0 8px}
+  .price-d{font-size:12.5px;color:var(--muted);line-height:1.45}
+
+  footer{margin-top:54px;border-top:3px solid var(--ink);padding-top:20px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;text-transform:uppercase;letter-spacing:1px}
+
+  @media(max-width:880px){
+    .timeline{grid-template-columns:1fr}
+    .phase + .phase{border-left:2.5px solid var(--ink);border-top:none}
+    .feat-grid{grid-template-columns:1fr}
+    .core-grid{grid-template-columns:1fr}
+    .price-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Build Plan + Feature Spec · Talent Lifecycle Platform</div>
+    <h1>Start narrow, <em>seed the spine</em>,<br>switch on the expansion.</h1>
+    <p class="sub">Ship a standalone recruiter product first — sellable on its own. Every placement quietly seeds the data spine. Once enough profiles exist inside employers, the lifecycle layer switches on as the land-and-expand play. Four phases, each shippable, each a real business on its own.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- PHASE TIMELINE -->
+  <div class="section-rule"><span>The four phases</span></div>
+
+  <div class="timeline">
+    <div class="phase ph-p1">
+      <div class="ph-top">
+        <div class="ph-num">PHASE 1</div>
+        <div class="ph-name">Recruiter OS</div>
+        <div class="ph-when">Months 0–4 · MVP</div>
+      </div>
+      <div class="ph-body">
+        <div class="ph-goal">Standalone tool that makes agency placements rigorous &amp; defensible.</div>
+        <div class="ph-list">
+          <span>Team-based role definition</span>
+          <span>Candidate assessment (licensed instruments)</span>
+          <span>Fit scoring vs. role</span>
+          <span>Placement-quality report for the client</span>
+        </div>
+        <div class="ph-metric">SEEDS: every placement creates a <b>role + person profile</b>. Goal: 10–20 agencies.</div>
+      </div>
+    </div>
+
+    <div class="phase ph-p2">
+      <div class="ph-top">
+        <div class="ph-num">PHASE 2</div>
+        <div class="ph-name">The Hand-off</div>
+        <div class="ph-when">Months 4–8</div>
+      </div>
+      <div class="ph-body">
+        <div class="ph-goal">Profile travels to the employer at placement, consent-gated.</div>
+        <div class="ph-list">
+          <span>Candidate-owned portable profile</span>
+          <span>Employer onboarding from inherited data</span>
+          <span>Auto-generated 90-day plan</span>
+          <span>Model 1 transfer + Model 2 shared workspace</span>
+        </div>
+        <div class="ph-metric">CONVERTS: agencies bring employers. Goal: first <b>15–30 employers</b> activated.</div>
+      </div>
+    </div>
+
+    <div class="phase ph-p3">
+      <div class="ph-top">
+        <div class="ph-num">PHASE 3</div>
+        <div class="ph-name">Lifecycle layer</div>
+        <div class="ph-when">Months 8–14</div>
+      </div>
+      <div class="ph-body">
+        <div class="ph-goal">The retention engine. Managers get continuous, specific guidance.</div>
+        <div class="ph-list">
+          <span>Manager workspace + guidance composer</span>
+          <span>Team composition engine</span>
+          <span>Pulse signals (not annual surveys)</span>
+          <span>Re-fit: person-drift vs. role-drift</span>
+        </div>
+        <div class="ph-metric">EXPANDS: ACV grows 3–5×. Goal: <b>50+ employers</b>, net revenue retention &gt;110%.</div>
+      </div>
+    </div>
+
+    <div class="phase ph-p4">
+      <div class="ph-top">
+        <div class="ph-num">PHASE 4</div>
+        <div class="ph-name">Intelligence &amp; scale</div>
+        <div class="ph-when">Months 14–24+</div>
+      </div>
+      <div class="ph-body">
+        <div class="ph-goal">Proprietary prediction + EU expansion. The moat compounds.</div>
+        <div class="ph-list">
+          <span>Predictive models on outcome data</span>
+          <span>Proprietary Nordic-normed instruments</span>
+          <span>EU AI Act bias-audit automation</span>
+          <span>SE → DK → DACH → Benelux</span>
+        </div>
+        <div class="ph-metric">MOAT: <b>Person × Role × Outcome</b> data nobody else has. Series A territory.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrowstrip"><span>each phase is sellable alone</span><b>→</b><span>but each one seeds the next</span></div>
+
+  <!-- ============ CORE / FOUNDATION ============ -->
+  <div class="section-rule"><span>Phase 0 — the core the whole system sits on</span></div>
+
+  <div class="core-intro">
+    <p>Before any feature ships, the platform needs its primitives: <strong>the entities everything else references</strong> (organization, people, teams, roles) and the <strong>plumbing that makes it multi-tenant, secure and connected</strong> (rights, integrations, settings, audit). This isn't glamorous, but get it wrong and every later module inherits the pain — especially the three-party data model and EU residency, which are near-impossible to retrofit. Build this <em>first</em>.</p>
+  </div>
+
+  <!-- CORE ENTITIES -->
+  <div class="core-block">
+    <div class="core-head"><span class="core-tag">A</span>Core entities — the data model</div>
+    <div class="core-grid">
+      <div class="citem">
+        <div class="ci-t">Organization / Tenant</div>
+        <div class="ci-d">Top-level boundary. Every record belongs to a tenant; data is isolated per org. Supports the multi-tenant split between <b>agency</b> orgs and <b>employer</b> orgs that the hand-off depends on.</div>
+        <div class="ci-meta">root of all RLS · agency ⇄ employer types</div>
+      </div>
+      <div class="citem">
+        <div class="ci-t">People (Person record)</div>
+        <div class="ci-d">The universal person entity — a candidate, an employee, a manager, a recruiter are all <b>People</b> in different states. One identity that persists from candidate → hire → tenure, carrying the profile.</div>
+        <div class="ci-meta">candidate · employee · manager · recruiter</div>
+      </div>
+      <div class="citem">
+        <div class="ci-t">Teams &amp; Departments</div>
+        <div class="ci-d">Hierarchical org structure — departments contain teams contain people. The unit the <b>team composition engine</b> and <b>team-based role definition</b> operate on; also how reporting lines and manager scope are derived.</div>
+        <div class="ci-meta">nested · reporting lines · manager scope</div>
+      </div>
+      <div class="citem">
+        <div class="ci-t">Roles (the role profile)</div>
+        <div class="ci-d">Entity A of the spine — a first-class record, not a job-title string. Versioned, team-authored, attached to positions. A <b>position</b> is an instance of a role a specific person fills.</div>
+        <div class="ci-meta">role profile ≠ position ≠ job title</div>
+      </div>
+      <div class="citem">
+        <div class="ci-t">Profiles &amp; Assessments</div>
+        <div class="ci-d">Entity B — the person's cognitive/personality/values data, plus the assessment instances that produced it. Linked to the Person, consent-scoped, time-stamped for re-fit history.</div>
+        <div class="ci-meta">consent-scoped · versioned over tenure</div>
+      </div>
+      <div class="citem">
+        <div class="ci-t">Requisitions &amp; Placements</div>
+        <div class="ci-d">The hiring transaction object — a requisition links a role + a team + candidates; a placement is the closed event that triggers the consent-gated hand-off from agency to employer.</div>
+        <div class="ci-meta">the hand-off trigger · links agency↔employer</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCESS & SECURITY -->
+  <div class="core-block">
+    <div class="core-head"><span class="core-tag">B</span>Access, rights &amp; security</div>
+    <div class="core-grid">
+      <div class="citem">
+        <div class="ci-t">Identity &amp; SSO</div>
+        <div class="ci-d">Login via Okta, Entra ID, Google Workspace. SCIM provisioning so employees/managers sync automatically from the company directory. No manual user management at scale.</div>
+        <div class="ci-meta">SSO · SCIM · MFA</div>
+      </div>
+      <div class="citem">
+        <div class="ci-t">RBAC — roles &amp; rights</div>
+        <div class="ci-d">Granular permission roles: <b>recruiter, hiring manager, people-ops admin, manager, employee, org admin</b>. What each can see and do is scoped by role <b>and</b> by their position in the org tree.</div>
+        <div class="ci-meta">role × scope · least-privilege default</div>
+      </div>
+      <div class="citem">
+        <div class="ci-t">Row-level security</div>
+        <div class="ci-d">Enforced at the database layer (Supabase RLS), not just the UI. A manager sees only their reports; an agency sees only its requisitions. Security that can't be bypassed by a crafted request.</div>
+        <div class="ci-meta">Postgres RLS · tenant + scope isolation</div>
+      </div>
+      <div class="citem">
+        <div class="ci-t">Consent &amp; data ownership</div>
+        <div class="ci-d">The consent ledger — who consented to what, when, revocable. Powers the candidate-owned portable profile and the three-party (agency·candidate·employer) hand-off. <b>GDPR core, not an add-on.</b></div>
+        <div class="ci-meta">consent ledger · purpose limitation · revocable</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLATFORM PLUMBING -->
+  <div class="core-block">
+    <div class="core-head"><span class="core-tag">C</span>Integrations, settings &amp; operations</div>
+    <div class="core-grid">
+      <div class="citem">
+        <div class="ci-t">HRIS &amp; ATS integrations</div>
+        <div class="ci-d">Two-way sync with HiBob, Personio, Workday (HRIS) and the agency's ATS. Don't reinvent the system of record — read org/people structure in, write profiles/outcomes back.</div>
+        <div class="ci-meta">HiBob · Personio · Workday · ATS connectors</div>
+      </div>
+      <div class="citem">
+        <div class="ci-t">Workflow integrations</div>
+        <div class="ci-d">Slack, Teams, calendar, email — the channels guidance and prompts are delivered through. Webhooks &amp; an open API so customers and partners can extend.</div>
+        <div class="ci-meta">Slack · Teams · calendar · webhooks · API</div>
+      </div>
+      <div class="citem">
+        <div class="ci-t">Org settings &amp; configuration</div>
+        <div class="ci-d">Per-tenant config: branding, languages (NO/SE/DK/EN), assessment defaults, re-fit cadence, notification rules, data-retention policy. The modular config pattern from your Conscia work.</div>
+        <div class="ci-meta">branding · locale · cadences · retention</div>
+      </div>
+      <div class="citem">
+        <div class="ci-t">Audit log &amp; data residency</div>
+        <div class="ci-d">Immutable, queryable audit trail of every consequential action. EU-region hosting and residency guarantees. The substrate the EU AI Act technical documentation is generated from.</div>
+        <div class="ci-meta">immutable log · EU region · AI-Act-ready</div>
+      </div>
+      <div class="citem">
+        <div class="ci-t">Billing &amp; plans</div>
+        <div class="ci-d">Per-seat (agency), per-hire (activation), per-employee (lifecycle) — the three pricing layers metered separately. Usage tracking, seats, subscription state.</div>
+        <div class="ci-meta">per-seat · per-hire · per-employee metering</div>
+      </div>
+      <div class="citem">
+        <div class="ci-t">Notifications &amp; jobs</div>
+        <div class="ci-d">The scheduler &amp; event system behind re-fit reminders, pulse cadences, onboarding milestones and digest delivery. Background jobs that keep the lifecycle running without manual triggers.</div>
+        <div class="ci-meta">scheduler · event bus · background jobs</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flag" style="margin-top:6px">
+    <b>Why Phase 0 is non-negotiable</b>
+    Three things here cannot be retrofitted without a painful rebuild: <b>multi-tenancy</b> (agency vs. employer isolation), the <b>consent ledger / three-party data model</b>, and <b>EU data residency</b>. The rest of the platform assumes these exist. Build the core thin but correct — you don't need every integration on day one, but you do need the entity model, RLS, consent and tenancy right from the first commit.
+  </div>
+
+  <!-- ============ FEATURE DEEP DIVE ============ -->
+  <div class="section-rule"><span>Feature spec — module by module</span></div>
+
+  <!-- MODULE: ROLE ARCHITECTURE -->
+  <div class="mod">
+    <div class="mod-head">
+      <div class="mod-icon mod-i1">R</div>
+      <div>
+        <div class="mod-title">Role Architecture Engine</div>
+        <div class="mod-sub">the measuring stick · entity A of the spine</div>
+      </div>
+      <div class="mod-phase">Phase 1</div>
+    </div>
+    <div class="mod-body">
+      <p class="mod-intro">The most overlooked entity in the category. Every fit-score, prediction and piece of guidance is a comparison — and a comparison needs a defined target. This engine builds, versions and evolves the role profile. In v1 it ships as a <strong>library of pre-built, advisor-validated role templates</strong> that teams tune — not blank job-analysis (which would produce garbage-in-garbage-out).</p>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Template library</div>
+          <div class="feat-d">20–30 common roles pre-built and validated by an I/O advisor. Teams start from a sane default rather than a blank form. Expands over time into a versioned catalogue.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Weighted competencies</div>
+          <div class="feat-d">Behavioural &amp; skill dimensions that predict success, each <b>importance-weighted</b> — not a flat checklist. The weights drive the fit score.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Trait target ranges</div>
+          <div class="feat-d">Optimal <b>bands per trait</b>, not "more is better." Too much conscientiousness in a fast-pivot role is as much a misfit as too little. More correct and more defensible.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Context factors</div>
+          <div class="feat-d">Autonomy, ambiguity tolerance, pace, collaboration intensity, stakeholder load. The situational demands that traits get scored against.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Evolution vector</div>
+          <div class="feat-d">Where the role is <b>heading</b> over the next 12–24 months. The conceptual bridge that connects hiring to development — you grow people toward where the role is going.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Versioning &amp; sign-off</div>
+          <div class="feat-d">Every change is versioned and attributable. "The role was defined like this, by these people, on this date" — your audit trail and legal armor.</div>
+        </div>
+      </div>
+      <div class="flag"><b>Why it matters</b>Defining the role rigorously is what makes "fit" mean anything — and what makes a hiring decision defensible under the EU AI Act, where requirements must be demonstrably job-relevant.</div>
+      <div class="tech-row"><b>stack:</b> role library · versioned schema · template engine · Supabase/Postgres</div>
+    </div>
+  </div>
+
+  <!-- MODULE: TEAM-BASED DEFINITION -->
+  <div class="mod">
+    <div class="mod-head">
+      <div class="mod-icon mod-i1">T</div>
+      <div>
+        <div class="mod-title">Team-Based Role Definition</div>
+        <div class="mod-sub">collective authoring · bias reduction · team-fit</div>
+      </div>
+      <div class="mod-phase">Phase 1</div>
+    </div>
+    <div class="mod-body">
+      <p class="mod-intro">A role defined by one manager is a single point of bias — usually "someone like me" or "someone who fixes my current pain." When the <strong>team that will work with the role co-defines it</strong>, you get a fuller picture, built-in bias reduction, and a documented collective decision. The hard part — and where the product wins — is the <em>reconciliation flow</em>.</p>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Independent rating</div>
+          <div class="feat-d">Each team member rates criteria importance <b>separately, before seeing others</b> — classic structured-decision technique that prevents anchoring on the loudest voice.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Divergence surfacing</div>
+          <div class="feat-d">The system <b>highlights disagreement</b> rather than averaging it away. "Manager weights autonomy high; team weights collaboration high" — that conflict is the most useful signal in the room.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Reconciliation session</div>
+          <div class="feat-d">A guided flow to resolve divergence into a final weighted profile. Forces a sharper, shared definition of the role before anyone is assessed against it.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Team composition gap</div>
+          <div class="feat-d">Reads the existing team's <b>collective profile</b> (from members' own validated assessments) to identify what's <b>missing</b>. The candidate is scored vs. role + team gap, not role alone.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Quick vs. workshop paths</div>
+          <div class="feat-d">A fast "template tune" path for high-volume roles, and a full team-workshop path for senior/critical hires. Friction matched to stakes.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Documented decision</div>
+          <div class="feat-d">Collective, attributable definition = strong bias-reduction evidence. Far more defensible than "the manager decided."</div>
+        </div>
+      </div>
+      <div class="flag"><b>Critical guardrail</b>Team composition is built from each member's <b>own</b> validated profile — <b>NOT</b> peers rating each other's personalities. The former is powerful and defensible; the latter is surveillance that poisons trust and fails bias scrutiny. Build the former only.</div>
+      <div class="tech-row"><b>stack:</b> multi-evaluator flow · divergence engine · aggregation service · RBAC scoping</div>
+    </div>
+  </div>
+
+  <!-- MODULE: ASSESSMENT -->
+  <div class="mod">
+    <div class="mod-head">
+      <div class="mod-icon mod-i1">A</div>
+      <div>
+        <div class="mod-title">Assessment Module</div>
+        <div class="mod-sub">entity B seed · cognitive + personality + work-style</div>
+      </div>
+      <div class="mod-phase">Phase 1</div>
+    </div>
+    <div class="mod-body">
+      <p class="mod-intro">Creates the <strong>Person Profile</strong> — the seed of the entire data spine. Deliberately positioned as a <em>finalist deep-dive</em>, not a top-of-funnel screener: the 2–3 candidates who matter get a rich, ~30-minute assessment whose data lives for the employee's whole tenure. In v1, <strong>license validated instruments</strong> rather than building from scratch.</p>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Cognitive ability</div>
+          <div class="feat-d">Adaptive ~15–20 min test, calibrated to the role's cognitive demand level. The strongest single predictor of performance after structured interviews.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Personality / work-style</div>
+          <div class="feat-d">Big Five-based (e.g. IPIP-NEO licensed for v1), ~8–10 min. Scored against the role's <b>trait target ranges</b>, not generic norms.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Values &amp; drivers</div>
+          <div class="feat-d">Motivational fit — what energises this person. Feeds both the hiring decision and later the guidance &amp; growth layers.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Validity &amp; consistency checks</div>
+          <div class="feat-d">Response-consistency, social-desirability and careless-responding flags so a profile is trustworthy before it seeds the spine.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Candidate experience</div>
+          <div class="feat-d">Mobile-first, no-login, branded for the agency or employer. Low abandonment — assessment UX is a real differentiator.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p4">P4</span>Proprietary instruments</div>
+          <div class="feat-d">Replace licensed tests with Nordic-normed proprietary instruments once enough data exists — part of the long-term moat.</div>
+        </div>
+      </div>
+      <div class="flag"><b>Hard dependency</b>This module requires a credentialed <b>I/O psychologist</b> on the team or as a public advisor. Without one, the "science-backed" claim is hollow and collapses at the first sophisticated procurement question.</div>
+      <div class="tech-row"><b>stack:</b> adaptive item engine · scoring service · edge functions · licensed instrument layer</div>
+    </div>
+  </div>
+
+  <!-- MODULE: FIT SCORING + PLACEMENT REPORT -->
+  <div class="mod">
+    <div class="mod-head">
+      <div class="mod-icon mod-i1">F</div>
+      <div>
+        <div class="mod-title">Fit Scoring &amp; Placement Report</div>
+        <div class="mod-sub">the comparison · the recruiter's deliverable</div>
+      </div>
+      <div class="mod-phase">Phase 1</div>
+    </div>
+    <div class="mod-body">
+      <p class="mod-intro">Where the two entities meet. Person measured against role (and team gap) produces a fit picture — and for the recruiter, a <strong>client-ready placement report</strong> that signals rigor and justifies their fee. This is the deliverable that makes the standalone Phase-1 product sellable on its own.</p>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Multi-dimensional fit</div>
+          <div class="feat-d">Not one number. Fit shown per competency, trait-range, cognitive demand and context factor — so a manager sees <b>where</b> someone fits and where they'll stretch.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Strengths &amp; friction</div>
+          <div class="feat-d">Predictable strengths and predictable friction points for this person <b>in this specific role</b> — actionable, not abstract trait labels.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Placement report (client-ready)</div>
+          <div class="feat-d">Branded, defensible summary the agency hands its client. Turns "trust me" into "here's the structured evidence" — the recruiter's value-signal.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p1">P1</span>Side-by-side shortlist</div>
+          <div class="feat-d">Compare finalists against the same role target. Structured comparison instead of gut-feel ranking.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Quality floors</div>
+          <div class="feat-d">Guardrails that prevent a low-rigor profile from being handed over — protects the inheriting employer (and your reputation) from garbage-in.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p4">P4</span>Adverse-impact view</div>
+          <div class="feat-d">Surfaces potential disparate impact in selection — the precursor to full bias-audit automation in Phase 4.</div>
+        </div>
+      </div>
+      <div class="flag"><b>Framing</b>The fit score <b>informs</b> a human decision — it never makes it. Human-in-the-loop isn't just good practice; it's an EU AI Act requirement for high-risk hiring systems.</div>
+      <div class="tech-row"><b>stack:</b> scoring service · report generator (PDF/web) · comparison engine</div>
+    </div>
+  </div>
+
+  <!-- MODULE: HAND-OFF / PORTABILITY -->
+  <div class="mod">
+    <div class="mod-head">
+      <div class="mod-icon mod-i2">H</div>
+      <div>
+        <div class="mod-title">The Hand-off &amp; Portability</div>
+        <div class="mod-sub">the conversion mechanism · land-and-expand</div>
+      </div>
+      <div class="mod-phase">Phase 2</div>
+    </div>
+    <div class="mod-body">
+      <p class="mod-intro">The strategic heart of the channel play. At placement, the role + person profile <strong>travels to the employer</strong>, who arrives pre-seeded instead of blank. This is what turns the agency into a customer-acquisition engine and creates a real switching cost — the data is <em>already there</em>.</p>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-t"><span class="pin p2">P2</span>Candidate-owned profile</div>
+          <div class="feat-d">The profile belongs to the <b>candidate</b>, who consents to it traveling. "Your profile is yours and follows you" is a genuine selling point to candidates, not just compliance.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p2">P2</span>Consent-gated transfer</div>
+          <div class="feat-d">Explicit, purpose-limited consent for the profile to move to the employer and be used post-hire. Logged, revocable, GDPR-clean.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p2">P2</span>Model 1 — hand-over</div>
+          <div class="feat-d">Separate agency &amp; employer instances; profile <b>transfers</b> at placement. How agencies bring you employers who aren't customers yet — the acquisition path.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p2">P2</span>Model 2 — shared workspace</div>
+          <div class="feat-d">Employer already on-platform invites the agency into a requisition as a scoped collaborator. Data is simply <b>already there</b> at close. Stickier.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p2">P2</span>Employer onboarding</div>
+          <div class="feat-d">First-run experience that activates the inherited data immediately — no re-entry, instant value, low activation friction.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p2">P2</span>Channel posture controls</div>
+          <div class="feat-d">Clear rules on what the agency sees after hand-off vs. the employer — so agencies trust the platform and don't fear disintermediation.</div>
+        </div>
+      </div>
+      <div class="flag"><b>Design-in from schema</b>This is a <b>three-party GDPR relationship</b> (agency · candidate · employer). Consent, purpose limitation and portability must be in the data model from day one — retrofitting later is painful. Your security background should own this early.</div>
+      <div class="tech-row"><b>stack:</b> multi-tenant model · consent ledger · scoped data transfer · SSO/SCIM</div>
+    </div>
+  </div>
+
+  <!-- MODULE: 90-DAY KICKSTART -->
+  <div class="mod">
+    <div class="mod-head">
+      <div class="mod-icon mod-i2">90</div>
+      <div>
+        <div class="mod-title">The 90-Day Kickstart</div>
+        <div class="mod-sub">first proof of the lifecycle value</div>
+      </div>
+      <div class="mod-phase">Phase 2</div>
+    </div>
+    <div class="mod-body">
+      <p class="mod-intro">The first taste of life beyond hiring — and the feature that proves the post-hire layer is worth paying for. The inherited profile <strong>auto-generates a tailored onboarding plan</strong> for the manager: not "schedule a 1:1," but specific actions for <em>this</em> person given how they work.</p>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-t"><span class="pin p2">P2</span>Profile-tailored plan</div>
+          <div class="feat-d">A structured 90-day journey generated from the new hire's traits, values and the role's context. Specific, dated, actionable — delivered to the manager weekly.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p2">P2</span>Manager prompts</div>
+          <div class="feat-d">"This person has low ambiguity tolerance — front-load structure in week one; here are 3 concrete moves." Turns profile data into Monday-morning action.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p2">P2</span>Milestone tracking</div>
+          <div class="feat-d">30/60/90 checkpoints with light structured check-ins — early signal on whether the onboarding is landing.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Workflow delivery</div>
+          <div class="feat-d">Pushes prompts into Slack/Teams/calendar so guidance reaches the manager where they work, not in a portal they forget to open.</div>
+        </div>
+      </div>
+      <div class="flag"><b>Why here</b>The 90-day plan is the bridge: it's delivered <b>at hire</b> (so it converts the placement into an active employer account) but it's a <b>lifecycle feature</b> (so it proves the Phase-3 layer is worth buying).</div>
+      <div class="tech-row"><b>stack:</b> lifecycle orchestrator · guidance composer · notification hub</div>
+    </div>
+  </div>
+
+  <!-- MODULE: MANAGER WORKSPACE + GUIDANCE -->
+  <div class="mod">
+    <div class="mod-head">
+      <div class="mod-icon mod-i3">M</div>
+      <div>
+        <div class="mod-title">Manager Workspace &amp; Guidance Composer</div>
+        <div class="mod-sub">the retention engine · the daily surface</div>
+      </div>
+      <div class="mod-phase">Phase 3</div>
+    </div>
+    <div class="mod-body">
+      <p class="mod-intro">The core of the lifecycle business and the surface that separates you from every transactional assessment tool. Most platforms produce <strong>PDFs for HR that managers never read</strong>. This makes the <em>manager</em> the user and delivers specific, continuous guidance about the people they actually manage.</p>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Living per-report profile</div>
+          <div class="feat-d">For each direct report: how they work, what motivates them, where they struggle, what to do this week. Updated by ongoing pulse data, not frozen at hire.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>1:1 preparation</div>
+          <div class="feat-d">"Today's 1:1 with Erik — he tends to under-report stress; ask these 4 questions." Concrete prep, generated from profile + recent signals.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Guidance composer</div>
+          <div class="feat-d">Turns <b>profile + role + tenure + framework</b> into natural, specific advice. <b>Grounded in the frameworks library via RAG — never freeform.</b> Freeform advice about people is a liability.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Frameworks library</div>
+          <div class="feat-d">The management &amp; development IP behind the guidance — playbooks mapped to traits and contexts. This is real content work, not just software.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Pulse &amp; signals</div>
+          <div class="feat-d">Lightweight, frequent check-ins that keep profiles live — replacing the once-a-year engagement survey with a continuous, low-burden signal.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Workflow-native delivery</div>
+          <div class="feat-d">Guidance arrives in Slack/Teams/calendar/email digest. A tool managers don't have to remember to open is a tool they actually use.</div>
+        </div>
+      </div>
+      <div class="flag"><b>Culture-design caution</b>This is where your management experience matters most. The same data that reads as "developmental support" can read as "surveillance." Employee consent, ownership and developmental framing determine whether people engage honestly or game it.</div>
+      <div class="tech-row"><b>stack:</b> manager web app · guidance composer (LLM + RAG) · frameworks content engine · pulse events</div>
+    </div>
+  </div>
+
+  <!-- MODULE: TEAM COMPOSITION -->
+  <div class="mod">
+    <div class="mod-head">
+      <div class="mod-icon mod-i3">C</div>
+      <div>
+        <div class="mod-title">Team Composition Engine</div>
+        <div class="mod-sub">what founders &amp; team leads actually want</div>
+      </div>
+      <div class="mod-phase">Phase 3</div>
+    </div>
+    <div class="mod-body">
+      <p class="mod-intro">Aggregates individual profiles into a <strong>team-level view</strong>: collective strengths, predictable friction, and fit for a given project or challenge. This is the feature scale-up leaders intuitively want — "do we have the right mix for what's coming?"</p>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Composition map</div>
+          <div class="feat-d">The team's combined strengths and gaps at a glance — built from members' own validated profiles, never peer-ratings.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Predictable friction</div>
+          <div class="feat-d">"This team will struggle with the upcoming change initiative — here's a 2-week protocol." Anticipates team dynamics before they bite.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Project-fit view</div>
+          <div class="feat-d">Match team composition to a specific project's demands; flag what's missing and who to add or borrow.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Hiring-gap feed</div>
+          <div class="feat-d">Feeds the team-gap context back into the Role Architecture engine — closing the loop between "who we have" and "who we hire next."</div>
+        </div>
+      </div>
+      <div class="tech-row"><b>stack:</b> aggregation service · team-graph model · composition visualiser</div>
+    </div>
+  </div>
+
+  <!-- MODULE: RE-FIT -->
+  <div class="mod">
+    <div class="mod-head">
+      <div class="mod-icon mod-i3">↻</div>
+      <div>
+        <div class="mod-title">Re-Fit &amp; Growth Engine</div>
+        <div class="mod-sub">fit as a trajectory, not a snapshot</div>
+      </div>
+      <div class="mod-phase">Phase 3</div>
+    </div>
+    <div class="mod-body">
+      <p class="mod-intro">Both the person and the role drift over time. Periodically re-measuring the person against the <strong>evolved</strong> role produces a fit trajectory — and the gap between <em>person-drift and role-drift</em> is the most actionable signal in the system. Catching divergence early is a board-level retention metric.</p>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Periodic re-evaluation</div>
+          <div class="feat-d">Re-measure on a cadence against the current role version. Consent-owned and developmentally framed — a growth check-in, never a verdict.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Four-quadrant signal</div>
+          <div class="feat-d"><b>Growth gap</b> (develop) · <b>flight risk</b> (promote) · <b>stable fit</b> (leave alone) · <b>emerging misfit</b> (intervene early). The last one is the retention gold.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p3">P3</span>Growth conversations</div>
+          <div class="feat-d">Surfaces the <b>right</b> development conversation per person, per tenure, per role-direction — replacing generic OKR templates with specific human dialogue.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p4">P4</span>Outcome capture</div>
+          <div class="feat-d">Logs actual performance outcomes — the ground truth that closes the prediction loop and feeds the Phase-4 models.</div>
+        </div>
+      </div>
+      <div class="flag"><b>Framing is everything</b>"You're falling behind" kills trust; "here's where the role is heading and how to grow toward it" builds it. Same data, opposite outcomes. This is a culture-design problem wearing a data costume.</div>
+      <div class="tech-row"><b>stack:</b> re-assessment scheduler · drift analytics · growth-conversation engine</div>
+    </div>
+  </div>
+
+  <!-- MODULE: INTELLIGENCE / MOAT -->
+  <div class="mod">
+    <div class="mod-head">
+      <div class="mod-icon mod-i4">∑</div>
+      <div>
+        <div class="mod-title">Predictive Intelligence &amp; Bias Audit</div>
+        <div class="mod-sub">the compounding moat · EU AI Act layer</div>
+      </div>
+      <div class="mod-phase">Phase 4</div>
+    </div>
+    <div class="mod-body">
+      <p class="mod-intro">Where the data advantage compounds into something competitors can't catch. Every placement and re-fit produces a <strong>Person × Role × Outcome</strong> triple. Over time these train predictions nobody storing only people, or only static roles, can assemble. This phase also automates the EU AI Act obligations that hiring-AI triggers.</p>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="feat-t"><span class="pin p4">P4</span>Performance prediction</div>
+          <div class="feat-d">Role-fit and performance models trained on accumulated outcome data — the long-term moat, legitimate because it's grounded in real outcomes, not theory.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p4">P4</span>Bias &amp; fairness audit</div>
+          <div class="feat-d">Adverse-impact monitoring across protected groups, automated. <b>Mandatory under the EU AI Act</b> — hiring is classified high-risk. A feature, not a bolt-on.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p4">P4</span>AI Act documentation</div>
+          <div class="feat-d">Auto-generates the technical documentation, human-oversight evidence and audit trail regulators require — turning compliance into a selling point.</div>
+        </div>
+        <div class="feat">
+          <div class="feat-t"><span class="pin p4">P4</span>Nordic validation set</div>
+          <div class="feat-d">Locally-normed data and proprietary instruments — the cultural-fit defensibility vs. US-built incumbents (Plum, Predictive Index, Cangrade).</div>
+        </div>
+      </div>
+      <div class="flag"><b>The moat, stated plainly</b>A competitor can copy any single feature. They cannot copy the accumulated Person × Role × Outcome dataset that gets sharper with every hire. The role profile being first-class is half of why this data is uniquely yours.</div>
+      <div class="tech-row"><b>stack:</b> model registry · ML pipeline · fairness-metric engine · research data store · EU region</div>
+    </div>
+  </div>
+
+  <!-- GO TO MARKET / MOTION -->
+  <div class="section-rule"><span>The motion &amp; how it's priced</span></div>
+  <div class="motion">
+    <h3>Land with the recruiter. Expand into the employer.</h3>
+    <p>Phase 1–2 is a <strong>standalone recruiter product</strong> — sold to Nordic agencies on placement-quality and defensibility, priced per-seat. It seeds profiles. Phase 3 flips on the <strong>lifecycle layer</strong> inside the employers those agencies brought in — priced per-employee, 3–5× the ACV, with net revenue retention above 110% because the data's already there and the switching cost is real. Same spine, two revenue layers, land-and-expand built into the structure.</p>
+    <div class="price-grid">
+      <div class="price">
+        <div class="price-w">Acquisition layer</div>
+        <div class="price-n">Recruiter — per seat</div>
+        <div class="price-d">Agencies pay per recruiter seat for role definition + assessment + placement reports. Fast sales cycle, clear ROI (better placements, fewer re-dos under guarantee).</div>
+      </div>
+      <div class="price">
+        <div class="price-w">Activation layer</div>
+        <div class="price-n">Employer — per hire</div>
+        <div class="price-d">Inherited profile + 90-day kickstart converts the placement into an active employer account. Low friction — the value is visible on day one.</div>
+      </div>
+      <div class="price">
+        <div class="price-w">Expansion layer</div>
+        <div class="price-n">Lifecycle — per employee</div>
+        <div class="price-d">Manager guidance, team composition, re-fit. The high-margin, high-retention revenue. This is the real business; recruiting is how you get here.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flag" style="margin-top:24px">
+    <b>Two honest constraints</b>
+    This is a raise-capital, build-a-team, multi-year business — not an 8-week bootstrap. And it has a hard dependency on an <b>I/O psychologist</b> and a <b>part-time legal/AI-Act advisor</b> before the first contract. The phasing de-risks it: each phase is sellable alone, so you validate demand and revenue before committing to the next. If Phase 1 (the recruiter product) doesn't sell, you learn that cheaply — before building the expensive lifecycle and intelligence layers.
+  </div>
+
+  <footer>
+    <span>Talent Lifecycle Platform — build plan &amp; feature spec v0.1</span>
+    <span>Phases: Recruiter OS → Hand-off → Lifecycle → Intelligence</span>
+  </footer>
+
+</div>
+</body>
+</html>
