@@ -140,6 +140,14 @@ The candidate (`person`) is the data owner. The agency generated the profile; th
 ### 4.3 Data subject rights
 - Export (portability), rectification, erasure (respecting legal-retention windows), and a consent dashboard — all queryable from `consent_grants` + `people` + `profiles`.
 
+### 4.4 Membership ≠ profile visibility
+
+An org-level membership grants visibility of the **existence** of a person and their pipeline state (the `people` row and any `requisition_candidates` rows where they appear). It does **not** grant visibility of `profiles` or `assessments` rows for that person. Those remain gated by an active, purpose-appropriate `consent_grant` evaluated through `consent_active(consent_id)`.
+
+This separation is non-negotiable. A recruiter can see that a candidate is in their pipeline without seeing the candidate's profile data unless the candidate has granted the agency consent for `hiring_decision`. Revoking that consent must remove access to profile/assessment rows while leaving the membership and pipeline-entry rows intact — the recruiter still sees the relationship exists; they no longer see the data.
+
+**Invariant.** No policy that gates `profiles` / `assessments` (or any future personal-data table) may treat a membership as a substitute for the consent check. Memberships convey *role and pipeline visibility*; consent conveys *data visibility*. The two gates are independent and both must hold.
+
 ---
 
 ## 5. Access, rights & security
@@ -179,6 +187,23 @@ Helpers (`is_self`, `has_permission`, `in_scope`, `consent_active`) are `securit
 
 ### 5.4 Identity
 - Supabase Auth for credentials; **SSO** (Okta, Entra ID, Google Workspace) via SAML/OIDC; **SCIM** provisioning to sync employees/managers from the directory; **MFA** required for `*_admin` roles.
+
+### 5.5 Candidate-membership lifecycle
+
+Candidates participating in an agency's hiring pipeline are represented as `memberships` rows in the agency org with `status = 'invited'`. The standard state machine applies:
+
+```
+invited → active → suspended → removed
+```
+
+Platform-driven transitions for candidate-pipeline memberships:
+
+- **invited** — created when a candidate enters the pipeline (added to `requisition_candidates`, or when the candidate-experience module captures consent and creates their first profile).
+- **removed** — set **atomically by the placement RPC** when the candidate is placed at an employer org. The agency loses standing visibility of the person via this membership; any further access remains governed by consent + RBAC. This is both a privacy property and a channel-trust property: agencies do not retain visibility into someone who is now an employer's employee.
+
+`active` and `suspended` are reserved for org-staff memberships (recruiters, admins, etc.); they are not used for candidate-pipeline rows.
+
+This lifecycle interacts with §4.4: an `invited` membership still does not grant profile visibility — the candidate's consent grant does. The lifecycle governs the *relationship*; consent governs the *data*.
 
 ---
 

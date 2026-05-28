@@ -76,6 +76,30 @@ See `PHASE0-SPEC.md` for full field-level definitions and the ER summary.
 
 ---
 
+## Validated science & DEV STUBs
+
+Anywhere the product reads or produces values that depend on validated psychometric science — assessment items, scoring formulas, norm tables, fit weights, validity coefficients — the **engine and pipeline are ours to build; the content must be pluggable**. We do not invent science.
+
+The seam is enforced at the database layer, not by convention alone:
+
+- **Provenance enum** — every "scientific" surface carries a `validity_status` enum: `dev_stub | licensed | validated`. Defined once, used everywhere a value of that kind originates. `dev_stub` = our placeholder; `licensed` = a real instrument's content is plugged in; `validated` = the instrument + scoring are I/O-validated against our population.
+- **Per-value fabrication flag** — rows that carry a stub numeric value (score / norm / threshold) also carry a `_dev_stub boolean` column. The two columns describe different scopes: `validity_status` is *instrument-level provenance*; `_dev_stub` is *value-level fabrication*. Both exist; neither alone is sufficient.
+- **DB-enforced check** — every table holding a score-like value carries
+  ```sql
+  CHECK (
+    validity_status <> 'validated'
+    OR (relevant_value IS NOT NULL AND COALESCE(_dev_stub, false) = false)
+  )
+  ```
+  A `dev_stub` row cannot be silently promoted to `validated` without real values present. This is what makes the seam load-bearing rather than aspirational.
+- **Seed / fixture guard** — automated tests assert that the count of `validity_status = 'validated'` rows in any seed or fixture file is **zero**. No stub ever ships looking real.
+
+Stubs must also be **visible at the use site**: `// DEV STUB — replace with licensed instrument + I/O-validated scoring` comments on TS code; clearly-fake sample values (e.g. `0.42`, `"placeholder_competency"`) in seed; UI badges where stub data is rendered.
+
+The seam matters because we cannot fabricate science. We can fabricate a clearly-labeled engine; we cannot fabricate a labeled-as-validated number.
+
+---
+
 ## When building a new feature — checklist
 
 1. **Model first.** Add/extend tables via migration. Is it core or a module? (Default: module.)
@@ -94,11 +118,13 @@ See `PHASE0-SPEC.md` for full field-level definitions and the ER summary.
 
 - ❌ Never enforce tenant isolation or authorization in the UI/API only — it must hold at the DB (RLS).
 - ❌ Never move data between orgs except via a consent-gated, audited `placement`.
+- ❌ Never let any gate other than `consent_active()` serve as the visibility check for personal data (profiles/assessments). Memberships, RBAC permissions, and scope checks govern *existence and operations*; consent governs *data*. (See `PHASE0-SPEC.md` §4.4.)
 - ❌ Never let a model/score auto-make a hiring or performance decision — human-in-the-loop, always.
 - ❌ Never emit freeform LLM advice about a named person from priors — ground it (RAG + structured data) and log it.
 - ❌ Never store personal data outside the EU region.
 - ❌ Never add a hardcoded path for something the template/module system should configure.
 - ❌ Never implement peer-rates-peer personality evaluation — team composition is built from members' **own** validated profiles only.
+- ❌ Never ship a row with `validity_status = 'validated'` that carries fabricated values; the DB enforces this (see the *Validated science & DEV STUBs* section).
 - ❌ Never hand-maintain types the database already defines.
 
 ---
