@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HeiTobias — HeiTobias UI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --canvas:#f3f1e8;--canvas-2:#eceadf;--surface:#ffffff;
+    --forest:#3a4d3f;--forest-2:#2f4034;--rail:#2c3b30;        /* darkest green for the icon rail */
+    --green:#3f7d5a;--ink:#2a2a26;--muted:#8a8a7e;--faint:#a6a698;
+    --line:#e4e1d5;--line-2:#d8d4c6;
+
+    --open-bg:#dcebdf;--open-fg:#3f7d5a;
+    --draft-bg:#ece7d6;--draft-fg:#8a7a52;
+    --internal-bg:#f3e9cf;--internal-fg:#a8862f;
+    --reject-bg:#f4dedb;--reject-fg:#b8584a;
+    --interview-bg:#dde7f0;--interview-fg:#42729e;
+    --offer-bg:#dcebdf;--offer-fg:#3f7d5a;
+
+    --role:#42729e;--person:#3f7d5a;--amber:#a8862f;--rust:#b8584a;
+    --radius:6px;--radius-lg:8px;
+    --shadow:0 1px 2px rgba(58,77,63,.05),0 6px 18px rgba(58,77,63,.05);
+    --font-display:"Playfair Display",Georgia,serif;--font:"Inter",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--canvas);color:var(--ink);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px}
+  svg{display:block}
+  .ic{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .ic-sm{width:15px;height:15px;stroke-width:2}
+  .ic-lg{width:21px;height:21px}
+
+  /* three-tier: dark icon rail | cream section nav | content */
+  .app{display:grid;grid-template-columns:60px 220px 1fr;min-height:100vh}
+
+  /* DARK-GREEN ICON RAIL */
+  .rail{background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:16px 0;position:sticky;top:0;height:100vh}
+  .rail .logo{width:34px;height:34px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:19px;color:var(--rail);margin-bottom:18px}
+  .rail .ri{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#9db0a3;cursor:pointer;margin-bottom:4px;position:relative}
+  .rail .ri:hover{background:rgba(255,255,255,.08);color:#fff}
+  .rail .ri.active{background:#fff;color:var(--rail)}
+  .rail .ri.active::before{content:"";position:absolute;left:-16px;top:8px;bottom:8px;width:3px;border-radius:2px;background:#fff}
+  .rail .sp{flex:1}
+  .rail .ri-ava{width:34px;height:34px;border-radius:50%;background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;border:2px solid rgba(255,255,255,.25)}
+
+  /* CREAM SECTION NAV */
+  .side{background:var(--canvas);border-right:1px solid var(--line);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:auto}
+  .side-top{padding:20px 20px 16px;display:flex;align-items:center;justify-content:space-between}
+  .wordmark{font-family:var(--font-display);font-size:23px;font-weight:700;letter-spacing:-.3px}
+  .collapse{color:var(--faint);cursor:pointer;display:flex}
+  .nav{padding:2px 14px 20px;display:flex;flex-direction:column}
+  .grp{margin-top:16px}
+  .grp-h{display:flex;align-items:center;gap:10px;padding:4px 8px 8px;color:var(--ink)}
+  .grp-h .gt{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px}
+  .grp-h .gc{margin-left:auto;color:var(--faint);display:flex}
+  .grp-h.solo{cursor:default}
+  .sub a{display:block;padding:6px 8px 6px 30px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:500;position:relative;border-radius:5px}
+  .sub a::before{content:"";position:absolute;left:15px;top:13px;width:4px;height:4px;border-radius:50%;background:var(--faint)}
+  .sub a:hover{background:var(--canvas-2);color:var(--ink)}
+  .sub a.active{color:var(--ink);font-weight:700}
+  .sub a.active::before{background:var(--green)}
+
+  /* main */
+  .main{display:flex;flex-direction:column;min-width:0}
+  .appbar{display:flex;align-items:center;gap:14px;padding:16px 32px;border-bottom:1px solid var(--line)}
+  .appbar .bc{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .appbar .bc .sep{color:var(--faint)}
+  .appbar .bc b{color:var(--ink);font-weight:600}
+  .appbar .right{margin-left:auto;display:flex;align-items:center;gap:16px}
+  .org{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--ink)}
+  .org .sq{display:flex;color:var(--forest)}
+  .iconbtn{color:var(--muted);cursor:pointer;display:flex}
+  .me-ava{width:36px;height:36px;border-radius:50%;background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+
+  .content{padding:30px 32px 60px;max-width:1280px;width:100%}
+
+  .ptitle{display:flex;align-items:center;gap:16px;margin-bottom:22px}
+  .ptitle h1{font-family:var(--font-display);font-size:40px;font-weight:600;letter-spacing:-.5px;line-height:1}
+  .ptitle .ti-sub{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .ptitle .ti-sub .d{color:var(--faint)}
+  .ptitle .ti-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+
+  .pill{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:5px 11px;border-radius:20px;display:inline-flex;align-items:center;gap:6px}
+  .pill.open{background:var(--open-bg);color:var(--open-fg)}
+  .pill.draft{background:var(--draft-bg);color:var(--draft-fg)}
+  .pill.internal{background:var(--internal-bg);color:var(--internal-fg)}
+  .pill.reject{background:var(--reject-bg);color:var(--reject-fg)}
+  .pill.interview{background:var(--interview-bg);color:var(--interview-fg)}
+  .pill.offer{background:var(--offer-bg);color:var(--offer-fg)}
+
+  .tabband{background:var(--forest);border-radius:var(--radius-lg) var(--radius-lg) 0 0;display:flex;align-items:stretch;overflow:hidden}
+  .tabband .tab{padding:15px 18px;color:#cdd6cf;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;border-right:1px solid rgba(255,255,255,.07)}
+  .tabband .tab:hover{color:#fff;background:rgba(255,255,255,.05)}
+  .tabband .tab.active{background:var(--surface);color:var(--ink);font-weight:700;border-radius:var(--radius) var(--radius) 0 0;margin:5px 0 0 5px}
+  .tabband .tab.right{margin-left:auto;border-right:none}
+
+  .panel{background:var(--surface);border:1px solid var(--line);border-top:none;border-radius:0 0 var(--radius-lg) var(--radius-lg);box-shadow:var(--shadow)}
+  .panel-h{padding:20px 22px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line)}
+  .panel-h .cnt{font-family:var(--font-display);font-size:30px;font-weight:600}
+  .panel-h .cnt-l{font-family:var(--font-display);font-size:22px;font-weight:600}
+  .panel-h .ph-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .addlink{display:flex;align-items:center;gap:7px;color:var(--green);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.7px;cursor:pointer}
+
+  .stages{display:flex;align-items:center;padding:16px 22px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .stage{display:flex;flex-direction:column;padding:0 20px;border-right:1px solid var(--line);min-width:90px}
+  .stage:first-child{padding-left:0}
+  .stage.box{border:2px solid var(--ink);border-radius:var(--radius);padding:8px 16px;margin-right:14px}
+  .stage .sn{font-size:18px;font-weight:700}
+  .stage .sl{font-size:11.5px;color:var(--muted);margin-top:1px}
+
+  .searchrow{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid var(--line)}
+  .search{flex:1;border:1px solid var(--line-2);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--faint);background:var(--surface);display:flex;align-items:center;gap:9px}
+  .btn-filter{background:var(--forest);color:#fff;border:none;border-radius:var(--radius);padding:10px 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;cursor:pointer;display:flex;align-items:center;gap:8px}
+
+  table{width:100%;border-collapse:collapse}
+  thead th{text-align:left;font-size:13px;font-weight:600;color:var(--ink);padding:14px 22px;border-bottom:1px solid var(--line)}
+  thead th.c{text-align:center}thead th.r{text-align:right}
+  tbody td{padding:16px 22px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:middle}
+  tbody tr:hover{background:var(--canvas)}
+  .cbx{width:18px;height:18px;border:2px solid var(--line-2);border-radius:4px;display:flex;align-items:center;justify-content:center;background:var(--surface)}
+  .cbx.on{background:var(--forest);border-color:var(--forest)}
+  .pname{font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line-2);cursor:pointer}
+  .psub{font-size:12px;color:var(--muted);margin-top:2px}
+  .num{font-weight:600}
+
+  .detail{display:grid;grid-template-columns:210px 1fr}
+  .detail .dnav{border-right:1px solid var(--line);padding:14px}
+  .detail .dnav a{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius);text-decoration:none;color:var(--muted);font-size:13.5px;font-weight:500;margin-bottom:2px}
+  .detail .dnav a.active{background:var(--canvas);color:var(--ink);font-weight:700}
+  .detail .dbody{padding:26px 30px}
+  .detail .dbody h2{font-family:var(--font-display);font-size:26px;font-weight:600;margin-bottom:6px}
+  .detail .drow{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .detail .drow .k{color:var(--ink);font-weight:500}
+  .detail .drow .v{color:var(--muted)}
+  .hr-soft{height:1px;background:var(--line);margin:14px 0 4px}
+  .seclabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+  .trait{margin-bottom:20px}.trait:last-child{margin-bottom:0}
+  .trait-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .trait-name{font-size:13.5px;font-weight:600}
+  .trait-read{font-size:11.5px;color:var(--muted)}.trait-read b{color:var(--person);font-weight:700}
+  .track{position:relative;height:8px;background:var(--canvas-2);border-radius:20px;margin-top:18px}
+  .band{position:absolute;top:0;bottom:0;background:#cfe0ec;border-radius:20px}
+  .band-edge{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--role)}
+  .band-label{position:absolute;top:-18px;font-size:9px;font-weight:700;color:var(--role);text-transform:uppercase;letter-spacing:.4px}
+  .marker{position:absolute;top:50%;width:15px;height:15px;border-radius:50%;background:var(--person);border:3px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transform:translate(-50%,-50%)}
+  .trait-note{font-size:11.5px;color:var(--muted);margin-top:10px}
+  .inband{color:var(--person);font-weight:700}.outband{color:var(--rust);font-weight:700}
+
+  .viewtabs{display:flex;gap:18px;margin:34px 0 14px;align-items:center}
+  .viewtabs .vt{font-family:var(--font-display);font-size:15px;color:var(--faint);cursor:pointer;padding-bottom:4px;border-bottom:2px solid transparent}
+  .viewtabs .vt.active{color:var(--ink);border-bottom-color:var(--green)}
+
+  @media(max-width:1080px){.app{grid-template-columns:60px 1fr}.side{display:none}.detail{grid-template-columns:1fr}.stages{overflow:auto}}
+</style>
+</head>
+<body>
+
+<!-- Inline Lucide icon symbols -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
+  <symbol id="i-trending" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+  <symbol id="i-chevron-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+</defs></svg>
+<style>.use{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}</style>
+
+<div class="app">
+
+  <!-- DARK-GREEN ICON RAIL -->
+  <div class="rail">
+    <div class="logo">T</div>
+    <div class="ri active"><svg class="use ic-lg"><use href="#i-home"/></svg></div>
+    <div class="ri"><svg class="use ic-lg"><use href="#i-briefcase"/></svg></div>
+    <div class="ri"><svg class="use ic-lg"><use href="#i-users"/></svg></div>
+    <div class="ri"><svg class="use ic-lg"><use href="#i-trending"/></svg></div>
+    <div class="ri"><svg class="use ic-lg"><use href="#i-chart"/></svg></div>
+    <div class="ri"><svg class="use ic-lg"><use href="#i-building"/></svg></div>
+    <div class="sp"></div>
+    <div class="ri"><svg class="use ic-lg"><use href="#i-settings"/></svg></div>
+    <div class="ri-ava">SH</div>
+  </div>
+
+  <!-- CREAM SECTION NAV -->
+  <aside class="side">
+    <div class="side-top"><div class="wordmark">HeiTobias</div><div class="collapse"><svg class="use ic-sm"><use href="#i-chevron-left"/></svg></div></div>
+    <nav class="nav">
+      <div class="grp"><div class="grp-h solo"><svg class="ic ic-sm"><use href="#i-home"/></svg><span class="gt">Dashboard</span></div></div>
+      <div class="grp">
+        <div class="grp-h"><svg class="ic ic-sm"><use href="#i-briefcase"/></svg><span class="gt">Hiring</span><span class="gc"><svg class="use ic-sm"><use href="#i-chevron-down"/></svg></span></div>
+        <div class="sub"><a href="#">Requisitions</a><a href="#">Role library</a><a href="#">Team-based definition</a></div>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><svg class="ic ic-sm"><use href="#i-users"/></svg><span class="gt">People</span><span class="gc"><svg class="use ic-sm"><use href="#i-chevron-down"/></svg></span></div>
+        <div class="sub"><a href="#" class="active">My team</a><a href="#">All people</a><a href="#">Candidates</a></div>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><svg class="ic ic-sm"><use href="#i-trending"/></svg><span class="gt">Growth</span><span class="gc"><svg class="use ic-sm"><use href="#i-chevron-down"/></svg></span></div>
+        <div class="sub"><a href="#">Re-fit &amp; growth</a><a href="#">Team composition</a><a href="#">1:1 prep</a><a href="#">Frameworks</a></div>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><svg class="ic ic-sm"><use href="#i-chart"/></svg><span class="gt">Insights</span><span class="gc"><svg class="use ic-sm"><use href="#i-chevron-down"/></svg></span></div>
+        <div class="sub"><a href="#">Fit trends</a><a href="#">Retention signals</a><a href="#">Reports</a></div>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><svg class="ic ic-sm"><use href="#i-building"/></svg><span class="gt">Company</span><span class="gc"><svg class="use ic-sm"><use href="#i-chevron-down"/></svg></span></div>
+        <div class="sub"><a href="#">Profile</a><a href="#">Team</a><a href="#">Settings</a></div>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="appbar">
+      <div class="bc">People <span class="sep">›</span> Platform team <span class="sep">›</span> <b>Maria Lindqvist</b></div>
+      <div class="right">
+        <div class="org"><span class="sq"><svg class="use ic-sm"><use href="#i-building"/></svg></span>The Acme Corporation</div>
+        <span class="iconbtn"><svg class="use"><use href="#i-check"/></svg></span>
+        <span class="iconbtn"><svg class="use"><use href="#i-bell"/></svg></span>
+        <div class="me-ava">SH</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="ptitle">
+        <h1>Maria Lindqvist</h1>
+        <div class="ti-sub">Platform <span class="d">•</span> Senior Backend Engineer <span class="d">•</span> 7 mo</div>
+        <div class="ti-r"><span class="pill internal">Active</span><span class="pill open">In band</span></div>
+      </div>
+
+      <div class="tabband">
+        <div class="tab active"><svg class="use ic-sm"><use href="#i-home"/></svg>Overview</div>
+        <div class="tab"><svg class="use ic-sm"><use href="#i-target"/></svg>Role fit</div>
+        <div class="tab"><svg class="use ic-sm"><use href="#i-refresh"/></svg>Re-fit &amp; growth</div>
+        <div class="tab"><svg class="use ic-sm"><use href="#i-layers"/></svg>Team composition</div>
+        <div class="tab"><svg class="use ic-sm"><use href="#i-clock"/></svg>1:1 history</div>
+        <div class="tab right"><svg class="use ic-sm"><use href="#i-settings"/></svg>Manage</div>
+      </div>
+
+      <div class="panel">
+        <div class="stages">
+          <div class="stage box"><div class="sn">7</div><div class="sl">Months in role</div></div>
+          <div class="stage"><div class="sn" style="color:var(--person)">+12</div><div class="sl">Fit trend 90d</div></div>
+          <div class="stage"><div class="sn">82</div><div class="sl">Competency</div></div>
+          <div class="stage"><div class="sn" style="color:var(--amber)">67</div><div class="sl">Trait fit</div></div>
+          <div class="stage"><div class="sn">2</div><div class="sl">Guidance</div></div>
+          <div class="stage" style="border-right:none"><div class="sn" style="color:var(--rust)">!</div><div class="sl">Re-fit flag</div></div>
+        </div>
+        <div style="padding:24px 22px">
+          <div class="seclabel"><svg class="ic ic-sm" style="stroke:var(--role)"><use href="#i-target"/></svg>Fit against role · trait ranges (bands, not "more is better")</div>
+          <div class="trait">
+            <div class="trait-top"><span class="trait-name">Conscientiousness</span><span class="trait-read">person <b>72</b> · target 60–80</span></div>
+            <div class="track"><div class="band" style="left:60%;width:20%"></div><div class="band-edge" style="left:60%"></div><div class="band-edge" style="left:80%"></div><div class="band-label" style="left:60%">role band</div><div class="marker" style="left:72%"></div></div>
+            <div class="trait-note"><span class="inband">In band</span> — well-matched to the role's structure demands.</div>
+          </div>
+          <div class="trait">
+            <div class="trait-top"><span class="trait-name">Tolerance for ambiguity</span><span class="trait-read">person <b>41</b> · target 55–75</span></div>
+            <div class="track"><div class="band" style="left:55%;width:20%"></div><div class="band-edge" style="left:55%"></div><div class="band-edge" style="left:75%"></div><div class="band-label" style="left:55%">role band</div><div class="marker" style="left:41%"></div></div>
+            <div class="trait-note"><span class="outband">Below band</span> — the role is moving toward open-ended work. A development focus, not a flaw.</div>
+          </div>
+          <div class="trait">
+            <div class="trait-top"><span class="trait-name">Collaboration drive</span><span class="trait-read">person <b>68</b> · target 50–70</span></div>
+            <div class="track"><div class="band" style="left:50%;width:20%"></div><div class="band-edge" style="left:50%"></div><div class="band-edge" style="left:70%"></div><div class="band-label" style="left:50%">role band</div><div class="marker" style="left:68%"></div></div>
+            <div class="trait-note"><span class="inband">In band</span> — strong fit; a likely mentor for juniors.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="viewtabs"><span class="vt active">My team — list view</span><span class="vt">Detail view</span></div>
+      <div class="tabband">
+        <div class="tab active"><svg class="use ic-sm"><use href="#i-users"/></svg>My team</div>
+        <div class="tab"><svg class="use ic-sm"><use href="#i-layers"/></svg>Talent pipeline</div>
+        <div class="tab right"><svg class="use ic-sm"><use href="#i-settings"/></svg>Configure</div>
+      </div>
+      <div class="panel">
+        <div class="panel-h">
+          <span class="cnt">9</span><span class="cnt-l">People</span>
+          <div class="ph-r"><span class="addlink"><svg class="use ic-sm"><use href="#i-plus"/></svg>Add person</span></div>
+        </div>
+        <div class="searchrow">
+          <div class="search"><svg class="use ic-sm"><use href="#i-search"/></svg>Search people…</div>
+          <button class="btn-filter"><svg class="use ic-sm"><use href="#i-filter"/></svg>Filters</button>
+        </div>
+        <table>
+          <thead><tr>
+            <th style="width:40px"><span class="cbx"></span></th>
+            <th>Name</th><th>Role</th><th>Tenure</th><th>Re-fit signal</th><th class="c">Trait fit</th><th class="r">Consent</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="cbx on"><svg class="use ic-sm" style="stroke:#fff;width:12px;height:12px"><use href="#i-check"/></svg></span></td>
+              <td><div class="pname">Maria Lindqvist</div><div class="psub">Platform · Stockholm</div></td>
+              <td>Senior Backend Engineer</td><td>7 mo</td>
+              <td><span class="pill reject">Emerging misfit</span></td>
+              <td class="c"><span class="num" style="color:var(--amber)">67</span></td>
+              <td class="r"><span class="pill open">Active</span></td>
+            </tr>
+            <tr>
+              <td><span class="cbx"></span></td>
+              <td><div class="pname">Johan Berg</div><div class="psub">Platform · Oslo</div></td>
+              <td>Staff Engineer</td><td>2 yr</td>
+              <td><span class="pill interview">Flight risk</span></td>
+              <td class="c"><span class="num" style="color:var(--person)">88</span></td>
+              <td class="r"><span class="pill open">Active</span></td>
+            </tr>
+            <tr>
+              <td><span class="cbx"></span></td>
+              <td><div class="pname">Priya Nair</div><div class="psub">Platform · Oslo</div></td>
+              <td>Backend Engineer</td><td>5 mo</td>
+              <td><span class="pill draft">Growth gap</span></td>
+              <td class="c"><span class="num">74</span></td>
+              <td class="r"><span class="pill open">Active</span></td>
+            </tr>
+            <tr>
+              <td><span class="cbx"></span></td>
+              <td><div class="pname">Tomas Holt</div><div class="psub">Platform · Copenhagen</div></td>
+              <td>Senior Backend Engineer</td><td>1 yr</td>
+              <td><span class="pill offer">Stable fit</span></td>
+              <td class="c"><span class="num" style="color:var(--person)">81</span></td>
+              <td class="r"><span class="pill open">Active</span></td>
+            </tr>
+            <tr>
+              <td><span class="cbx"></span></td>
+              <td><div class="pname">Elin Vik</div><div class="psub">Platform · Stockholm · candidate</div></td>
+              <td><span style="color:var(--muted)">— pending placement</span></td><td>—</td>
+              <td><span class="pill draft">Assessed</span></td>
+              <td class="c"><span class="num">79</span></td>
+              <td class="r"><span class="pill internal">Consent: hiring</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- DETAIL -->
+      <div class="viewtabs"><span class="vt active">Person record — detail</span></div>
+      <div class="tabband">
+        <div class="tab active"><svg class="use ic-sm"><use href="#i-file"/></svg>Profile</div>
+        <div class="tab"><svg class="use ic-sm"><use href="#i-clock"/></svg>1:1 history</div>
+        <div class="tab"><svg class="use ic-sm"><use href="#i-message"/></svg>Notes</div>
+        <div class="tab right">Email</div>
+      </div>
+      <div class="panel">
+        <div class="detail">
+          <div class="dnav">
+            <a href="#" class="active"><svg class="ic ic-sm"><use href="#i-file"/></svg>Profile</a>
+            <a href="#"><svg class="ic ic-sm"><use href="#i-target"/></svg>Role fit</a>
+            <a href="#"><svg class="ic ic-sm"><use href="#i-layers"/></svg>Assessments</a>
+            <a href="#"><svg class="ic ic-sm"><use href="#i-refresh"/></svg>Re-fit history</a>
+            <a href="#"><svg class="ic ic-sm"><use href="#i-message"/></svg>1:1 notes</a>
+            <a href="#"><svg class="ic ic-sm"><use href="#i-shield"/></svg>Consent &amp; data</a>
+          </div>
+          <div class="dbody">
+            <h2>Profile</h2>
+            <div class="hr-soft"></div>
+            <div class="seclabel" style="margin-top:14px"><svg class="ic ic-sm"><use href="#i-users"/></svg>Person details</div>
+            <div class="drow"><span class="k">Full name</span><span class="v">Maria Lindqvist</span></div>
+            <div class="drow"><span class="k">Current role</span><span class="v">Senior Backend Engineer</span></div>
+            <div class="drow"><span class="k">Team</span><span class="v">Platform · Stockholm</span></div>
+            <div class="drow"><span class="k">Tenure</span><span class="v">7 months</span></div>
+            <div class="drow"><span class="k">Profile source</span><span class="v">Assessment + 2 pulses</span></div>
+            <div class="drow"><span class="k">Consent</span><span class="v" style="color:var(--person);font-weight:600">Active · ongoing management</span></div>
+            <div class="drow"><span class="k">Last re-fit</span><span class="v">3 months ago · next due in 3 mo</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

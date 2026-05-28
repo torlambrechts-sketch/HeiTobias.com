@@ -1,171 +1,156 @@
 # DESIGN.md — UI System & Visual Language
 
-> How we build the interface: **shadcn/ui as the accessible, unstyled-by-default component base**, restyled through our own design tokens into a distinctive, editorial, structural aesthetic — not generic SaaS, not default-shadcn-on-white. This file is the contract between "use a proven component library" and "don't look like everyone else."
+> **Build approach:** shadcn/ui as the accessible component base (we own the source, keep the behavior, restyle the look), themed via CSS variables into a warm, editorial, premium aesthetic. Icons are **Lucide** (shadcn's default set). This file is the contract: use a proven library, but don't ship the default look.
+>
+> **Aesthetic direction:** a warm cream-green canvas, dark forest-green chrome, high-contrast serif display, and soft tinted status pills. See `sample-ui-v3.html` for the canonical rendering. Our ownable signatures — the role/person entity-color system, the trait-range control, and consent-as-first-class — keep the brand distinctively ours.
 
 ---
 
 ## 1. Philosophy
 
-- **shadcn/ui gives us the plumbing** — accessible primitives (Radix under the hood), composable, copy-into-repo components we fully own and can restyle. We do **not** accept its default look; we override tokens and component styles.
-- **Our aesthetic is editorial / structural:** confident typography, strong rules and borders, intentional asymmetry, generous structure, a warm paper-and-ink palette with sharp signal accents. Think "well-designed report / operating system for people decisions," not "another pastel dashboard."
-- **Restraint with conviction.** This is a serious tool handling sensitive people-data. The design is precise and calm, with a few bold moments — not maximalist, not timid.
-- **Trust through clarity.** Because we make consequential recommendations about people, the UI must always make *provenance, confidence, and human-control* legible. Never present a score as a verdict.
+- **Warm, editorial, calm, trustworthy.** This tool makes consequential, sensitive judgments about people; the interface should feel considered and human, not coldly corporate or generically "SaaS."
+- **shadcn/ui gives the plumbing** (Radix accessibility, composable primitives we copy into the repo). We override tokens and styles; we never strip accessibility behavior.
+- **Trust through clarity.** Wherever a person's profile or a recommendation appears, the UI must make *provenance, confidence, and human control* legible. A score is never shown as a verdict.
 
 ---
 
-## 2. How we use shadcn/ui
+## 2. The three-tier app shell (canonical layout)
 
-- **Install per-component** (the shadcn CLI copies source into `components/ui/*`). We own and edit that source.
-- **Theme via CSS variables**, not by forking each component. We set our tokens on `:root` and shadcn components consume them.
-- **Allowed to restyle**, expected to: border treatments, radii, shadows, typography, spacing, focus rings.
-- **Keep**: accessibility behavior, keyboard handling, ARIA, focus management. Never strip these.
-- **Composition over customization sprawl:** build feature components by composing shadcn primitives; don't reinvent a Dialog/Popover/Command.
+```
+[ dark-green icon rail ] [ cream section nav ] [ content area ]
+       60px                    220px               fluid
+```
 
-Core shadcn components we lean on: `button`, `card`, `dialog`, `sheet`, `dropdown-menu`, `command`, `tabs`, `table`, `badge`, `tooltip`, `form` (+ react-hook-form + zod), `select`, `slider` (trait ranges), `progress`, `avatar`, `separator`, `accordion`, `toast`/`sonner`, `skeleton`, `scroll-area`.
+1. **Dark-green icon rail (60px)** — `--rail` background. White wordmark/logo tile at top, Lucide icons for top-level areas (Dashboard, Hiring, People, Growth, Insights, Company), settings + user avatar pinned to bottom. Active item = white tile with a small left accent tab.
+2. **Cream section nav (220px)** — `--canvas` background, serif wordmark, UPPERCASE letter-spaced collapsible group headers (each with a Lucide icon + chevron) and bulleted sub-items. Active sub-item: bold ink text + green bullet.
+3. **Content area** — `--canvas` background; white panels float on it. Top app-bar with breadcrumb + org switcher + bell/check icons + avatar.
+
+**Signature element — the forest tab band:** section tabs render on a dark `--forest` bar with rounded top corners; the active tab is a white "lifted" notch (`border-radius` top corners, small top/left margin). The white `.panel` attaches directly beneath it (no top border). This is the most recognizable structural move — use it for any tabbed object (person record, team list, role detail).
 
 ---
 
 ## 3. Design tokens
 
-Defined as CSS variables and mirrored in `tailwind.config`. Tokens drive both shadcn theme vars and our own utilities. Per-tenant branding (`organizations.settings_json`) may override the accent + logo only — never the structural system.
-
-### 3.1 Color — light (default)
-A warm paper-and-ink base with functional accents. **No purple-on-white. No flat cold grey SaaS.**
+Defined as CSS variables, mirrored into `tailwind.config`. Per-tenant branding may override **accent + logo only**; structural tokens are fixed.
 
 ```css
-:root {
-  /* base */
-  --paper:        #f4f1ea;   /* app background (warm) */
-  --surface:      #fbfaf6;   /* cards / raised */
-  --ink:          #13131a;   /* primary text / borders */
-  --muted:        #6a675e;   /* secondary text */
-  --line:         #2a2a35;   /* strong rules / borders */
-  --hairline:     #cfcabd;   /* dashed dividers */
+:root{
+  /* surfaces */
+  --canvas:#f3f1e8;     /* warm cream-green app canvas + sidebars */
+  --canvas-2:#eceadf;   /* deeper cream: hovers, track fills */
+  --surface:#ffffff;    /* white cards / panels */
 
-  /* functional accents (semantic, not decorative) */
-  --accent:       #e8593a;   /* signal / primary action / "attention" */
-  --role:         #3b5b8c;   /* Role Profile entity (slate blue) */
-  --person:       #2f6f5e;   /* Person Profile entity (deep green) */
-  --highlight:    #c9a227;   /* emphasis / ochre */
+  /* green chrome */
+  --rail:#2c3b30;       /* darkest green — the icon rail */
+  --forest:#3a4d3f;     /* forest green — tab bands, filter buttons */
+  --forest-2:#2f4034;   /* hover/darker */
+  --green:#3f7d5a;      /* accent green — links, "add", positive */
 
-  /* fit quadrant semantics */
-  --fit-grow:     #c9a227;   /* growth gap */
-  --fit-flight:   #e8593a;   /* flight risk */
-  --fit-stable:   #2f6f5e;   /* stable fit */
-  --fit-misfit:   #b23a2a;   /* emerging misfit (intervene) */
+  /* text */
+  --ink:#2a2a26;        /* warm near-black */
+  --muted:#8a8a7e;      /* secondary / uppercase labels */
+  --faint:#a6a698;      /* tertiary / icon idle */
 
-  /* shadcn mapping */
-  --background:   var(--paper);
-  --foreground:   var(--ink);
-  --card:         var(--surface);
-  --primary:      var(--ink);
-  --primary-foreground: var(--paper);
-  --secondary:    var(--surface);
-  --accent-color: var(--accent);
-  --border:       var(--ink);
-  --ring:         var(--accent);
-  --radius:       4px;        /* tight, structural — not pill-soft */
+  /* lines */
+  --line:#e4e1d5;       /* hairline dividers/borders */
+  --line-2:#d8d4c6;     /* slightly stronger (inputs, checkboxes) */
+
+  /* soft tinted status pills (bg / fg pairs) */
+  --open-bg:#dcebdf;      --open-fg:#3f7d5a;     /* Open / Active / Stable */
+  --draft-bg:#ece7d6;     --draft-fg:#8a7a52;    /* Draft / Growth gap / Assessed */
+  --internal-bg:#f3e9cf;  --internal-fg:#a8862f; /* Internal / consent:hiring */
+  --reject-bg:#f4dedb;    --reject-fg:#b8584a;   /* Rejected / Emerging misfit */
+  --interview-bg:#dde7f0; --interview-fg:#42729e;/* Interview / Flight risk */
+  --offer-bg:#dcebdf;     --offer-fg:#3f7d5a;    /* Offer */
+
+  /* domain entities (consistent everywhere) */
+  --role:#42729e;       /* Role Profile = blue */
+  --person:#3f7d5a;     /* Person Profile = green */
+  --amber:#a8862f;      /* growth / mid-fit */
+  --rust:#b8584a;       /* misfit / intervene */
+
+  --radius:6px; --radius-lg:8px;
+  --shadow:0 1px 2px rgba(58,77,63,.05), 0 6px 18px rgba(58,77,63,.05);
+
+  --font-display:"Playfair Display", Georgia, serif; /* placeholder for a licensed Didone */
+  --font:"Inter", system-ui, sans-serif;
 }
 ```
 
-### 3.2 Color — dark
-For data-dense/manager surfaces and user preference.
-```css
-[data-theme="dark"] {
-  --paper:   #16151a;
-  --surface: #1e1d24;
-  --ink:     #f1efe9;
-  --muted:   #a39f95;
-  --line:    #3a3a45;
-  --hairline:#3a3a45;
-  /* accents keep their hues, lightened ~8% for contrast */
-}
-```
-
-### 3.3 Typography
-Distinctive pairing — a characterful display serif + a clean grotesque body + mono for data/labels. **Never Inter/Roboto/Arial as the brand face.**
-
-```css
---font-display: "Fraunces", Georgia, serif;        /* headings, section titles */
---font-body:    "Archivo", system-ui, sans-serif;  /* body, UI */
---font-mono:    "Space Mono", ui-monospace, monospace; /* labels, metrics, tags, code */
-```
-Rules:
-- **Display (Fraunces):** page/section titles, role & person names, big numbers. Use optical sizing; allow italic for emphasis.
-- **Body (Archivo):** all UI text, paragraphs, form labels. Weights 400–800.
-- **Mono (Space Mono):** eyebrows, tags, metric units, IDs, audit timestamps, "type" labels. Uppercase + letter-spacing for eyebrows.
-- Scale (rem): display 2.4 / 1.8 / 1.4; body 1 / 0.875; mono labels 0.69–0.75 uppercase, letter-spacing 1–2px.
-
-### 3.4 Structure, borders, shadows
-The aesthetic is **structural** — borders and rules do the work, not soft blur.
-```css
---border-weight: 2px;            /* default component border */
---border-strong: 2.5px;          /* cards, key containers */
---shadow-hard: 6px 6px 0 var(--ink);  /* offset "printed" shadow on key cards */
---radius: 4px;                   /* corners stay tight */
-```
-- Cards: strong ink border + optional hard offset shadow (entity cards use a colored offset: role=`--role`, person=`--person`).
-- Dividers between meta and body: 1.5px **dashed** `--hairline`.
-- Hover on interactive cards: translate(-2px,-2px) + shadow grows to `8px 8px`.
-- Avoid soft drop-shadows and heavy blur; this is print-grade, not glassmorphism.
-
-### 3.5 Spacing & layout
-- 8px base grid. Generous section spacing (section rules at ~44–48px vertical rhythm).
-- Section dividers: a horizontal rule with a centered mono uppercase label (the `section-rule` pattern).
-- Embrace controlled asymmetry and grid-breaking in marketing/overview surfaces; keep operational surfaces (tables, manager workspace) calm and aligned.
-
-### 3.6 Motion
-- Subtle, structural. Page-load: one orchestrated staggered reveal, not scattered micro-animations.
-- Interactive feedback: the card "lift" on hover; focus ring in `--accent`.
-- Respect `prefers-reduced-motion`.
+### Dark mode
+Defer to a later phase. The product is canvas-light by identity (the warmth is the brand). If/when needed, darken `--canvas`/`--surface` toward warm charcoals, keep the green chrome, lift accent luminance ~8%.
 
 ---
 
-## 4. Domain-specific UI patterns
+## 4. Typography
 
-These are product-specific components composed from shadcn primitives — build once, reuse.
-
-- **Entity badge** — visually distinguishes Role (slate `--role`) vs Person (green `--person`) data everywhere they appear. Consistency here teaches the two-entity model implicitly.
-- **Fit display** — never a single number presented as a verdict. Show **multi-dimensional** fit (per competency / trait-range / context) with the human-decision affordance always visible. Use `--fit-*` semantics for the four quadrants in re-fit views.
-- **Trait-range control** — a `slider`-derived component showing the role's **target band** (not a point) with the person's value plotted against it. Core to expressing "ranges, not more-is-better."
-- **Divergence view** (team role definition) — surfaces disagreement between evaluators rather than averaging; visually emphasizes the spread.
-- **Provenance & confidence chips** — mono tags showing data source, recency, and confidence on any profile-derived insight. Builds trust.
-- **Consent state indicator** — always-visible status of the data subject's consent on any personal-data surface; links to the consent dashboard.
-- **Guidance card** — manager guidance always shows it is grounded (framework reference) and is an *informing* suggestion, never an instruction.
-- **Audit/timeline** — mono-labeled, dense, calm; for re-fit history and audit trails.
+- **Display — high-contrast serif (Didone).** Big page titles ("Maria Lindqvist"), panel counts ("9 People"), card headings. This is the brand's voice. Ships now as **Playfair Display** (closest free match); **budget to license a true Didone** (Canela / Tiempos Headline / GT Sectra) before scale — Playfair reads slightly more "fashion," the licensed faces read more "modern-editorial."
+- **Body & UI — Inter.** All controls, table text, paragraphs, form labels. Weights 400–700.
+- **UPPERCASE labels.** Section/group headers, metadata, "ADD PERSON", "APPLICATION DETAILS": Inter, 11px, weight 700, letter-spacing ~1.3px, color `--muted`. A defining texture — use liberally for labels, never for body.
+- Scale: display 40 / 30 / 26 / 22; body 14 / 13.5 / 13; labels 11–11.5 uppercase.
 
 ---
 
-## 5. Accessibility & trust requirements
+## 5. Icons — Lucide (standard)
 
-- WCAG AA contrast minimum; verify accent-on-paper combinations (especially `--accent` text).
-- Keyboard-complete: every interaction reachable and operable without a mouse (shadcn/Radix gives this — don't break it).
-- Focus always visible (`--ring`).
-- **Sensitive-data UX:** consent state, data provenance, and the human-in-the-loop control must be visible wherever a person's profile or a recommendation appears. This is both an ethical and an EU AI Act requirement, expressed through design.
-- Localizable: layouts must tolerate longer Nordic strings (no fixed-width truncation of critical labels).
-
----
-
-## 6. The "never" list (visual)
-
-- ❌ Default shadcn-on-white look. Always apply our tokens.
-- ❌ Purple/indigo gradients on white (the generic-AI tell).
-- ❌ Inter/Roboto/Arial as the brand typeface.
-- ❌ Soft glassmorphism / heavy blur — we are structural/print-grade.
-- ❌ A fit score shown as a single verdict number with no dimensions and no human-control affordance.
-- ❌ Pill-soft rounded everything — keep radii tight (`4px`).
-- ❌ Stripping accessibility behavior from shadcn primitives.
+- **Use Lucide everywhere.** It's shadcn's default; MIT-licensed; ~1,500 consistent icons. No emoji, no unicode glyphs, no mixed sets.
+- Default stroke-width **2** (a slightly bold, confident feel); set once globally on the Lucide component.
+- Sizes: 21px (icon rail), 18px (default), 15px (inline with labels, sub-nav, table).
+- Idle icon color `--faint`/`--muted`; active inherits `--ink` or white (on green).
+- Map domain concepts to stable icons, e.g. target = role fit, refresh-cw = re-fit, layers = team composition/assessments, shield = consent & data, clock = 1:1 history, trending-up = growth, file-text = profile.
 
 ---
 
-## 7. Implementation notes
+## 6. Components
 
-- `tailwind.config` extends `colors`, `fontFamily`, `borderWidth`, `boxShadow` from the tokens above so utilities (`bg-paper`, `text-ink`, `shadow-hard`, `font-display`) are available.
-- shadcn theme variables map to our tokens in the global stylesheet (§3.1).
-- Per-tenant branding overrides **accent + logo only**, injected from `organizations.settings_json`; structural tokens are fixed.
-- Fonts self-hosted (EU/privacy) or via a compliant CDN; preload display + body.
-- Keep a single source of truth: tokens in CSS vars → consumed by both Tailwind and shadcn. Don't duplicate color literals in components.
+- **Buttons:** primary = `--forest` solid white text; filter/utility = `--forest` solid (uppercase, tracked); secondary = white + `--line-2` border; "add" = green text + plus icon, uppercase.
+- **Status pills:** rounded-20px, uppercase, weight 700, tinted bg/fg pairs from §3. The same pill system expresses hiring states AND the four re-fit quadrants (Stable=open, Growth gap=draft, Flight risk=interview, Emerging misfit=reject) — one consistent visual language.
+- **Tables:** generous row height (~16px padding), `--line` row dividers, left checkbox column (checkbox fills `--forest` when on), names as underlined link-style (`--line-2` underline, 3px offset), location subline in `--muted`, status pills, right-aligned meta. Row hover = `--canvas`.
+- **Cards/panels:** `--surface`, 1px `--line`, `--radius-lg`, soft `--shadow`. Attach under a forest tab band with no top border/radius.
+- **Stat strip:** big serif numbers in a row, divided by `--line`, first stat optionally boxed (2px `--ink` border). Color the number by meaning (`--person` positive, `--amber` mid, `--rust` flag).
+- **Detail view:** left sub-nav (210px, `--line` divider, active = `--canvas` bg) + right body with serif H2 and key/value `.drow` lines separated by `--line`.
 
 ---
 
-*See `CLAUDE.md` for architectural rules and `PHASE0-SPEC.md` for the data model. Design serves the product principle: make people-decisions clear, defensible, and human-controlled.*
+## 7. Domain-specific patterns (our ownable signatures)
+
+- **Entity color system.** Role data = `--role` (blue), Person data = `--person` (green), used in badges, the trait control, fit bars, everywhere. Teaches the two-entity model implicitly; it's our most distinctive, non-the reference aesthetic signature.
+- **Trait-range control.** A slim rounded track (`--canvas-2`); the role's **target band** is a `--role`-tinted segment with two edge bars + an uppercase "role band" mini-label; the person's value is a `--person` dot marker. Expresses "bands, not more-is-better." Below/above-band notes use `--rust`; in-band uses `--person`. Build from a styled Radix Slider.
+- **Multi-dimensional fit.** Never a single verdict number. Per-dimension bars (`--person`/`--amber`) + a permanent "Human decides" note: the score *informs*, doesn't decide; overrides logged. (EU AI Act human-in-the-loop, expressed in UI.)
+- **Re-fit quadrant / signal.** Four states as the tinted pills above; "emerging misfit" flagged `--rust`. Always framed developmentally, with the person's consent noted.
+- **Consent & provenance.** Consent state shown as a first-class pill/column wherever personal data appears; a shield icon for the "Consent & data" surface. Provenance ("profile updated 4d ago · assessment + 2 pulses") shown near any profile-derived insight.
+- **Grounded guidance.** Manager guidance carries a `--role`-tinted "grounded" chip naming its framework source — never freeform advice about a named person.
+
+---
+
+## 8. Accessibility & trust
+
+- WCAG AA contrast; verify tinted-pill fg/bg pairs and `--muted`-on-`--canvas`.
+- Full keyboard operability (Radix gives this — don't break it); visible focus ring in `--green`.
+- Sensitive-data UX: consent, provenance, and the human-in-the-loop control must be visible wherever a profile or recommendation shows. Ethical *and* an EU AI Act requirement.
+- Localizable (nb-NO / sv-SE / da-DK / en); layouts tolerate longer Nordic strings — no fixed-width truncation of critical labels.
+
+---
+
+## 9. The "never" list
+
+- Never ship the default shadcn/Geist look — always apply these tokens.
+- Never purple-on-white, no cold flat-grey SaaS, no glassmorphism.
+- Never mix icon sets or use emoji/unicode glyphs — Lucide only.
+- Never show a fit score as a single verdict number without dimensions + the human-control affordance.
+- Never strip accessibility behavior from shadcn/Radix primitives.
+- Never copy any single reference product wholesale — keep our entity-color + trait-range + consent signatures so the brand is ours.
+- Never hardcode color literals in components — consume the tokens.
+
+---
+
+## 10. Implementation notes
+
+- `tailwind.config` extends `colors`, `fontFamily`, `borderRadius`, `boxShadow` from §3 so utilities (`bg-canvas`, `text-ink`, `font-display`) exist; map shadcn theme vars to the same tokens.
+- Lucide via `lucide-react`; set a default `strokeWidth={2}` wrapper.
+- Self-host fonts (EU/privacy) or use a compliant CDN; preload display + body. License the Didone before scale.
+- Single source of truth: CSS vars consumed by both Tailwind and shadcn; no duplicate literals.
+
+---
+
+*Canonical visual reference: `sample-ui-v3.html`. See `CLAUDE.md` for architecture rules and `PHASE0-SPEC.md` for the data model. Design serves the principle: make people-decisions clear, defensible, and human-controlled.*

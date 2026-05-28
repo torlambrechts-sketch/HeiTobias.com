@@ -1,6 +1,7 @@
 import { type HTMLAttributes, type TdHTMLAttributes, type ThHTMLAttributes } from 'react'
 import { cn } from '../../lib/cn.js'
 
+/** Table per DESIGN.md §6 — generous rows, hairline dividers, hover = canvas. */
 export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>) {
   return <table className={cn('w-full border-collapse', className)} {...props} />
 }
@@ -14,18 +15,23 @@ export function TBody({ className, ...props }: HTMLAttributes<HTMLTableSectionEl
 }
 
 export function TR({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={cn('border-b border-hairline', className)} {...props} />
+  return (
+    <tr
+      className={cn('border-b border-line hover:bg-canvas transition-colors', className)}
+      {...props}
+    />
+  )
 }
 
 export function TH({ className, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
-      className={cn('eyebrow py-3 pr-6 align-bottom border-b-2 border-ink', className)}
+      className={cn('text-sm font-semibold text-ink px-5 py-3.5 border-b border-line', className)}
       {...props}
     />
   )
 }
 
 export function TD({ className, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={cn('py-4 pr-6 font-body text-sm align-top', className)} {...props} />
+  return <td className={cn('px-5 py-4 text-[13.5px] align-middle', className)} {...props} />
 }

@@ -2,37 +2,43 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   AlertCircle,
+  Briefcase,
   Check,
   ChevronDown,
   ChevronRight,
   ClipboardCopy,
+  Layers,
   LogOut,
   Loader2,
   Mail,
+  Settings,
+  Target,
   TrendingUp,
+  Users,
 } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
 import { Button } from '../components/ui/button.js'
-import { Card, CardEyebrow, CardTitle } from '../components/ui/card.js'
+import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
 import { Select } from '../components/ui/select.js'
-import { Table, TBody, TD, TH, THead, TR } from '../components/ui/table.js'
-import { ConsentChip, StubBadge, ValidityChip } from '../components/ui/badges.js'
+import { TabBand, Tab } from '../components/ui/tabband.js'
+import {
+  ConsentChip,
+  Pill,
+  StubBadge,
+  ValidityChip,
+} from '../components/ui/badges.js'
 import { HitlNotice } from '../components/HitlNotice.js'
+import { Shell } from '../components/Shell.js'
 
 const DEMO_USERS = [
   { email: 'astrid.berg@nordic-recruit.test', label: 'Astrid Berg — org_admin' },
   { email: 'magnus.holm@nordic-recruit.test', label: 'Magnus Holm — recruiter' },
 ] as const
 
-type Requisition = {
-  id: string
-  org_id: string
-  role_id: string
-  status: string
-}
+type Requisition = { id: string; org_id: string; role_id: string; status: string }
 type Role = { id: string; title: string; version: number; family: string | null }
 type Candidate = {
-  id: string // requisition_candidates.id
+  id: string
   person_id: string
   stage: string
   decision: string
@@ -77,8 +83,8 @@ export function RecruiterRequisitionPage() {
   const [topErr, setTopErr] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
+  const [tab, setTab] = useState<'candidates' | 'role' | 'team'>('candidates')
 
-  // ----- auth -----
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => {
       setSignedIn(data.session?.user?.email ?? null)
@@ -104,7 +110,6 @@ export function RecruiterRequisitionPage() {
     setCandidates([])
   }, [supabase])
 
-  // ----- data -----
   const load = useCallback(async () => {
     if (!id || !signedIn) return
     setLoading(true)
@@ -166,7 +171,6 @@ export function RecruiterRequisitionPage() {
 
     const invitesByPerson = new Map<string, Invite>()
     for (const i of (invitesRes.data ?? []) as Array<Invite & { person_id: string }>) {
-      // most recent wins
       const cur = invitesByPerson.get(i.person_id)
       if (!cur || new Date(i.expires_at) > new Date(cur.expires_at)) invitesByPerson.set(i.person_id, i)
     }
@@ -204,7 +208,6 @@ export function RecruiterRequisitionPage() {
     void load()
   }, [load])
 
-  // ----- actions -----
   const wrap = useCallback(
     async (key: string, fn: () => Promise<void>) => {
       setBusy(key)
@@ -282,90 +285,149 @@ export function RecruiterRequisitionPage() {
   // ----- render -----
   if (!signedIn) {
     return (
-      <Shell>
+      <main className="min-h-screen bg-canvas px-4 py-16">
         <Card className="max-w-md mx-auto">
-          <CardEyebrow>Phase 0 sign-in</CardEyebrow>
-          <CardTitle className="mt-1">Sign in to drive the requisition</CardTitle>
-          <p className="mt-3 font-body text-sm text-muted">
-            Pick a seeded recruiter. RLS filters everything you see by their org + role.
-          </p>
-          <div className="mt-4 space-y-3">
-            <Select value={selectedDemo} onChange={(e) => setSelectedDemo(e.target.value)} className="w-full">
-              {DEMO_USERS.map((u) => (
-                <option key={u.email} value={u.email}>
-                  {u.label}
-                </option>
-              ))}
-            </Select>
-            <Button onClick={signIn} disabled={authBusy} className="w-full">
-              {authBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign in (password: demo)'}
-            </Button>
-            {topErr && <p className="font-body text-xs text-accent">{topErr}</p>}
-          </div>
+          <CardBody>
+            <CardEyebrow>Phase 0 sign-in</CardEyebrow>
+            <CardTitle className="mt-1 text-2xl">Sign in to drive the requisition</CardTitle>
+            <p className="mt-3 text-sm text-muted">
+              Pick a seeded recruiter. RLS filters everything you see by their org + role.
+            </p>
+            <div className="mt-5 space-y-3">
+              <Select value={selectedDemo} onChange={(e) => setSelectedDemo(e.target.value)} className="w-full">
+                {DEMO_USERS.map((u) => (
+                  <option key={u.email} value={u.email}>
+                    {u.label}
+                  </option>
+                ))}
+              </Select>
+              <Button onClick={signIn} disabled={authBusy} className="w-full">
+                {authBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign in (password: demo)'}
+              </Button>
+              {topErr && <p className="text-xs text-rust">{topErr}</p>}
+            </div>
+          </CardBody>
         </Card>
-      </Shell>
+      </main>
     )
   }
 
   return (
-    <Shell>
-      <header className="flex items-start justify-between flex-wrap gap-3 mb-6">
+    <Shell
+      breadcrumb={
+        <>
+          Hiring <span className="text-faint">›</span> Requisitions{' '}
+          <span className="text-faint">›</span>{' '}
+          <b className="text-ink font-semibold">{role?.title ?? '…'}</b>
+        </>
+      }
+      signedInLabel={signedIn}
+    >
+      <div className="flex items-center gap-4 mb-6 flex-wrap">
         <div>
-          <p className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">Phase 1 · Requisition</p>
-          <h1 className="font-display text-3xl text-ink mt-1">
+          <p className="eyebrow">Requisition</p>
+          <h1 className="font-display text-[40px] font-semibold tracking-tight leading-none mt-1">
             {role ? role.title : 'Loading…'}
-            {role && <span className="ml-2 font-mono text-base text-muted">v{role.version}</span>}
           </h1>
-          <p className="mt-1 font-body text-sm text-muted">
-            Status:{' '}
-            <span className="font-mono text-xs uppercase tracking-wider">
-              {req?.status ?? '—'}
-            </span>
+          <p className="mt-2 text-sm text-muted flex items-center gap-2">
+            {role && <span>v{role.version}</span>}
+            {role?.family && (
+              <>
+                <span className="text-faint">•</span>
+                <span>{role.family}</span>
+              </>
+            )}
+            <span className="text-faint">•</span>
+            <span>Status:</span>
+            <Pill tone={req?.status === 'placed' ? 'offer' : 'open'}>{req?.status ?? '—'}</Pill>
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <p className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">{signedIn}</p>
-          <Button variant="ghost" onClick={signOut} className="text-xs">
+        <div className="ml-auto flex items-center gap-2">
+          <span className="eyebrow">{signedIn}</span>
+          <button
+            onClick={signOut}
+            className="text-xs text-muted hover:text-ink flex items-center gap-1.5"
+          >
             <LogOut className="w-3.5 h-3.5" /> sign out
-          </Button>
+          </button>
         </div>
-      </header>
+      </div>
 
       {topErr && (
-        <div className="mb-4 border-l-4 border-accent bg-paper p-3 rounded text-sm text-accent flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 mt-0.5" /> {topErr}
-        </div>
+        <Card className="mb-4 bg-reject-bg/50">
+          <CardBody className="flex items-start gap-2 py-3">
+            <AlertCircle className="w-4 h-4 text-rust mt-0.5" />
+            <span className="text-sm text-rust">{topErr}</span>
+          </CardBody>
+        </Card>
       )}
 
-      <div className="mb-4">
+      <div className="mb-5">
         <HitlNotice />
       </div>
 
-      {loading ? (
-        <p className="font-mono text-xs uppercase tracking-wider text-muted">Loading…</p>
-      ) : candidates.length === 0 ? (
-        <Card>
-          <p className="font-body text-sm text-muted">
-            No candidates on this requisition yet. (Use SQL to add one; an "add candidate" UI is
-            out of scope for this demo slice.)
-          </p>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {candidates.map((c) => (
-            <CandidateRow
-              key={c.id}
-              c={c}
-              busy={busy}
-              onInvite={() => invite(c)}
-              onComputeFit={() => computeFit(c)}
-              onGenerateReport={() => generateReport(c)}
-              onDecide={(d, r) => recordDecision(c, d, r)}
-              onPlace={(toOrg) => place(c, toOrg)}
-            />
-          ))}
-        </div>
-      )}
+      <TabBand>
+        <Tab active={tab === 'candidates'} onClick={() => setTab('candidates')}>
+          <Users size={15} strokeWidth={2} /> Candidates
+        </Tab>
+        <Tab active={tab === 'role'} onClick={() => setTab('role')}>
+          <Target size={15} strokeWidth={2} /> Role profile
+        </Tab>
+        <Tab active={tab === 'team'} onClick={() => setTab('team')}>
+          <Layers size={15} strokeWidth={2} /> Team definition
+        </Tab>
+        <Tab right>
+          <Settings size={15} strokeWidth={2} /> Manage
+        </Tab>
+      </TabBand>
+
+      <Card attached>
+        {tab === 'candidates' && (
+          <>
+            <div className="px-6 py-4 border-b border-line flex items-center gap-4">
+              <span className="font-display text-3xl font-semibold">{candidates.length}</span>
+              <span className="font-display text-xl text-muted">Candidates</span>
+            </div>
+            {loading ? (
+              <div className="px-6 py-12 text-center eyebrow">Loading…</div>
+            ) : candidates.length === 0 ? (
+              <div className="px-6 py-12 text-center">
+                <Briefcase className="w-8 h-8 text-faint mx-auto mb-2" />
+                <p className="text-sm text-muted">
+                  No candidates on this requisition yet.
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-line">
+                {candidates.map((c) => (
+                  <CandidateRow
+                    key={c.id}
+                    c={c}
+                    busy={busy}
+                    onInvite={() => invite(c)}
+                    onComputeFit={() => computeFit(c)}
+                    onGenerateReport={() => generateReport(c)}
+                    onDecide={(d, r) => recordDecision(c, d, r)}
+                    onPlace={(toOrg) => place(c, toOrg)}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === 'role' && (
+          <div className="px-6 py-12 text-center text-muted text-sm">
+            Role profile detail — coming next. Today this view shows the candidate list.
+          </div>
+        )}
+        {tab === 'team' && (
+          <div className="px-6 py-12 text-center text-muted text-sm">
+            Team-based definition — coming next. Independent ratings → divergence → reconciled
+            signed-off role version.
+          </div>
+        )}
+      </Card>
     </Shell>
   )
 }
@@ -402,80 +464,67 @@ function CandidateRow({
   }, [c.fit])
 
   const tokenUrl = c.invite ? `${window.location.origin}/take/${c.invite.token}` : null
+  const stageTone = stagePillTone(c.stage)
+  const decisionTone = decisionPillTone(c.latest_decision?.decision)
 
   return (
-    <Card className="border-person/40">
-      <header className="flex items-start justify-between flex-wrap gap-2 mb-4">
-        <div>
-          <CardEyebrow>Candidate · {c.stage}</CardEyebrow>
-          <CardTitle className="mt-1">{c.person.full_name}</CardTitle>
-          <p className="font-mono text-xs text-muted mt-0.5">{c.person.primary_email}</p>
+    <div className="px-6 py-5">
+      <div className="flex items-start gap-4 flex-wrap">
+        <div className="flex-1 min-w-[200px]">
+          <p className="font-semibold text-ink text-[15px] underline decoration-line-2 underline-offset-[3px]">
+            {c.person.full_name}
+          </p>
+          <p className="text-xs text-muted mt-0.5">{c.person.primary_email}</p>
+          <div className="flex flex-wrap gap-1.5 mt-2.5">
+            <Pill tone={stageTone}>{c.stage}</Pill>
+            {c.latest_decision && <Pill tone={decisionTone}>{c.latest_decision.decision}</Pill>}
+            {c.port_consent_id ? (
+              <ConsentChip active purpose="profile_portability" />
+            ) : (
+              <ConsentChip active={false} purpose="profile_portability" />
+            )}
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2 items-center">
-          {c.fit && <ValidityChip status={c.fit.validity_status as 'dev_stub'} />}
-          {c.port_consent_id ? (
-            <ConsentChip active={true} purpose="profile_portability" />
-          ) : (
-            <ConsentChip active={false} purpose="profile_portability" />
-          )}
-        </div>
-      </header>
 
-      <Table>
-        <THead>
-          <TR>
-            <TH>Assessment</TH>
-            <TH>Fit</TH>
-            <TH>Decision</TH>
-          </TR>
-        </THead>
-        <TBody>
-          <TR>
-            <TD>
-              {c.assessment ? (
-                <span className="font-mono text-xs uppercase tracking-wider">
-                  {c.assessment.status}
-                </span>
-              ) : (
-                <span className="text-muted text-xs">not invited</span>
-              )}
-            </TD>
-            <TD>
-              {c.fit ? (
-                <span className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-person" />
-                  <span className="font-display text-lg text-ink">{weighted ?? '—'}</span>
-                  {stub && <StubBadge />}
-                </span>
-              ) : (
-                <span className="text-muted text-xs">not computed</span>
-              )}
-            </TD>
-            <TD>
-              {c.latest_decision ? (
-                <span className="font-mono text-xs uppercase tracking-wider">
-                  {c.latest_decision.decision}
-                </span>
-              ) : (
-                <span className="text-muted text-xs">pending</span>
-              )}
-            </TD>
-          </TR>
-        </TBody>
-      </Table>
+        <div className="flex items-center gap-6 ml-auto flex-wrap">
+          <div>
+            <p className="eyebrow mb-1">Assessment</p>
+            {c.assessment ? (
+              <Pill tone={c.assessment.status === 'completed' ? 'offer' : 'draft'}>
+                {c.assessment.status}
+              </Pill>
+            ) : (
+              <span className="text-xs text-faint">not invited</span>
+            )}
+          </div>
+          <div>
+            <p className="eyebrow mb-1">Fit (stub)</p>
+            {c.fit ? (
+              <span className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-person" strokeWidth={2} />
+                <span className="font-display text-2xl font-semibold text-ink">{weighted ?? '—'}</span>
+                {stub && <StubBadge />}
+              </span>
+            ) : (
+              <span className="text-xs text-faint">not computed</span>
+            )}
+          </div>
+          {c.fit && <ValidityChip status={c.fit.validity_status as 'dev_stub'} />}
+        </div>
+      </div>
 
       {tokenUrl && (
-        <div className="mt-4 border border-dashed border-hairline rounded p-3">
+        <div className="mt-4 border border-dashed border-line rounded p-3">
           <button
             onClick={() => setShowToken((v) => !v)}
-            className="flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-wider text-muted hover:text-ink"
+            className="flex items-center gap-2 eyebrow hover:text-ink"
           >
             {showToken ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
             Invite magic link {c.invite?.used_at ? '· used' : ''}
           </button>
           {showToken && (
-            <div className="mt-2 flex items-center gap-2">
-              <code className="font-mono text-xs text-ink break-all flex-1">{tokenUrl}</code>
+            <div className="mt-2.5 flex items-center gap-2">
+              <code className="text-xs text-ink break-all flex-1 bg-canvas-2 px-2 py-1.5 rounded">{tokenUrl}</code>
               <Button
                 variant="secondary"
                 onClick={() => {
@@ -483,7 +532,7 @@ function CandidateRow({
                   setCopied(true)
                   setTimeout(() => setCopied(false), 1500)
                 }}
-                className="text-xs"
+                className="text-xs px-3 py-1.5"
               >
                 {copied ? <Check className="w-3 h-3" /> : <ClipboardCopy className="w-3 h-3" />}
                 {copied ? 'copied' : 'copy'}
@@ -494,7 +543,7 @@ function CandidateRow({
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Button variant="secondary" onClick={onInvite} disabled={busy === `invite:${c.id}`} className="text-xs">
+        <Button variant="secondary" onClick={onInvite} disabled={busy === `invite:${c.id}`} className="text-xs px-3 py-1.5">
           {busy === `invite:${c.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
           Invite to assess
         </Button>
@@ -502,7 +551,7 @@ function CandidateRow({
           variant="secondary"
           onClick={onComputeFit}
           disabled={!c.assessment || c.assessment.status !== 'completed' || busy === `fit:${c.id}`}
-          className="text-xs"
+          className="text-xs px-3 py-1.5"
         >
           {busy === `fit:${c.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
           Compute fit
@@ -511,27 +560,27 @@ function CandidateRow({
           variant="secondary"
           onClick={onGenerateReport}
           disabled={!c.fit || busy === `report:${c.id}`}
-          className="text-xs"
+          className="text-xs px-3 py-1.5"
         >
           {busy === `report:${c.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
           Generate report
         </Button>
-        <Button variant="secondary" onClick={() => setShowDecide((v) => !v)} className="text-xs">
+        <Button variant="secondary" onClick={() => setShowDecide((v) => !v)} className="text-xs px-3 py-1.5">
           Record decision
         </Button>
         <Button
-          variant="secondary"
+          variant="primary"
           onClick={() => setShowPlace((v) => !v)}
           disabled={!c.port_consent_id || c.latest_decision?.decision !== 'hire'}
-          className="text-xs"
+          className="text-xs px-3 py-1.5"
         >
           Place
         </Button>
       </div>
 
       {showDecide && (
-        <div className="mt-4 border-2 border-ink rounded p-4 bg-paper">
-          <p className="eyebrow mb-2">Record human decision</p>
+        <div className="mt-4 border border-line bg-canvas rounded-lg p-4">
+          <p className="eyebrow mb-3">Record human decision</p>
           <div className="grid sm:grid-cols-[160px_1fr] gap-3 items-start">
             <Select value={decision} onChange={(e) => setDecision(e.target.value as never)}>
               <option value="advance">advance</option>
@@ -544,21 +593,15 @@ function CandidateRow({
               onChange={(e) => setRationale(e.target.value)}
               placeholder="Rationale (required). Describe what informed this decision."
               rows={3}
-              className="w-full border-2 border-ink rounded p-2 font-body text-sm bg-surface"
+              className="w-full border border-line-2 rounded p-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-green"
             />
           </div>
           <div className="mt-3 flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setShowDecide(false)} className="text-xs">
-              cancel
-            </Button>
+            <Button variant="ghost" onClick={() => setShowDecide(false)} className="text-xs px-3 py-1.5">cancel</Button>
             <Button
-              onClick={() => {
-                onDecide(decision, rationale)
-                setShowDecide(false)
-                setRationale('')
-              }}
+              onClick={() => { onDecide(decision, rationale); setShowDecide(false); setRationale('') }}
               disabled={rationale.trim().length === 0 || busy === `decision:${c.id}`}
-              className="text-xs"
+              className="text-xs px-3 py-1.5"
             >
               {busy === `decision:${c.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
               Record decision
@@ -568,34 +611,47 @@ function CandidateRow({
       )}
 
       {showPlace && (
-        <div className="mt-4 border-2 border-role rounded p-4 bg-paper">
-          <p className="eyebrow mb-2">Place into employer org (Phase 0 hand-off RPC)</p>
-          <p className="font-body text-xs text-muted mb-3">
+        <div className="mt-4 border border-role/40 bg-interview-bg/30 rounded-lg p-4">
+          <p className="eyebrow text-role mb-2">Place into employer org (Phase 0 hand-off RPC)</p>
+          <p className="text-xs text-muted mb-3">
             Requires latest decision = <code>hire</code> + active <code>profile_portability</code>{' '}
-            consent. Atomic with: agency membership → removed, candidate stage → placed, requisition → placed.
+            consent. Atomic with: agency membership → removed, candidate stage → placed, requisition
+            → placed.
           </p>
           <Select value={toOrg} onChange={(e) => setToOrg(e.target.value)} className="w-full mb-3">
             <option value="a1000000-0000-0000-0000-000000000002">FjordTech AS (seeded employer)</option>
           </Select>
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setShowPlace(false)} className="text-xs">
-              cancel
-            </Button>
-            <Button onClick={() => { onPlace(toOrg); setShowPlace(false) }} disabled={busy === `place:${c.id}`} className="text-xs">
+            <Button variant="ghost" onClick={() => setShowPlace(false)} className="text-xs px-3 py-1.5">cancel</Button>
+            <Button onClick={() => { onPlace(toOrg); setShowPlace(false) }} disabled={busy === `place:${c.id}`} className="text-xs px-3 py-1.5">
               {busy === `place:${c.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
               Execute placement
             </Button>
           </div>
         </div>
       )}
-    </Card>
+    </div>
   )
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <main className="min-h-screen bg-paper px-4 py-8">
-      <div className="max-w-4xl mx-auto">{children}</div>
-    </main>
-  )
+function stagePillTone(stage: string) {
+  switch (stage) {
+    case 'sourced':    return 'draft'
+    case 'screening':  return 'draft'
+    case 'interview':  return 'interview'
+    case 'offer':      return 'offer'
+    case 'placed':     return 'open'
+    case 'rejected':   return 'reject'
+    case 'withdrawn':  return 'reject'
+    default:           return 'draft'
+  }
+}
+function decisionPillTone(decision: string | undefined) {
+  switch (decision) {
+    case 'advance':   return 'interview'
+    case 'hire':      return 'offer'
+    case 'reject':    return 'reject'
+    case 'withdraw':  return 'reject'
+    default:          return 'draft'
+  }
 }
