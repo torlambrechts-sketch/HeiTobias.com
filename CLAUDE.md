@@ -12,7 +12,7 @@ A **talent lifecycle platform**: candidate → hire → high-performing employee
 
 ---
 
-## The four pillars (do not violate)
+## The five pillars (do not violate)
 
 ### 1. Database-first
 - **The schema is the source of truth.** Model the data before writing UI or endpoints.
@@ -42,6 +42,17 @@ A **talent lifecycle platform**: candidate → hire → high-performing employee
 - **EU data residency** is mandatory. No personal data leaves the EU region. Third-party processors must be EU-compliant.
 - **Human-in-the-loop for high-risk decisions.** Hiring is high-risk under the EU AI Act: any fit score or model output **informs** a human decision and must never auto-decide. Preserve overrides and log them.
 - **LLM guidance is grounded, never freeform.** The guidance composer must generate from the frameworks library via retrieval (RAG) + structured profile/role data. Never emit freeform advice about a named person from model priors alone. Log inputs/outputs for auditability.
+
+### 5. Scientific integrity (see `SCIENCE-SPEC.md` — authoritative)
+- **Never fabricate psychometric or fairness values.** Validity coefficients, trait norms, target bands, fairness thresholds, and "is this bias acceptable?" verdicts are expert judgments (I/O psychologist / legal advisor), not engineering outputs. Where one is required, build a typed seam, ship a clearly-labelled stub (`DEV_STUB_` / `// DEV STUB` / status flag), and store `null` + a stub flag rather than an invented number. A reviewer must never be able to mistake a stub for a validated result; enforce with a DB `check` and a test asserting no `validated`/`compliant` row exists in fixtures. (See *Validated science & DEV STUBs* below for the load-bearing implementation.)
+- **Trait targets are RANGES, not maxima.** Encode `centre/lower/upper/direction`; default `optimum` (band) for Conscientiousness & Emotional Stability. A single-point trait maximum is disallowed unless `direction` is an explicitly justified threshold. (Le et al. 2011; Pierce & Aguinis 2013.)
+- **Context determines valid trait targets.** Role Profiles carry context factors and the platform enforces coherence checks (Trait Activation Theory; SCIENCE-SPEC §3).
+- **Fit informs, never decides.** A `decision_artefact` (human, attributable, logged, overridable) is required before any consequential action; no auto-reject/rank-to-action/PIP. (GDPR Art. 22; AI Act Art. 14.)
+- **No peer-rated personality of individuals.** Team composition is built only from members' own validated profiles; peer-personality rating is blocked at the schema level. (Connelly & Ones 2010; GDPR Art. 22.)
+- **Re-measurement defaults to developmental framing** (a measurement-validity requirement, not soft language); evaluative use is opt-in, named, consented. (DeNisi & Murphy 2017.)
+- **Engagement ≠ performance** — pulse signals are flight-risk/well-being indicators, never performance proxies.
+- **Build to the EU AI Act's original (Aug 2026) requirements; treat the Dec 2027 Omnibus deferral as schedule margin, not a permission slip.** Keep policy logic in configurable rules, not hard-coded.
+- **Excluded as measurement instruments:** MBTI, DISC, Insights/"colours", learning styles, Belbin, 9-box auto-rating. (May appear only as labelled discussion aids.)
 
 ---
 
