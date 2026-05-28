@@ -124,6 +124,39 @@ export type Database = {
           },
         ]
       }
+      membership_roles: {
+        Row: {
+          created_at: string
+          membership_id: string
+          rbac_role_id: string
+        }
+        Insert: {
+          created_at?: string
+          membership_id: string
+          rbac_role_id: string
+        }
+        Update: {
+          created_at?: string
+          membership_id?: string
+          rbac_role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_roles_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membership_roles_rbac_role_id_fkey"
+            columns: ["rbac_role_id"]
+            isOneToOne: false
+            referencedRelation: "rbac_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memberships: {
         Row: {
           created_at: string
@@ -459,6 +492,95 @@ export type Database = {
           },
         ]
       }
+      rbac_permissions: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rbac_role_permissions: {
+        Row: {
+          permission_id: string
+          role_id: string
+        }
+        Insert: {
+          permission_id: string
+          role_id: string
+        }
+        Update: {
+          permission_id?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rbac_role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "rbac_permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rbac_role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "rbac_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rbac_roles: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          name: string
+          org_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          name: string
+          org_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          name?: string
+          org_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rbac_roles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       requisition_candidates: {
         Row: {
           created_at: string
@@ -784,7 +906,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      consent_active: { Args: { consent_grant_id: string }; Returns: boolean }
+      has_permission: {
+        Args: { org_id: string; permission_key: string }
+        Returns: boolean
+      }
+      in_scope: {
+        Args: { org_id: string; target_person_id: string }
+        Returns: boolean
+      }
+      is_self: { Args: { person_id: string }; Returns: boolean }
     }
     Enums: {
       assessment_status: "invited" | "in_progress" | "completed" | "expired"
