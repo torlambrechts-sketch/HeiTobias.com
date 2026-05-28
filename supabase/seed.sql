@@ -254,3 +254,63 @@ begin
   -- 90-day kickstart plan.
   perform public.kickstart_generate(sigrid, employer_a);
 end$seed_phase2$;
+
+-- ============================ PHASE 3 demo state =========================
+-- Continues the Sigrid story into the lifecycle layer so the manager
+-- workspace + employee self-view have data on a fresh seed:
+--   8. Sigrid joins a FjordTech Platform team.
+--   9. Sigrid submits 2 pulse check-ins.
+--  10. Linnea computes signals + 2 re-fit evaluations + grounded guidance.
+--  11. Linnea records an action on the first guidance item.
+-- Re-running the seed is a no-op once Sigrid has at least one pulse.
+
+do $seed_phase3$
+declare
+  employer_a constant uuid := 'a1000000-0000-0000-0000-000000000002';
+  sigrid     constant uuid := 'b1100000-0000-0000-0000-000000000009';
+  sigrid_uid constant uuid := 'b1000000-0000-0000-0000-000000000009';
+  linnea_uid constant uuid := 'b1000000-0000-0000-0000-000000000003';
+  v_dept uuid; v_team uuid; v_template uuid; v_consent uuid; v_g_id uuid;
+begin
+  -- Idempotency: if Sigrid already has a pulse, skip everything.
+  if exists (select 1 from public.pulse_checkins where person_id = sigrid) then
+    return;
+  end if;
+
+  -- Sigrid's ongoing_management consent (created at activation in the Phase 2 demo block).
+  select id into v_consent from public.consent_grants
+    where person_id = sigrid and granted_to_org_id = employer_a
+      and purpose = 'ongoing_management' and status = 'active' limit 1;
+  if v_consent is null then return; end if;
+
+  -- Team membership.
+  insert into public.departments (org_id, name)
+    values (employer_a, 'Platform') returning id into v_dept;
+  insert into public.teams (org_id, department_id, name)
+    values (employer_a, v_dept, 'Platform Team') returning id into v_team;
+  insert into public.team_members (org_id, team_id, person_id, role_in_team)
+    values (employer_a, v_team, sigrid, 'engineer');
+
+  select id into v_template from public.frameworks where key = 'pulse_v0_quarterly' limit 1;
+
+  -- Sigrid submits two pulses.
+  perform set_config('request.jwt.claims', json_build_object('sub', sigrid_uid)::text, true);
+  perform public.pulse_submit(v_consent, v_template,
+    jsonb_build_object('answers', jsonb_build_array(
+      jsonb_build_object('key','energy','value',4),
+      jsonb_build_object('key','clarity','value',3),
+      jsonb_build_object('key','support','value',5))));
+  perform public.pulse_submit(v_consent, v_template,
+    jsonb_build_object('answers', jsonb_build_array(
+      jsonb_build_object('key','energy','value',5),
+      jsonb_build_object('key','clarity','value',4),
+      jsonb_build_object('key','support','value',5))));
+
+  -- Linnea computes signals + two re-fit evaluations + guidance.
+  perform set_config('request.jwt.claims', json_build_object('sub', linnea_uid)::text, true);
+  perform public.signal_compute(sigrid, employer_a, 4);
+  perform public.refit_compute(sigrid, employer_a);
+  perform public.refit_compute(sigrid, employer_a);
+  v_g_id := public.guidance_compose(sigrid, employer_a, 'one_on_one_prep'::public.guidance_kind, '{"demo":true}'::jsonb);
+  perform public.guidance_record_action(v_g_id, 'acted_on'::public.guidance_action, 'Discussed in this week''s 1:1');
+end$seed_phase3$;

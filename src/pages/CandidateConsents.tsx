@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Check, ChevronRight, Loader2, Shield, X } from 'lucide-react'
+import { Check, ChevronRight, Loader2, MessageCircle, Shield, Sparkles, TrendingUp, X } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
 import { Select } from '../components/ui/select.js'
-import { ConsentChip, Pill, type PillTone } from '../components/ui/badges.js'
+import { ConsentChip, Pill, type PillTone, StubBadge } from '../components/ui/badges.js'
 
 type ConsentPurpose = 'hiring_decision' | 'profile_portability' | 'ongoing_management' | 'research_anonymized'
 
@@ -30,11 +30,20 @@ type State = {
   employers: Employer[]
 }
 
+type LifecycleSelfView = {
+  pulses:   Array<{ id: string; submitted_at: string; org_id: string; body_json: { answers?: Array<{ key: string; value: number }> } }>
+  signals:  Array<{ id: string; kind: string; value_json: { mean?: number; n?: number }; source_json: { key?: string; pulse_ids?: string[] }; generated_at: string; _dev_stub: boolean }>
+  refit:    Array<{ id: string; quadrant: 'stable_fit' | 'growth_gap' | 'flight_risk' | 'emerging_misfit'; computed_at: string; fit_json: { overall_summary?: { competency_alignment?: { weighted_score?: number } } }; _dev_stub: boolean }>
+  guidance: Array<{ id: string; kind: string; output_json: { items?: Array<{ framework_key: string; prompt?: string }> }; action: string | null; action_at: string | null; generated_at: string }>
+  outcomes: Array<{ id: string; kind: string; happened_at: string; notes: string | null }>
+}
+
 export function CandidateConsentsPage() {
   const { token } = useParams<{ token: string }>()
   const supabase = browserSupabase()
 
   const [state, setState] = useState<State | null>(null)
+  const [lifecycle, setLifecycle] = useState<LifecycleSelfView | null>(null)
   const [errMsg, setErrMsg] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState<string | null>(null)
@@ -46,14 +55,18 @@ export function CandidateConsentsPage() {
       setLoading(false)
       return
     }
-    const { data, error } = await supabase.rpc('consent_dashboard_state', { p_token: token })
-    if (error) {
-      setErrMsg(error.message)
+    const [stateRes, lifecycleRes] = await Promise.all([
+      supabase.rpc('consent_dashboard_state', { p_token: token }),
+      supabase.rpc('lifecycle_self_view',     { p_token: token } as never),
+    ])
+    if (stateRes.error) {
+      setErrMsg(stateRes.error.message)
       setLoading(false)
       return
     }
-    const s = data as unknown as State
+    const s = stateRes.data as unknown as State
     setState(s)
+    setLifecycle((lifecycleRes.data as unknown as LifecycleSelfView) ?? null)
     if (s.employers.length > 0 && !selectedEmployer) {
       setSelectedEmployer(s.employers[0]!.id)
     }
@@ -237,8 +250,101 @@ export function CandidateConsentsPage() {
             </CardBody>
           </Card>
         )}
+
+        {lifecycle && (lifecycle.pulses.length + lifecycle.signals.length + lifecycle.refit.length + lifecycle.guidance.length > 0) && (
+          <LifecycleSection lifecycle={lifecycle} />
+        )}
       </div>
     </Shell>
+  )
+}
+
+function LifecycleSection({ lifecycle }: { lifecycle: LifecycleSelfView }) {
+  const latestRefit = lifecycle.refit[0]
+  const quadrantTone = (q: LifecycleSelfView['refit'][number]['quadrant']): PillTone =>
+    q === 'stable_fit' ? 'open'
+      : q === 'growth_gap' ? 'draft'
+      : q === 'flight_risk' ? 'interview'
+      : 'reject'
+  return (
+    <Card>
+      <CardBody>
+        <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+          <CardEyebrow>Lifecycle · what your manager sees</CardEyebrow>
+          <Shield className="w-4 h-4 text-role" strokeWidth={2} />
+        </div>
+        <CardTitle className="text-xl">Your living profile</CardTitle>
+        <p className="mt-2 text-xs text-muted leading-relaxed">
+          The exact same data and signals your manager has visibility into. There is no
+          manager-only score about you. To stop all of this immediately, revoke the
+          {' '}<code className="text-xs">ongoing_management</code>{' '} consent above.
+        </p>
+
+        {latestRefit && (
+          <div className="mt-5 border border-line rounded-lg p-4 bg-canvas/40">
+            <div className="flex items-center gap-2 flex-wrap mb-2">
+              <CardEyebrow>Latest re-fit</CardEyebrow>
+              <Pill tone={quadrantTone(latestRefit.quadrant)}>{latestRefit.quadrant.replace('_', ' ')}</Pill>
+              {latestRefit._dev_stub && <StubBadge />}
+            </div>
+            <p className="font-display text-3xl font-semibold mt-1">
+              {latestRefit.fit_json?.overall_summary?.competency_alignment?.weighted_score ?? '—'}
+            </p>
+            <p className="text-[11px] text-muted font-mono mt-1">
+              measured {new Date(latestRefit.computed_at).toLocaleDateString()} ·
+              full history: {lifecycle.refit.length} measurement{lifecycle.refit.length === 1 ? '' : 's'}
+            </p>
+          </div>
+        )}
+
+        {lifecycle.signals.length > 0 && (
+          <div className="mt-4">
+            <p className="eyebrow flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5" /> Signals from your pulses</p>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {lifecycle.signals.slice(0, 3).map((s) => (
+                <div key={s.id} className="border border-line rounded p-3 bg-surface">
+                  <p className="eyebrow">{s.source_json.key ?? s.kind}</p>
+                  <p className="mt-1 font-display text-2xl font-semibold">{s.value_json.mean ?? '—'}</p>
+                  <p className="text-[10px] text-muted font-mono mt-1">n={s.value_json.n}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {lifecycle.guidance.length > 0 && (
+          <div className="mt-4">
+            <p className="eyebrow flex items-center gap-1.5"><MessageCircle className="w-3.5 h-3.5" /> Guidance written about you</p>
+            <p className="text-[11px] text-muted mt-1">Grounded in framework citations · informing, not deciding.</p>
+            <div className="mt-2 space-y-2">
+              {lifecycle.guidance.slice(0, 3).map((g) => {
+                const firstItem = (g.output_json.items ?? [])[0]
+                return (
+                  <div key={g.id} className="border border-line rounded p-3 bg-surface">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <Pill tone="interview"><Sparkles size={11} strokeWidth={2.5} /> {g.kind.replace(/_/g, ' ')}</Pill>
+                      {g.action && <span className="eyebrow">action: {g.action.replace('_', ' ')}</span>}
+                    </div>
+                    {firstItem && (
+                      <p className="mt-2 text-sm text-ink">{firstItem.prompt ?? '(no prompt)'}</p>
+                    )}
+                    {firstItem?.framework_key && (
+                      <p className="eyebrow mt-1 flex items-center gap-1.5">
+                        <ChevronRight size={11} /> grounded · {firstItem.framework_key}
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        <p className="eyebrow flex items-center gap-1.5 mt-5 pt-3 border-t border-dashed border-line">
+          <Shield className="w-3 h-3" strokeWidth={2.5} /> Developmental, never surveillance — same view your manager has
+        </p>
+      </CardBody>
+    </Card>
   )
 }
 

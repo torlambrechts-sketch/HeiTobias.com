@@ -821,6 +821,176 @@ export type Database = {
           },
         ]
       }
+      growth_conversations: {
+        Row: {
+          conducted_by: string | null
+          consent_id: string
+          created_at: string
+          framework_ids: string[]
+          guidance_item_id: string | null
+          happened_at: string
+          id: string
+          org_id: string
+          person_id: string
+          summary: string | null
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          conducted_by?: string | null
+          consent_id: string
+          created_at?: string
+          framework_ids?: string[]
+          guidance_item_id?: string | null
+          happened_at?: string
+          id?: string
+          org_id: string
+          person_id: string
+          summary?: string | null
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          conducted_by?: string | null
+          consent_id?: string
+          created_at?: string
+          framework_ids?: string[]
+          guidance_item_id?: string | null
+          happened_at?: string
+          id?: string
+          org_id?: string
+          person_id?: string
+          summary?: string | null
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_conversations_conducted_by_fkey"
+            columns: ["conducted_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_conversations_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_conversations_guidance_item_id_fkey"
+            columns: ["guidance_item_id"]
+            isOneToOne: false
+            referencedRelation: "guidance_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_conversations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_conversations_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guidance_items: {
+        Row: {
+          _dev_stub: boolean
+          action: Database["public"]["Enums"]["guidance_action"] | null
+          action_at: string | null
+          action_notes: string | null
+          consent_id: string
+          created_at: string
+          framework_ids: string[]
+          generated_at: string
+          generated_by: string | null
+          id: string
+          inputs_json: Json
+          kind: Database["public"]["Enums"]["guidance_kind"]
+          org_id: string
+          output_json: Json
+          person_id: string
+          updated_at: string
+          validity_status: Database["public"]["Enums"]["validity_status"]
+        }
+        Insert: {
+          _dev_stub?: boolean
+          action?: Database["public"]["Enums"]["guidance_action"] | null
+          action_at?: string | null
+          action_notes?: string | null
+          consent_id: string
+          created_at?: string
+          framework_ids: string[]
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          inputs_json?: Json
+          kind: Database["public"]["Enums"]["guidance_kind"]
+          org_id: string
+          output_json: Json
+          person_id: string
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+        }
+        Update: {
+          _dev_stub?: boolean
+          action?: Database["public"]["Enums"]["guidance_action"] | null
+          action_at?: string | null
+          action_notes?: string | null
+          consent_id?: string
+          created_at?: string
+          framework_ids?: string[]
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          inputs_json?: Json
+          kind?: Database["public"]["Enums"]["guidance_kind"]
+          org_id?: string
+          output_json?: Json
+          person_id?: string
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guidance_items_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guidance_items_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guidance_items_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guidance_items_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hiring_decisions: {
         Row: {
           created_at: string
@@ -1174,6 +1344,77 @@ export type Database = {
         }
         Relationships: []
       }
+      outcome_captures: {
+        Row: {
+          captured_at: string
+          captured_by: string | null
+          consent_id: string
+          created_at: string
+          happened_at: string
+          id: string
+          kind: Database["public"]["Enums"]["outcome_kind"]
+          notes: string | null
+          org_id: string
+          person_id: string
+          updated_at: string
+        }
+        Insert: {
+          captured_at?: string
+          captured_by?: string | null
+          consent_id: string
+          created_at?: string
+          happened_at: string
+          id?: string
+          kind: Database["public"]["Enums"]["outcome_kind"]
+          notes?: string | null
+          org_id: string
+          person_id: string
+          updated_at?: string
+        }
+        Update: {
+          captured_at?: string
+          captured_by?: string | null
+          consent_id?: string
+          created_at?: string
+          happened_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["outcome_kind"]
+          notes?: string | null
+          org_id?: string
+          person_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outcome_captures_captured_by_fkey"
+            columns: ["captured_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outcome_captures_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outcome_captures_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outcome_captures_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       people: {
         Row: {
           auth_user_id: string | null
@@ -1517,6 +1758,71 @@ export type Database = {
           },
         ]
       }
+      pulse_checkins: {
+        Row: {
+          body_json: Json
+          consent_id: string
+          created_at: string
+          id: string
+          org_id: string
+          person_id: string
+          submitted_at: string
+          template_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          body_json?: Json
+          consent_id: string
+          created_at?: string
+          id?: string
+          org_id: string
+          person_id: string
+          submitted_at?: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body_json?: Json
+          consent_id?: string
+          created_at?: string
+          id?: string
+          org_id?: string
+          person_id?: string
+          submitted_at?: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pulse_checkins_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pulse_checkins_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pulse_checkins_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pulse_checkins_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "frameworks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rbac_permissions: {
         Row: {
           created_at: string
@@ -1602,6 +1908,90 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      refit_evaluations: {
+        Row: {
+          _dev_stub: boolean
+          computed_at: string
+          computed_by: string | null
+          consent_id: string
+          created_at: string
+          fit_json: Json
+          id: string
+          org_id: string
+          person_id: string
+          quadrant: Database["public"]["Enums"]["refit_quadrant"]
+          role_id: string
+          updated_at: string
+          validity_status: Database["public"]["Enums"]["validity_status"]
+        }
+        Insert: {
+          _dev_stub?: boolean
+          computed_at?: string
+          computed_by?: string | null
+          consent_id: string
+          created_at?: string
+          fit_json: Json
+          id?: string
+          org_id: string
+          person_id: string
+          quadrant: Database["public"]["Enums"]["refit_quadrant"]
+          role_id: string
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+        }
+        Update: {
+          _dev_stub?: boolean
+          computed_at?: string
+          computed_by?: string | null
+          consent_id?: string
+          created_at?: string
+          fit_json?: Json
+          id?: string
+          org_id?: string
+          person_id?: string
+          quadrant?: Database["public"]["Enums"]["refit_quadrant"]
+          role_id?: string
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refit_evaluations_computed_by_fkey"
+            columns: ["computed_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refit_evaluations_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refit_evaluations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refit_evaluations_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refit_evaluations_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles_catalog"
             referencedColumns: ["id"]
           },
         ]
@@ -1942,6 +2332,160 @@ export type Database = {
           },
         ]
       }
+      signals: {
+        Row: {
+          _dev_stub: boolean
+          consent_id: string
+          created_at: string
+          framework_id: string | null
+          generated_at: string
+          generated_by: string | null
+          id: string
+          kind: string
+          org_id: string
+          person_id: string
+          source_json: Json
+          updated_at: string
+          validity_status: Database["public"]["Enums"]["validity_status"]
+          value_json: Json
+        }
+        Insert: {
+          _dev_stub?: boolean
+          consent_id: string
+          created_at?: string
+          framework_id?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          kind: string
+          org_id: string
+          person_id: string
+          source_json?: Json
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+          value_json?: Json
+        }
+        Update: {
+          _dev_stub?: boolean
+          consent_id?: string
+          created_at?: string
+          framework_id?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          kind?: string
+          org_id?: string
+          person_id?: string
+          source_json?: Json
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+          value_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signals_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signals_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "frameworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signals_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signals_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signals_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_composition_snapshots: {
+        Row: {
+          _dev_stub: boolean
+          created_at: string
+          generated_at: string
+          generated_by: string | null
+          id: string
+          members_consented: number
+          members_total: number
+          org_id: string
+          snapshot_json: Json
+          team_id: string
+          updated_at: string
+          validity_status: Database["public"]["Enums"]["validity_status"]
+        }
+        Insert: {
+          _dev_stub?: boolean
+          created_at?: string
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          members_consented?: number
+          members_total?: number
+          org_id: string
+          snapshot_json: Json
+          team_id: string
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+        }
+        Update: {
+          _dev_stub?: boolean
+          created_at?: string
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          members_consented?: number
+          members_total?: number
+          org_id?: string
+          snapshot_json?: Json
+          team_id?: string
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_composition_snapshots_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_composition_snapshots_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_composition_snapshots_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           created_at: string
@@ -2196,6 +2740,23 @@ export type Database = {
         Returns: string
       }
       employer_activations_state: { Args: { p_org_id: string }; Returns: Json }
+      guidance_compose: {
+        Args: {
+          p_context_json?: Json
+          p_kind: Database["public"]["Enums"]["guidance_kind"]
+          p_org_id: string
+          p_person_id: string
+        }
+        Returns: string
+      }
+      guidance_record_action: {
+        Args: {
+          p_action: Database["public"]["Enums"]["guidance_action"]
+          p_item_id: string
+          p_notes?: string
+        }
+        Returns: string
+      }
       has_permission: {
         Args: { org_id: string; permission_key: string }
         Returns: boolean
@@ -2224,6 +2785,7 @@ export type Database = {
         Args: { p_org_id: string; p_person_id: string }
         Returns: string
       }
+      lifecycle_self_view: { Args: { p_token: string }; Returns: Json }
       placement_activate: { Args: { p_placement_id: string }; Returns: Json }
       placement_execute: {
         Args: {
@@ -2246,9 +2808,21 @@ export type Database = {
         }
         Returns: string
       }
+      pulse_submit: {
+        Args: { p_body_json: Json; p_consent_id: string; p_template_id: string }
+        Returns: string
+      }
       reconcile_role_definition: {
         Args: { p_reconciled_weights: Json; p_requisition_id: string }
         Returns: string
+      }
+      refit_compute: {
+        Args: { p_org_id: string; p_person_id: string }
+        Returns: string
+      }
+      refit_history: {
+        Args: { p_limit?: number; p_org_id: string; p_person_id: string }
+        Returns: Json
       }
       requisition_invite_collaborator: {
         Args: { p_collaborator_org_id: string; p_requisition_id: string }
@@ -2270,6 +2844,11 @@ export type Database = {
         }
         Returns: string
       }
+      signal_compute: {
+        Args: { p_org_id: string; p_person_id: string; p_window_n?: number }
+        Returns: number
+      }
+      team_composition_compute: { Args: { p_team_id: string }; Returns: string }
     }
     Enums: {
       assessment_status: "invited" | "in_progress" | "completed" | "expired"
@@ -2284,11 +2863,23 @@ export type Database = {
       consent_status: "active" | "revoked" | "expired"
       data_region: "eu" | "us" | "apac"
       fit_band_status: "in" | "below" | "above"
+      guidance_action: "acted_on" | "noted" | "snoozed" | "dismissed"
+      guidance_kind:
+        | "one_on_one_prep"
+        | "growth_focus"
+        | "check_in_design"
+        | "team_gap_callout"
       hiring_decision: "advance" | "reject" | "hire" | "withdraw"
       membership_status: "invited" | "active" | "suspended" | "removed"
       module_status: "alpha" | "beta" | "stable" | "deprecated"
       org_status: "active" | "suspended" | "archived"
       org_type: "agency" | "employer"
+      outcome_kind:
+        | "promoted"
+        | "lateral_move"
+        | "role_change"
+        | "left_org"
+        | "retained_quarterly"
       placement_status:
         | "pending_consent"
         | "transferred"
@@ -2296,6 +2887,11 @@ export type Database = {
         | "revoked"
       position_status: "open" | "filled" | "closed"
       profile_source: "assessment" | "refit" | "import"
+      refit_quadrant:
+        | "stable_fit"
+        | "growth_gap"
+        | "flight_risk"
+        | "emerging_misfit"
       requisition_candidate_decision:
         | "pending"
         | "advance"
@@ -2460,11 +3056,25 @@ export const Constants = {
       consent_status: ["active", "revoked", "expired"],
       data_region: ["eu", "us", "apac"],
       fit_band_status: ["in", "below", "above"],
+      guidance_action: ["acted_on", "noted", "snoozed", "dismissed"],
+      guidance_kind: [
+        "one_on_one_prep",
+        "growth_focus",
+        "check_in_design",
+        "team_gap_callout",
+      ],
       hiring_decision: ["advance", "reject", "hire", "withdraw"],
       membership_status: ["invited", "active", "suspended", "removed"],
       module_status: ["alpha", "beta", "stable", "deprecated"],
       org_status: ["active", "suspended", "archived"],
       org_type: ["agency", "employer"],
+      outcome_kind: [
+        "promoted",
+        "lateral_move",
+        "role_change",
+        "left_org",
+        "retained_quarterly",
+      ],
       placement_status: [
         "pending_consent",
         "transferred",
@@ -2473,6 +3083,12 @@ export const Constants = {
       ],
       position_status: ["open", "filled", "closed"],
       profile_source: ["assessment", "refit", "import"],
+      refit_quadrant: [
+        "stable_fit",
+        "growth_gap",
+        "flight_risk",
+        "emerging_misfit",
+      ],
       requisition_candidate_decision: [
         "pending",
         "advance",
