@@ -768,6 +768,59 @@ export type Database = {
           },
         ]
       }
+      frameworks: {
+        Row: {
+          _dev_stub: boolean
+          body_json: Json
+          created_at: string
+          id: string
+          key: string
+          kind: string
+          name: string
+          org_id: string | null
+          updated_at: string
+          validity_status: Database["public"]["Enums"]["validity_status"]
+          vendor: string | null
+          version: string
+        }
+        Insert: {
+          _dev_stub?: boolean
+          body_json?: Json
+          created_at?: string
+          id?: string
+          key: string
+          kind: string
+          name: string
+          org_id?: string | null
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+          vendor?: string | null
+          version?: string
+        }
+        Update: {
+          _dev_stub?: boolean
+          body_json?: Json
+          created_at?: string
+          id?: string
+          key?: string
+          kind?: string
+          name?: string
+          org_id?: string | null
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+          vendor?: string | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "frameworks_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hiring_decisions: {
         Row: {
           created_at: string
@@ -838,6 +891,90 @@ export type Database = {
             columns: ["requisition_candidate_id"]
             isOneToOne: false
             referencedRelation: "requisition_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kickstart_plans: {
+        Row: {
+          _dev_stub: boolean
+          created_at: string
+          frameworks_used: string[]
+          generated_at: string
+          generated_by: string | null
+          id: string
+          ongoing_consent_id: string
+          org_id: string
+          person_id: string
+          plan_json: Json
+          role_id: string | null
+          updated_at: string
+          validity_status: Database["public"]["Enums"]["validity_status"]
+        }
+        Insert: {
+          _dev_stub?: boolean
+          created_at?: string
+          frameworks_used?: string[]
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          ongoing_consent_id: string
+          org_id: string
+          person_id: string
+          plan_json: Json
+          role_id?: string | null
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+        }
+        Update: {
+          _dev_stub?: boolean
+          created_at?: string
+          frameworks_used?: string[]
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          ongoing_consent_id?: string
+          org_id?: string
+          person_id?: string
+          plan_json?: Json
+          role_id?: string | null
+          updated_at?: string
+          validity_status?: Database["public"]["Enums"]["validity_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kickstart_plans_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kickstart_plans_ongoing_consent_id_fkey"
+            columns: ["ongoing_consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kickstart_plans_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kickstart_plans_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kickstart_plans_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles_catalog"
             referencedColumns: ["id"]
           },
         ]
@@ -2078,7 +2215,15 @@ export type Database = {
         Args: { org_id: string; target_person_id: string }
         Returns: boolean
       }
+      is_requisition_collaborator: {
+        Args: { p_requisition_id: string }
+        Returns: boolean
+      }
       is_self: { Args: { person_id: string }; Returns: boolean }
+      kickstart_generate: {
+        Args: { p_org_id: string; p_person_id: string }
+        Returns: string
+      }
       placement_activate: { Args: { p_placement_id: string }; Returns: Json }
       placement_execute: {
         Args: {
@@ -2103,6 +2248,14 @@ export type Database = {
       }
       reconcile_role_definition: {
         Args: { p_reconciled_weights: Json; p_requisition_id: string }
+        Returns: string
+      }
+      requisition_invite_collaborator: {
+        Args: { p_collaborator_org_id: string; p_requisition_id: string }
+        Returns: string
+      }
+      requisition_remove_collaborator: {
+        Args: { p_requisition_id: string }
         Returns: string
       }
       role_instantiate_from_template: {

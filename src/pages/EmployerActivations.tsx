@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ArrowRight, Briefcase, Building2, Check, Loader2, LogOut, Shield } from 'lucide-react'
+import { ArrowRight, Briefcase, Building2, Check, ChevronDown, ChevronRight, Loader2, LogOut, Shield, Sparkles } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
 import { Button } from '../components/ui/button.js'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
 import { Select } from '../components/ui/select.js'
-import { ConsentChip, Pill } from '../components/ui/badges.js'
+import { ConsentChip, Pill, RoleBadge, StubBadge } from '../components/ui/badges.js'
 import { TabBand, Tab } from '../components/ui/tabband.js'
 import { Shell } from '../components/Shell.js'
 import { HitlNotice } from '../components/HitlNotice.js'
@@ -223,6 +223,51 @@ function PlacementRowView({
   busy: string | null
   onActivate: () => void
 }) {
+  const supabase = browserSupabase()
+  const [planVisible, setPlanVisible] = useState(false)
+  const [planLoading, setPlanLoading] = useState(false)
+  const [plan, setPlan] = useState<KickstartPlan | null>(null)
+  const [planErr, setPlanErr] = useState<string | null>(null)
+
+  const loadPlan = useCallback(async () => {
+    setPlanLoading(true)
+    setPlanErr(null)
+    const { data, error } = await supabase
+      .from('kickstart_plans')
+      .select('id, plan_json, validity_status, generated_at')
+      .eq('person_id', r.person_id)
+      .eq('org_id', FJORDTECH_ID)
+      .order('generated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    setPlanLoading(false)
+    if (error) {
+      setPlanErr(error.message)
+      return
+    }
+    setPlan((data as unknown as KickstartPlan) ?? null)
+  }, [supabase, r.person_id])
+
+  const generatePlan = useCallback(async () => {
+    setPlanLoading(true)
+    setPlanErr(null)
+    const { error } = await supabase.rpc('kickstart_generate', {
+      p_person_id: r.person_id,
+      p_org_id: FJORDTECH_ID,
+    } as never)
+    setPlanLoading(false)
+    if (error) {
+      setPlanErr(error.message)
+      return
+    }
+    await loadPlan()
+    setPlanVisible(true)
+  }, [supabase, r.person_id, loadPlan])
+
+  useEffect(() => {
+    if (r.activated && planVisible && !plan) void loadPlan()
+  }, [r.activated, planVisible, plan, loadPlan])
+
   return (
     <div className="px-6 py-5 hover:bg-canvas transition-colors">
       <div className="flex items-start gap-4 flex-wrap">
@@ -243,10 +288,7 @@ function PlacementRowView({
             <span>placed {new Date(r.transferred_at).toLocaleDateString()}</span>
           </p>
           <div className="mt-2.5 flex flex-wrap gap-1.5">
-            <ConsentChip
-              active={r.activated}
-              purpose="ongoing_management"
-            />
+            <ConsentChip active={r.activated} purpose="ongoing_management" />
           </div>
         </div>
 
@@ -273,16 +315,132 @@ function PlacementRowView({
         </div>
       </div>
 
-      {r.activated && r.ongoing_consent_id && (
-        <div className="mt-4 border border-line rounded p-3 bg-canvas/50">
-          <p className="eyebrow mb-1">Inherited data — now readable</p>
-          <p className="text-xs text-muted leading-relaxed">
-            Ongoing-management consent is active. Per-hire surfaces — the 90-day kickstart, manager
-            guidance, re-fit history — can now read this employee's profile and assessment data
-            (Phase 3 surfaces).
-          </p>
+      {r.activated && (
+        <div className="mt-4 border border-line rounded-lg p-3.5 bg-canvas/40">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <button
+              onClick={() => {
+                if (!planVisible && !plan) void loadPlan()
+                setPlanVisible((v) => !v)
+              }}
+              className="flex items-center gap-2 eyebrow hover:text-ink"
+            >
+              {planVisible ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+              <Sparkles size={13} className="text-amber" strokeWidth={2} />
+              90-day kickstart plan
+            </button>
+            <button
+              onClick={generatePlan}
+              disabled={planLoading}
+              className="text-xs text-green font-bold uppercase tracking-wider hover:underline flex items-center gap-1.5 disabled:opacity-50"
+            >
+              {planLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+              {plan ? 'Regenerate' : 'Generate'}
+            </button>
+          </div>
+
+          {planErr && <p className="mt-2 text-xs text-rust">{planErr}</p>}
+
+          {planVisible && plan && <KickstartPlanView plan={plan.plan_json} />}
+          {planVisible && !plan && !planLoading && (
+            <p className="mt-2 text-xs text-muted">No plan generated yet. Click <strong>Generate</strong> above.</p>
+          )}
         </div>
       )}
+    </div>
+  )
+}
+
+type KickstartPlan = {
+  id: string
+  plan_json: KickstartPlanBody
+  validity_status: string
+  generated_at: string
+}
+type Milestone = {
+  framework_id: string
+  framework_key: string
+  day_offset: string
+  title: string
+  narrative: string
+  manager_prompts: string[]
+  grounded: boolean
+}
+type TailoredPrompt = {
+  framework_id: string
+  framework_key: string
+  trigger: { trait: string; when: string }
+  prompt: string
+  citation: string
+  grounded: boolean
+}
+type KickstartPlanBody = {
+  milestones: Milestone[]
+  tailored_prompts: TailoredPrompt[]
+  role_title: string
+  _dev_stub: boolean
+  _grounded: boolean
+}
+
+function KickstartPlanView({ plan }: { plan: KickstartPlanBody }) {
+  return (
+    <div className="mt-3 space-y-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <RoleBadge>{plan.role_title || '(role unknown)'}</RoleBadge>
+        <StubBadge />
+        <Pill tone="interview">Grounded</Pill>
+      </div>
+
+      <div className="space-y-3">
+        {plan.milestones.map((m) => (
+          <div key={m.framework_id} className="border border-line rounded p-3 bg-surface">
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center justify-center min-w-[44px] h-7 px-2 rounded bg-forest text-white font-display font-semibold text-sm">
+                  Day {m.day_offset}
+                </span>
+                <p className="font-semibold text-ink text-sm">{m.title}</p>
+              </div>
+              <Pill tone="draft" className="text-[10px]" title={`Framework: ${m.framework_key}`}>
+                <Sparkles size={10} strokeWidth={2.5} /> {m.framework_key}
+              </Pill>
+            </div>
+            <p className="mt-2 text-xs text-muted leading-relaxed italic">{m.narrative}</p>
+            {m.manager_prompts && m.manager_prompts.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {m.manager_prompts.map((p, i) => (
+                  <li key={i} className="text-xs text-ink flex gap-2">
+                    <ChevronRight size={12} className="mt-0.5 text-faint flex-shrink-0" />
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {plan.tailored_prompts.length > 0 && (
+        <div>
+          <p className="eyebrow mb-2">Trait-tailored manager prompts (DEV-STUB)</p>
+          <div className="space-y-2">
+            {plan.tailored_prompts.map((p) => (
+              <div key={p.framework_id} className="border border-line rounded p-2.5 bg-surface">
+                <p className="text-xs font-mono text-role mb-1">
+                  trigger · {p.trigger.trait} · {p.trigger.when}
+                </p>
+                <p className="text-sm text-ink">{p.prompt}</p>
+                <p className="text-[11px] text-muted italic mt-1.5">{p.citation}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p className="eyebrow flex items-center gap-1.5 pt-2 border-t border-dashed border-line">
+        <Shield className="w-3 h-3" strokeWidth={2.5} />
+        Grounded in frameworks library · never freeform · audited
+      </p>
     </div>
   )
 }
