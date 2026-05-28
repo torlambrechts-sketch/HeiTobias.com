@@ -1978,6 +1978,10 @@ export type Database = {
         }
         Returns: string
       }
+      role_instantiate_from_template: {
+        Args: { p_org_id: string; p_template_id: string }
+        Returns: string
+      }
       role_version_create: {
         Args: {
           p_new_authored_by?: Json
