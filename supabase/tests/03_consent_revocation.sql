@@ -5,9 +5,16 @@ begin;
 
 -- Setup: run a placement so FjordTech has a copy of Petra's profile.
 -- We do this as service-role-equivalent (postgres bypasses RLS), simulating Magnus.
+-- Phase 1 §3.1 extension: must record a 'hire' decision first.
 do $$
 begin
   perform set_config('request.jwt.claims', '{"sub":"b1000000-0000-0000-0000-000000000002"}', true);  -- Magnus
+  perform public.hiring_decision_record(
+    'a3000000-0000-0000-0000-000000000001'::uuid,
+    'b1000000-0000-0000-0000-000000000007'::uuid,
+    'hire',
+    'Test fixture: confirming hire so the placement can run.'
+  );
   perform public.placement_execute(
     'a3000000-0000-0000-0000-000000000001'::uuid,   -- the seeded requisition
     'b1000000-0000-0000-0000-000000000007'::uuid,   -- Petra

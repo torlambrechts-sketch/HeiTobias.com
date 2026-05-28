@@ -36,10 +36,12 @@ select is(
 );
 
 -- 3. Invalid config (missing required key) is REJECTED by pg_jsonschema.
+-- pgTAP signature: throws_ok(query, errcode, errmsg, description); pass NULL
+-- for errmsg to assert SQLSTATE only.
 select throws_ok(
   $$insert into public.org_modules (org_id, module_key, config_json)
     values ('a1000000-0000-0000-0000-000000000001', 'pulse_cadence', '{"unrelated":1}'::jsonb)$$,
-  'P0001',
+  'P0001', NULL::text,
   'invalid org config rejected by the schema-driven validator'
 );
 

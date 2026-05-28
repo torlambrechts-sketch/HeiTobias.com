@@ -1,5 +1,10 @@
 -- 05_placement_handoff — §9: a placement performs a consent-gated cross-org
 -- profile hand-off, fully audited.
+--
+-- Phase 1 §3.1 extension: placement_execute now requires the latest
+-- hiring_decisions row for the pair to be decision='hire'. The setup below
+-- records that decision (as Magnus, who has hiring.decide via recruiter)
+-- before invoking the placement RPC.
 
 begin;
 
@@ -10,6 +15,15 @@ do $$
 declare placement_id uuid;
 begin
   perform set_config('request.jwt.claims', '{"sub":"b1000000-0000-0000-0000-000000000002"}', true);
+
+  -- Phase 1: record a 'hire' decision so placement_execute can transfer.
+  perform public.hiring_decision_record(
+    'a3000000-0000-0000-0000-000000000001'::uuid,   -- requisition
+    'b1000000-0000-0000-0000-000000000007'::uuid,   -- Petra
+    'hire',
+    'Test fixture: confirming hire so the consent-gated hand-off can run.'
+  );
+
   placement_id := public.placement_execute(
     'a3000000-0000-0000-0000-000000000001'::uuid,   -- requisition
     'b1000000-0000-0000-0000-000000000007'::uuid,   -- Petra
@@ -76,7 +90,9 @@ select ok(
   'position creation is captured in audit_log'
 );
 
--- 7. Rejection: wrong consent purpose throws.
+-- 7. Rejection: wrong consent purpose (or wrong recipient org) throws.
+-- pgTAP signature: throws_ok(query, errcode, errmsg, description); pass NULL
+-- for errmsg to assert SQLSTATE only.
 select throws_ok(
   $$select public.placement_execute(
       'a3000000-0000-0000-0000-000000000001'::uuid,
@@ -84,7 +100,7 @@ select throws_ok(
       'a1000000-0000-0000-0000-000000000002'::uuid,
       'f1000000-0000-0000-0000-000000000001'::uuid  -- hiring_decision, wrong purpose
     )$$,
-  'P0001',
+  'P0001', NULL::text,
   'placement_execute rejects wrong-purpose consent'
 );
 

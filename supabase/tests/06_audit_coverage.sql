@@ -5,16 +5,30 @@ begin;
 
 select plan(6);
 
--- 1. Triggers attached to every domain table (19 tables: 13 core + 4 RBAC + 4 modularity − audit_log itself = 19, actually 18 excluding audit_log + we have 22 total domain so 21 minus audit_log = 21 ... let me just count via pg_trigger).
+-- 1. Every domain table (except audit_log itself) carries the _audit_row
+-- trigger. The trigger COUNT grows as Phase 1+ adds tables; what matters
+-- is the COVERAGE invariant — that no domain table is missing one. We
+-- exclude framework tables (templates, modules, etc.) only if they were
+-- explicitly omitted; here we check by trigger function:
+--   every public table that calls _audit_row is covered.
+-- Brittle hardcoded counts retired in favor of: "audit_log is the only
+-- public table that does NOT have trg_audit_*".
 select is(
-  (select count(*)
-   from pg_trigger t
-   join pg_class c on c.oid = t.tgrelid
-   join pg_namespace n on n.oid = c.relnamespace
-   where n.nspname = 'public'
-     and t.tgname like 'trg_audit_%'),
-  18::bigint,
-  'every domain table (except audit_log) has an _audit_row trigger (18 total)'
+  (select count(*) from information_schema.tables t
+    where t.table_schema = 'public'
+      and t.table_type = 'BASE TABLE'
+      and t.table_name <> 'audit_log'
+      and not exists (
+        select 1 from pg_trigger tr
+        join pg_class c on c.oid = tr.tgrelid
+        join pg_namespace n on n.oid = c.relnamespace
+        where n.nspname = 'public'
+          and c.relname = t.table_name
+          and tr.tgname like 'trg_audit_%'
+      )
+  ),
+  0::bigint,
+  'every public domain table (except audit_log) carries an _audit_row trigger'
 );
 
 -- 2. audit_log itself has the immutability triggers.
@@ -44,16 +58,20 @@ select ok(
 );
 
 -- 4. UPDATE on audit_log is rejected by the immutability trigger.
+-- pgTAP signature: throws_ok(query, errcode, errmsg, description); pass NULL
+-- for errmsg to assert SQLSTATE only. (PostgreSQL has no UPDATE LIMIT; scope
+-- the row via id sub-select.)
 select throws_ok(
-  $$update public.audit_log set action = 'tampered' where entity_type = 'organizations' limit 1$$,
-  'P0001',
+  $$update public.audit_log set action = 'tampered'
+      where id = (select id from public.audit_log where entity_type = 'organizations' limit 1)$$,
+  'P0001', NULL::text,
   'UPDATE on audit_log is rejected'
 );
 
 -- 5. DELETE on audit_log is rejected by the immutability trigger.
 select throws_ok(
   $$delete from public.audit_log where entity_type = 'organizations'$$,
-  'P0001',
+  'P0001', NULL::text,
   'DELETE on audit_log is rejected'
 );
 
