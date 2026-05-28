@@ -80,13 +80,21 @@ values
 on conflict (id) do nothing;
 
 -- ============================ memberships ================================
+-- Staff get 'active' memberships. Agency-sourced candidates get an 'invited'
+-- membership in the sourcing org — that's what lets recruiters see their
+-- identity (people_select keys off a membership in an org where the viewer has
+-- person.read). Sigrid follows the same pattern further down. Without this,
+-- the recruiter desk can't render candidates it's actively managing.
 insert into public.memberships (id, org_id, person_id, status, joined_at) values
   ('c1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000001', 'active', now()),
   ('c1000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000002', 'active', now()),
   ('c1000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000003', 'active', now()),
   ('c1000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000004', 'active', now()),
   ('c1000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000005', 'active', now()),
-  ('c1000000-0000-0000-0000-000000000006', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000006', 'active', now())
+  ('c1000000-0000-0000-0000-000000000006', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000006', 'active', now()),
+  -- Petra & Henrik: candidates sourced by Nordic Recruit on the seeded requisition.
+  ('c1000000-0000-0000-0000-000000000007', 'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000007', 'invited', now()),
+  ('c1000000-0000-0000-0000-000000000008', 'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000008', 'invited', now())
 on conflict (id) do nothing;
 
 -- ====================== membership_roles (RBAC) ==========================
