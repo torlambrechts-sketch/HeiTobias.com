@@ -1966,6 +1966,7 @@ export type Database = {
         Args: { p_item_id: string; p_response_json: Json; p_token: string }
         Returns: string
       }
+      assessment_take_state: { Args: { p_token: string }; Returns: Json }
       audit_log_event: {
         Args: {
           p_action: string
