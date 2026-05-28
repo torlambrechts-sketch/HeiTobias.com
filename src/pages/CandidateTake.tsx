@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { Check, Loader2, Shield } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
@@ -38,6 +38,7 @@ export function CandidateTakePage() {
   const [errMsg, setErrMsg] = useState<string | null>(null)
   const [phase, setPhase] = useState<Phase>('loading')
   const [submitting, setSubmitting] = useState(false)
+  const [consentDashToken, setConsentDashToken] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     if (!token) {
@@ -56,6 +57,12 @@ export function CandidateTakePage() {
     if (s.completed) setPhase('done')
     else if (!s.consent_captured) setPhase('consent')
     else setPhase('item')
+    // After any consent capture, look up the long-lived consent token so we
+    // can surface the candidate's consent dashboard link.
+    if (s.consent_captured) {
+      const { data: ct } = await supabase.rpc('consent_token_for_invite', { p_invite_token: token })
+      if (ct) setConsentDashToken(ct as unknown as string)
+    }
   }, [supabase, token])
 
   useEffect(() => {
@@ -134,6 +141,22 @@ export function CandidateTakePage() {
               Your responses are scored and shared — under your active consent — with the team you
               applied through. You can revoke this consent at any time.
             </p>
+            {consentDashToken && (
+              <div className="mt-5 border-t border-line pt-5">
+                <p className="eyebrow mb-2">Your profile is yours</p>
+                <p className="text-sm text-ink leading-relaxed">
+                  Review every consent on your record — and revoke any of them at any time — from
+                  your consent dashboard.
+                </p>
+                <Link
+                  to={`/me/${consentDashToken}`}
+                  className="mt-3 inline-flex items-center gap-2 text-green font-bold text-xs uppercase tracking-wider hover:underline"
+                >
+                  <Shield className="w-3.5 h-3.5" strokeWidth={2} />
+                  Open my consent dashboard
+                </Link>
+              </div>
+            )}
           </CardBody>
         </Card>
       </Shell>
@@ -200,6 +223,15 @@ export function CandidateTakePage() {
             <p className="mt-3 text-sm text-muted">
               Your recruiter will finalize the scoring. You can close this page.
             </p>
+            {consentDashToken && (
+              <Link
+                to={`/me/${consentDashToken}`}
+                className="mt-4 inline-flex items-center gap-2 text-green font-bold text-xs uppercase tracking-wider hover:underline"
+              >
+                <Shield className="w-3.5 h-3.5" strokeWidth={2} />
+                Manage your consents
+              </Link>
+            )}
           </CardBody>
         </Card>
       </Shell>

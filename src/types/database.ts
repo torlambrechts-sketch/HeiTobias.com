@@ -607,6 +607,44 @@ export type Database = {
           },
         ]
       }
+      consent_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          person_id: string
+          revoked_at: string | null
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          person_id: string
+          revoked_at?: string | null
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          person_id?: string
+          revoked_at?: string | null
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_tokens_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           created_at: string
@@ -1937,6 +1975,13 @@ export type Database = {
         Args: { p_requisition_id: string }
         Returns: boolean
       }
+      _consent_token_resolve: {
+        Args: { p_token: string }
+        Returns: {
+          person_id: string
+          token_id: string
+        }[]
+      }
       _dev_stub_score: {
         Args: {
           p_assessment_id: string
@@ -2004,6 +2049,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      consent_dashboard_state: { Args: { p_token: string }; Returns: Json }
+      consent_revoke: {
+        Args: { p_consent_id: string; p_token: string }
+        Returns: string
+      }
+      consent_token_for_invite: {
+        Args: { p_invite_token: string }
+        Returns: string
+      }
       has_permission: {
         Args: { org_id: string; permission_key: string }
         Returns: boolean
@@ -2035,6 +2089,14 @@ export type Database = {
       }
       placement_report_generate: {
         Args: { p_person_id: string; p_requisition_id: string }
+        Returns: string
+      }
+      portability_grant: {
+        Args: {
+          p_employer_org_id: string
+          p_scope_json?: Json
+          p_token: string
+        }
         Returns: string
       }
       reconcile_role_definition: {
