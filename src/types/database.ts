@@ -1991,6 +1991,17 @@ export type Database = {
         Args: { org_id: string; permission_key: string }
         Returns: boolean
       }
+      hiring_decision_record: {
+        Args: {
+          p_decision: Database["public"]["Enums"]["hiring_decision"]
+          p_overrode_recommendation?: boolean
+          p_person_id: string
+          p_rationale: string
+          p_recommendation_summary?: string
+          p_requisition_id: string
+        }
+        Returns: string
+      }
       in_scope: {
         Args: { org_id: string; target_person_id: string }
         Returns: boolean
