@@ -136,6 +136,33 @@ export type Database = {
           },
         ]
       }
+      component_registry: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          kind: Database["public"]["Enums"]["component_kind"]
+          schema_json: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          kind: Database["public"]["Enums"]["component_kind"]
+          schema_json?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          kind?: Database["public"]["Enums"]["component_kind"]
+          schema_json?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       consent_grants: {
         Row: {
           created_at: string
@@ -312,6 +339,84 @@ export type Database = {
             columns: ["person_id"]
             isOneToOne: false
             referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      modules: {
+        Row: {
+          config_schema_json: Json
+          created_at: string
+          id: string
+          key: string
+          name: string
+          status: Database["public"]["Enums"]["module_status"]
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          config_schema_json?: Json
+          created_at?: string
+          id?: string
+          key: string
+          name: string
+          status?: Database["public"]["Enums"]["module_status"]
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          config_schema_json?: Json
+          created_at?: string
+          id?: string
+          key?: string
+          name?: string
+          status?: Database["public"]["Enums"]["module_status"]
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      org_modules: {
+        Row: {
+          config_json: Json
+          created_at: string
+          enabled: boolean
+          id: string
+          module_key: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          config_json?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          module_key: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          config_json?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          module_key?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_modules_module_key_fkey"
+            columns: ["module_key"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "org_modules_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1029,6 +1134,60 @@ export type Database = {
           },
         ]
       }
+      templates: {
+        Row: {
+          body_json: Json
+          created_at: string
+          id: string
+          key: string
+          kind: Database["public"]["Enums"]["template_kind"]
+          org_id: string | null
+          status: Database["public"]["Enums"]["template_status"]
+          template_source_id: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          body_json?: Json
+          created_at?: string
+          id?: string
+          key: string
+          kind: Database["public"]["Enums"]["template_kind"]
+          org_id?: string | null
+          status?: Database["public"]["Enums"]["template_status"]
+          template_source_id?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          body_json?: Json
+          created_at?: string
+          id?: string
+          key?: string
+          kind?: Database["public"]["Enums"]["template_kind"]
+          org_id?: string | null
+          status?: Database["public"]["Enums"]["template_status"]
+          template_source_id?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "templates_template_source_id_fkey"
+            columns: ["template_source_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1060,6 +1219,7 @@ export type Database = {
     Enums: {
       assessment_status: "invited" | "in_progress" | "completed" | "expired"
       assessment_type: "cognitive" | "personality" | "values" | "composite"
+      component_kind: "atom" | "molecule" | "organism" | "layout" | "section"
       consent_legal_basis: "consent" | "legitimate_interest" | "contract"
       consent_purpose:
         | "hiring_decision"
@@ -1069,6 +1229,7 @@ export type Database = {
       consent_status: "active" | "revoked" | "expired"
       data_region: "eu" | "us" | "apac"
       membership_status: "invited" | "active" | "suspended" | "removed"
+      module_status: "alpha" | "beta" | "stable" | "deprecated"
       org_status: "active" | "suspended" | "archived"
       org_type: "agency" | "employer"
       placement_status:
@@ -1094,6 +1255,13 @@ export type Database = {
         | "placed"
       requisition_status: "open" | "shortlisting" | "placed" | "closed"
       role_status: "draft" | "active" | "archived"
+      template_kind:
+        | "role"
+        | "assessment"
+        | "layout"
+        | "notification"
+        | "workflow"
+      template_status: "draft" | "active" | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1223,6 +1391,7 @@ export const Constants = {
     Enums: {
       assessment_status: ["invited", "in_progress", "completed", "expired"],
       assessment_type: ["cognitive", "personality", "values", "composite"],
+      component_kind: ["atom", "molecule", "organism", "layout", "section"],
       consent_legal_basis: ["consent", "legitimate_interest", "contract"],
       consent_purpose: [
         "hiring_decision",
@@ -1233,6 +1402,7 @@ export const Constants = {
       consent_status: ["active", "revoked", "expired"],
       data_region: ["eu", "us", "apac"],
       membership_status: ["invited", "active", "suspended", "removed"],
+      module_status: ["alpha", "beta", "stable", "deprecated"],
       org_status: ["active", "suspended", "archived"],
       org_type: ["agency", "employer"],
       placement_status: [
@@ -1261,6 +1431,14 @@ export const Constants = {
       ],
       requisition_status: ["open", "shortlisting", "placed", "closed"],
       role_status: ["draft", "active", "archived"],
+      template_kind: [
+        "role",
+        "assessment",
+        "layout",
+        "notification",
+        "workflow",
+      ],
+      template_status: ["draft", "active", "archived"],
     },
   },
 } as const
