@@ -1987,7 +1987,23 @@ export type Database = {
         Args: { p_requisition_id: string }
         Returns: Json
       }
-      consent_active: { Args: { consent_grant_id: string }; Returns: boolean }
+      consent_active:
+        | { Args: { consent_grant_id: string }; Returns: boolean }
+        | {
+            Args: {
+              consent_grant_id: string
+              p_purpose: Database["public"]["Enums"]["consent_purpose"]
+            }
+            Returns: boolean
+          }
+      consent_active_for: {
+        Args: {
+          p_org_id: string
+          p_person_id: string
+          p_purpose: Database["public"]["Enums"]["consent_purpose"]
+        }
+        Returns: boolean
+      }
       has_permission: {
         Args: { org_id: string; permission_key: string }
         Returns: boolean
