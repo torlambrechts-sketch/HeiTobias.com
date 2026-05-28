@@ -33,7 +33,7 @@ export function HomePage() {
                 </p>
                 <ol className="mt-3 list-decimal pl-5 text-sm text-ink space-y-1">
                   <li>Copy <code className="text-xs">.env.example</code> to <code className="text-xs">.env.local</code>.</li>
-                  <li>Fill <code className="text-xs">VITE_SUPABASE_URL</code> + <code className="text-xs">VITE_SUPABASE_ANON_KEY</code>.</li>
+                  <li>Fill <code className="text-xs">VITE_SUPABASE_URL</code> + <code className="text-xs">VITE_SUPABASE_PUBLISHABLE_KEY</code>.</li>
                   <li>Restart the dev server: <code className="text-xs">npm run dev</code>.</li>
                 </ol>
               </div>
