@@ -1,221 +1,253 @@
-# SCIENCE-SPEC.md — I/O psychology & EU regulatory constraints
+# SCIENCE-SPEC.md — Research-Grounded Constraints (HeiTobias)
 
-> The engineering contract for everything that touches **measurement, fit, fairness,
-> and post-hire decision support**. The system is the engine; the science is pluggable.
-> Before any live deployment with real candidates: credentialed I/O psychologist sign-off
-> and legal review are required.
+> **Status: authoritative.** This document encodes the I/O-psychology and EU-regulatory
+> constraints derived from two research reports (Layer 3 Intelligence & Science blueprint;
+> Role Profile scientific reference). Every phase references this. Where this conflicts with
+> a convenient implementation, this wins. Where it requires a judgment the team isn't yet
+> qualified to make, the rule is: build the seam, label the stub, flag for the I/O
+> psychologist / legal advisor — never fabricate a number or a verdict.
 >
-> This file is referenced from `CLAUDE.md` and is authoritative for instrument selection,
-> trait modelling, fairness practices, guidance refusal categories, and the AI Act / GDPR
-> obligations the architecture must structurally honour. Conflicts between this file and
-> implementation are bugs against the implementation, not the spec.
+> **Two non-negotiable dependencies this document assumes:** a credentialed I/O psychologist
+> and a legal/EU-AI-Act advisor. Nothing in here ships to live decisions about real people
+> without them.
 
 ---
 
-## 1. Predictor validity (Sackett, Zhang, Berry, Lievens 2022)
+## 1. The evidence base has shifted — design to it
 
-The most recent meta-analysis of selection methods. Practical implications encoded
-in the architecture:
+- **Sackett, Zhang, Berry & Lievens (2022, *JAP* 107(11), 2040–2068)** substantially revised the
+  Schmidt & Hunter (1998) validity hierarchy. Revised operational validities (ρ): **structured
+  interview ≈ .42**, job-knowledge test ≈ .40, empirically-keyed biodata ≈ .38, work sample ≈ .33,
+  **GMA ≈ .31 (≈ .23 in 21st-century studies)**, integrity ≈ .31, contextualized conscientiousness
+  ≈ .25, unstructured interview ≈ .19, years of experience ≈ .07.
+- **Implication for the predictor stack:** structured interview is now the top single predictor;
+  GMA is one weighted, complexity-calibrated component, NOT the default-dominant one.
+  **Contextualized** personality (measured "at work") outperforms decontextualized.
+- **GMA's validity point estimate is an ACTIVE, UNRESOLVED debate** (Sackett vs. Oh/Le/Bobko/Salgado).
+  Honest UI/marketing posture: present as a range (≈ .31–.45 depending on assumptions), never a
+  single confident number. Use lower-bound (80% CV) values for risk-averse decisions.
+- **Even best composites reach R ≈ .50–.60** → ~65–75% of performance variance is unexplained.
+  Never market "predict performance with X% accuracy." Communicate uncertainty honestly.
 
-| Predictor                  | Operational validity ρ      | Architectural treatment                                                                   |
-|----------------------------|-----------------------------|-------------------------------------------------------------------------------------------|
-| Structured interviews      | ~.42 (top predictor)        | Captured as `growth_conversations` + `hiring_decisions.rationale` (text), not scored.    |
-| Work samples / job tests   | ~.33                        | Modelled as `assessment_instruments.type='composite'` once licensed.                      |
-| General mental ability     | ~.23–.31 (not dominant)     | Modelled as `assessment_instruments.type='cognitive'` once licensed; not a single score. |
-| Personality (broad Big 5)  | ~.10–.22 per facet, banded  | `roles_catalog.definition_json.trait_targets[]` with min/max bands (already enforced).    |
-| Integrity (HEXACO H factor)| ~.20–.30                    | HEXACO-H is **the only allowed integrity surface**; never a "general integrity score".    |
+## 2. Trait targets are RANGES, not maxima (curvilinearity) — load-bearing
 
-**Key implication for the product:** the best composites explain ~65–75% of performance
-variance. The fit number is therefore a **range with uncertainty**, never a verdict, never
-the closing input to a decision (see §5).
+- **Le et al. (2011, *JAP*); Carter et al. (2014); Pierce & Aguinis (2013) TMGT effect; Grant (2013)
+  ambivert advantage.** Conscientiousness, Emotional Stability, and (in sales) Extraversion relate to
+  performance via **inverted-U** curves; optima are moderated by job complexity.
+- **Rule:** every personality trait/facet target on a Role Profile is encoded as a **band**
+  (`centre`, `lower`, `upper`, `direction`), with `direction ∈ {optimum, minimum_threshold,
+  maximum_threshold, linear}`. Default for Conscientiousness & Emotional Stability = `optimum`
+  (band), band centre rising with complexity. "More is better" scoring is a mis-specification —
+  architecturally disallow a trait target that is a single point maximum unless `direction` is
+  explicitly a justified threshold.
+- Trait ranges are **also a fairness intervention**: wider, evidence-based acceptance bands produce
+  less differential selection than point cut-offs. Outside-band ⇒ a structured-interview probe
+  trigger, NEVER an automatic screen-out.
 
----
+## 3. Context determines which trait targets are valid (Trait Activation Theory)
 
-## 2. Trait specification — bands, not maxima
+- **Tett & Burnett (2003); Tett et al. (2021); DIAMONDS (Rauthmann 2014); O*NET Work Context.**
+  Traits predict behaviour only in trait-relevant situations. Without context encoding, trait
+  targets are mis-specified.
+- **Rule:** Role Profile MUST carry context factors (autonomy, ambiguity tolerance, pace/urgency,
+  collaboration intensity, stakeholder load, cognitive complexity, adversity, psychological-safety
+  dependence). The platform enforces **coherence checks**: e.g. high pace + high ambiguity ⇒
+  Conscientiousness band centre should be lower; high stakeholder load ⇒ Extraversion band should not
+  be low-only without justification.
 
-Personality traits operate as **inverted-U** with the optimum context-dependent.
+## 4. Instruments: open-domain, facet-level, Nordic-normed
 
-- A role profile **MUST** carry trait targets as `{trait, band:{min,max}, direction, justification}`.
-- "More is better" is forbidden for any Big Five facet. Conscientiousness and Emotional
-  Stability in particular should be encoded as bands.
-- The trait-range control in the UI must render the **band**, not a threshold.
+- **Use public-domain item pools:** IPIP-NEO (Goldberg) for the Big Five (facet-level, 120/300), or
+  BFI-2 (Soto & John 2017) for parsimony; layer in **HEXACO-PI-R Honesty-Humility** for integrity-
+  sensitive roles (strongest personality predictor of CWB; Oh et al. 2011). Public domain ⇒ you can
+  publish items, keys, reliabilities, norms — directly satisfying EU AI Act Art. 10/11/13.
+- **Cognitive:** IRT/CAT abstract-reasoning (matrix) bank, in-house, Nordic-normed; CAT roughly halves
+  test length at equal precision (Embretson & Reise 2000). Calibrate the cognitive *demand band* to
+  documented role complexity (O*NET Job Zone analogue), not "max."
+- **Faking:** social-desirability inflation is real (Birkeland 2006, d ≈ .45 for C in selection).
+  Mitigate with forced-choice variants in high-stakes hiring, warning instructions, and verification
+  against structured-interview behavioural evidence. **Report uncertainty intervals on every score.**
+- **EXPLICITLY EXCLUDED — never implement as measurement:** MBTI, DISC, Insights/"colours", learning
+  styles, Belbin team roles, 9-box as an auto-rated potential tool. (Poor reliability/validity:
+  Pittenger 2005; Pashler 2008; Furnham 1993; Church & Rotolo 2013.) Belbin/9-box may appear ONLY as
+  labelled discussion aids, never as scored instruments.
 
-Already enforced structurally via the `chk_role_definition_shape` check on
-`roles_catalog.definition_json` requiring `trait_targets[].band.{min,max}`.
+## 5. The Role Profile is the measuring stick — full required spec
 
----
+A defensible Role Profile combines task-based + worker-oriented (KSAO) + context descriptors, is
+versioned/attributable, and produces EU-AI-Act documentation. Required components (see PHASE0-SPEC
+§2.7 for the field model):
+- **Identity & governance** — version, status (draft/under_review/signed_off/archived), attributable
+  sign-off, effective dates, validation_status, validation_evidence_refs. (AI Act Art. 11/12/26.)
+- **Task / work-activity layer** — tasks with criticality+frequency, outcomes, tools; content-validity
+  anchor (O*NET GWA/DWA; Brannick 2007).
+- **Weighted competencies** — criterion-side first (Bartram 2005 "Great Eight" / SHL UCF / Korn Ferry
+  KFLA mappings); weights 0–1 summing to 1 across the critical set; criticality band; BARS anchors;
+  derivation method (SME_Delphi / CIT / criterion / hybrid). **Define the criterion (competencies)
+  first, then map predictors (traits/ability) to it — never the reverse.**
+- **Trait target bands** — per §2 above; facet-level where evidence supports; each with weight,
+  direction, and a justification + evidence_refs.
+- **Cognitive demand** — complexity level (1–5) + justification; target band; use_as
+  (threshold/banded/continuous, banded preferred); adverse-impact monitoring hook.
+- **Context factors** — per §3.
+- **Values & motivation** — Schwartz 10 values; SDT autonomy/competence/relatedness needs-supplies.
+- **Success criteria** — operationalized, behaviour-anchored, time-bounded (90-day/6-mo/annual),
+  multi-dimensional (task / contextual-OCB / adaptive / leadership / CWB-avoidance); Campbell 1990;
+  Borman & Motowidlo 1997; Pulakos 2000 adaptive; Locke & Latham specificity.
+- **Evolution vector** — **labelled a FORECAST, not a measurement**, in data and UI; sourced (named
+  SMEs + Lightcast/ESCO/WEF), confidence-rated, forced re-review date.
+- **Team-gap context** — computed from members' OWN profiles (complementary + supplementary fit);
+  **peer-rating of individuals' personality is blocked at the schema level** (see §7).
+- **Validation & defensibility metadata** — validation method, SME/Delphi records, inter-rater
+  agreement (ICC/Kendall's W), adverse-impact log (four-fifths), differential-prediction log,
+  review dates, AI Act tech-doc ref, DPIA ref, framing default (= developmental).
 
-## 3. Allowed and forbidden measurement instruments
+## 6. Fit is a TRAJECTORY; re-measurement is developmental by default
 
-The catalogue of `assessment_instruments` is the single point at which content arrives in
-the system. The structural rule:
+- Fit is dynamic (Caldwell 2004; Vleugels 2019). Re-measure on a **6–12 month cadence**, consent-gated.
+- **Four-quadrant model (person-drift × role-drift):** stable fit / growth gap / emerging misfit /
+  aligned-evolution(flight-risk-if-not-promoted). It is a **practitioner synthesis, not a validated
+  instrument** — label it as such; never present as measurement.
+- **Developmental framing is a MEASUREMENT-VALIDITY requirement, not soft language** (Kuvaas 2011;
+  DeNisi & Murphy 2017): evaluative framing suppresses honest signal and produces gaming. Default all
+  re-measurement to developmental; evaluative use is opt-in, named, consented. Beware self-fulfilling-
+  prophecy labelling (Rosenthal & Jacobson 1968) — "emerging misfit" must never be surfaced to a
+  manager without developmental context.
+- **Personality changes through adulthood** (Roberts et al. 2006) — this *justifies* re-measurement
+  and *requires* the developmental framing.
+- **Engagement ≠ performance** (Harter 2002 ρ ≈ .20–.30, causal direction contested). Treat pulse
+  signals as **flight-risk / well-being** indicators, NOT performance proxies. Stay on the
+  "high-performance" axis, explicitly out of the engagement-platform category.
 
-### 3.1 Allow-list (open-domain or public-domain, validated)
+## 7. Team definition — Delphi independence + the surveillance guardrail
 
-- **IPIP-NEO** (and IPIP-NEO-120 short form) — Big Five facet model.
-- **BFI-2** — Big Five inventory (Soto & John 2017).
-- **HEXACO-PI-R** — six-factor model; required for any Honesty-Humility / integrity surface.
-- **O\*NET-derived work-activity instruments** — used as role-side anchoring, not person-scoring.
+- Group role definition uses **independent rating before discussion** (Delphi: Linstone & Turoff 1975;
+  NGT) to suppress groupthink/anchoring — not open round-tables.
+- **NON-NEGOTIABLE:** peers validate **role requirements**, never each other's personalities. Peer
+  ratings of individuals' personality are psychometrically weak (Connelly & Ones 2010) AND a high-risk
+  profiling pattern (GDPR Art. 22; EU AI Act Annex III §4). **Team composition is built ONLY from each
+  member's own validated self-administered profile, aggregated against the role.** Block peer-personality
+  rating at the schema level.
+- Team-gap seeks **complementary** fit (fills gaps) as a deliberate counterweight to the
+  Attraction-Selection-Attrition monoculture risk (Schneider 1987); culture-fit uses **supplementary**
+  fit. Support both; do not let naive "culture fit" suppress diversity.
 
-### 3.2 Deny-list (refused at the DB layer)
+## 8. Manager guidance: grounded, evidence-tiered, never freeform
 
-These instruments either **lack predictive validity**, have **commercial restrictions**
-that block lawful redeployment, or both. They MUST NOT be ingested even in DEV STUB form:
+- **Frameworks Library = a graph of evidence objects.** Each "manager play" links to: primary
+  citations, evidence-strength tier (S/A/B/C, GRADE-adapted), contraindications, the Role/Person
+  signals that trigger it, versioned template text, and a re-review/expiry date.
+- Seed it with validated frameworks ONLY: Goal-setting (Locke & Latham); **Feedback Intervention Theory
+  (Kluger & DeNisi 1996 — 38% of feedback interventions DECREASED performance; guidance must be
+  task-focused, behaviour-specific, goal-paired, never ego/self-focused)**; Job Characteristics Model;
+  Self-Determination Theory (autonomy/competence/relatedness); Psychological Safety (Edmondson 1999);
+  Schwartz values; SHL UCF/Great Eight; O*NET/ESCO. Exclude the §4 debunked list.
+- **RAG is the only defensible generation pattern** (AI Act Art. 14): retrieval corpus = Frameworks
+  Library + Role Profile + Person Profile ONLY, no open-web retrieval at inference. Every guidance
+  sentence backed by a retrieved, cited chunk; below confidence threshold ⇒ refuse + route to human.
+  **Refusal taxonomy:** medical, legal, dismissal, salary, protected-characteristic inference ⇒ decline
+  with explanation. Temperature ≤ 0.3; log every prompt/retrieval-set/output (AI Act Art. 12).
+  Human-in-the-loop gate for any consequential wording (hire/no-hire, PIP, promotion).
+- EU-resident model hosting only; document base-model training data (AI Act Art. 50–55); no personal
+  data leaves the EU for inference (Schrems II). Red-team each release (jailbreak, bias, demographic-
+  inference probes); publish the eval set.
 
-- **MBTI** (Myers-Briggs)
-- **DISC** (and any "DISC-derived" rebadging)
-- **Learning styles** ("VARK", "Kolb learning styles", etc.)
-- **Belbin Team Roles** (as a scored instrument; the role taxonomy is fine as a discussion frame)
+## 9. Fit informs, never decides — architectural rule
 
-Structural enforcement: a CHECK constraint on `assessment_instruments` refuses any row whose
-`key`, `name`, or `vendor` matches the deny patterns above.
+- **GDPR Art. 22 + EU AI Act Art. 14:** a fit score can NEVER be the sole signal closing a hiring,
+  promotion, PIP, or termination decision. Human-in-the-loop is **architecturally enforced** — a
+  `decision_artefact` (human, attributable, logged, overridable) is required before any consequential
+  action. No auto-reject / auto-rank-to-action / auto-PIP. Log every decision and override.
+- Prefer interpretable models (regularized regression / GBM + SHAP local explanations) over opaque
+  nets — required for "meaningful information about the logic" (GDPR Art. 22) and AI Act transparency.
+  Maintain a **model card** per model (intended use, data lineage, weights, fairness metrics, version,
+  owner).
 
-### 3.3 Nordic norms
+## 10. Bias & fairness — mandatory, demographic-aware, threshold-owned by experts
 
-US norms systematically misclassify Nordic respondents (particularly on Extraversion).
-Once content is real (not stub):
+- **Methods:** four-fifths rule (EEOC Uniform Guidelines §4D) as inspection trigger + statistical
+  confirmatory tests; **differential prediction** (Cleary 1968; Aguinis 2010 — test slope/intercept by
+  group; note Berry 2015: cognitive tests often show no differential validity but intercept differences
+  that *overpredict* minority performance); **measurement invariance / DIF** (configural→metric→scalar)
+  per language version before launch; **Pareto-optimal validity–diversity weighting** (De Corte 2007;
+  Song 2017, 2023) exposed as a curve the customer chooses a point on.
+- **Demographic-blind is NOT compliant** — AI Act Art. 10(5) permits special-category processing FOR
+  bias detection; bias monitoring REQUIRES demographic data. In the Nordics, collect sensitive
+  attributes **voluntarily, separate-purpose, separately-stored, used only for fairness analysis, never
+  in prediction**; pair with documented-uncertainty proxy auditing.
+- **The computation is engineering; the thresholds and "is this acceptable?" verdicts are JUDGMENTS the
+  I/O + legal owners set and sign off.** The system computes and surfaces metrics; it never self-asserts
+  "unbiased" or "compliant." Immutable bias-audit log (AI Act Art. 12); regulator-ready report per role
+  per quarter; publish a public fairness report per major release (cf. Pymetrics/Wilson 2021).
+- **Cautionary precedent:** *Mobley v. Workday* (N.D. Cal., collective action certified May 16 2025 on
+  ADEA grounds; notice plan approved Dec 2 2025) — a vendor may itself be treated as an "employment
+  agency." Audit rigor is existential, not optional.
 
-- Country-level norm tables required, **n ≥ 3,000 per country**, drawn under purpose-
-  appropriate consent.
-- Norm provenance recorded on the score row (already supported by `assessment_scores.
-  validity_flags_json`).
+## 11. Nordic norms are a compliance asset AND the category wedge
 
----
+- Nordic work culture is empirically distinct (Hofstede: very low power distance, world's most
+  consensus/"feminine" cultures; Jante-law / *lagom* modesty depresses self-promotion in self-report).
+  **US-normed personality scores systematically misclassify Nordic respondents toward the low end**
+  (esp. Extraversion, C-facet "achievement striving").
+- **Build Nordic per-country norms** (target ≥ 3,000 per country NO/SE/DK; ≥ 1,500 FI/IS phase 2),
+  re-normed percentiles per country+language, with multi-group CFA/IRT DIF at configural/metric/scalar
+  levels, published technical manual. Re-derive trait target bands per role family per Nordic context.
+  This satisfies AI Act Art. 10 data-representativeness and defeats "US tools disadvantage Nordic group
+  X." Incumbents (Hogan/SHL/PI) carry weak Nordic norms; Alva is closest but leans on a US comparison
+  sample — the gap is the wedge.
 
-## 4. The role profile (full structural shape)
+## 12. EU AI Act timeline — build to the original, treat deferral as margin
 
-A role profile, as stored in `roles_catalog.definition_json`, MUST contain:
-
-1. **Identity & governance** — `title`, `family`, `version`, `signed_off_by`, `authored_by_json`.
-2. **Task / work-activity layer** — list of activities, anchored to O\*NET task codes where
-   possible. (Today carried inside `definition_json` as an array; full O\*NET integration
-   is a later content-layer step.)
-3. **Weighted competencies** — `competencies[]` with `{key, weight}`, weights summing to 1.0.
-4. **Trait target bands** — `trait_targets[]` with `{trait, band:{min,max}, direction, justification}`.
-5. **Context factors** — `context_factors` covering autonomy, pace, collaboration intensity,
-   complexity. Carried as `definition_json.context_factors`; null until tuned.
-6. **Success criteria** — behavioural anchors, time-bounded, multi-dimensional. Carried as
-   `definition_json.success_criteria`.
-7. **Evolution vector** — how the role is expected to drift over the next 6-12 months.
-   `roles_catalog.definition_json.evolution_vector` (Phase 3 activates the field).
-8. **Validation metadata** — SME records, inter-rater agreement, adverse-impact log refs.
-   Carried as `definition_json.validation_json`; required for `validity_status='validated'`.
-
----
-
-## 5. Decision architecture — fit informs, never decides
-
-**GDPR Art. 22** prohibits decisions based solely on automated processing where they
-significantly affect an individual.
-
-**EU AI Act Art. 14** requires effective human oversight of high-risk AI systems.
-
-Recruitment + post-hire performance/promotion/termination are high-risk under Annex III.
-
-Therefore:
-
-- A fit score MUST NEVER be the sole signal closing a hiring, promotion, PIP, or
-  termination decision. Already enforced via:
-  - `hiring_decisions` row required before `placement_execute` will transfer (Phase 1).
-  - `rationale` NOT NULL on `hiring_decisions` (free text — the human's reasoning).
-  - `overrode_recommendation boolean` captured per decision.
-- The same rule extends to **ongoing** decisions: promotions, PIPs, RIFs. A new
-  `lifecycle_decisions` table is added in this milestone to record human decisions
-  on post-hire actions, gated by `ongoing_management` consent, with the same rationale
-  + override fields.
-
----
-
-## 6. Guidance refusal — categories the composer MUST refuse
-
-The guidance composer is RAG over the frameworks library + structured profile data.
-Outside that scope, it MUST refuse with a structured explanation rather than free-generate.
-
-### 6.1 Refused categories
-
-- **Medical** — anything seeking a diagnosis, prognosis, accommodation determination, or
-  treatment suggestion. Direct the manager to occupational health.
-- **Legal** — anything seeking dismissal grounds, contract interpretation, regulatory
-  defence. Direct to legal counsel.
-- **Dismissal / termination scripting** — performance-improvement-plan content with
-  termination as an implied outcome; severance recommendations. Capture the situation in
-  `growth_conversations`; require legal + HR sign-off out-of-band.
-- **Salary / compensation** — pay-band recommendations, raise sizing. Direct to comp
-  team. The frameworks library carries no salary data.
-
-### 6.2 Structural enforcement
-
-- `guidance_refusal_kind` enum: `medical | legal | dismissal | compensation | out_of_scope`.
-- `guidance_compose` short-circuits when the inferred category is on the refusal list and
-  writes a row to `guidance_items` with `output_json.refused = true`, `output_json.refusal_kind`,
-  and a recommended direction (e.g. "occupational health"). The row STILL carries
-  `framework_ids` citing the refusal policy itself, so the audit trail remains grounded.
-
-### 6.3 RAG hygiene (when wired to an LLM)
-
-- Temperature ≤ 0.3.
-- Retrieval window confined to: frameworks library + the named person's profile + the
-  named person's role + the requesting manager's open guidance/growth conversations.
-- No open-web retrieval, no other employees' data, no organisation-wide gossip.
-- Every input + the retrieved framework_ids logged on `guidance_items.inputs_json`.
-- Output is never "freeform advice about a named person from priors" — it's a recombination
-  of cited frameworks + the structured data above.
-
----
-
-## 7. Fairness & compliance practices
-
-### 7.1 Adverse-impact monitoring
-
-- **Four-fifths rule** (EEOC Uniform Guidelines §4D) as inspection trigger, not as a pass/fail.
-- Implementation: a `fairness_audits` table accumulates aggregate metrics per
-  (role, instrument, decision-stage). Future Phase 4 work computes ratios + differential
-  prediction. For now we record the inputs (decision outcomes by group) so the data exists
-  when the analysis ships.
-
-### 7.2 AI Act Article 10(5)
-
-- "Demographic-blind" violates Art 10(5) — bias monitoring requires sensitive-attribute data,
-  collected under purpose-appropriate consent.
-- Sensitive attributes (where collected): held in a separate, purpose-limited table with
-  its own consent purpose (`fairness_monitoring`). NOT joined to user-facing surfaces.
-  This milestone DEFINES the purpose value and the table; populating it requires the
-  separate consent flow (out of scope here).
-
-### 7.3 Measurement invariance
-
-- Required across language versions before a localised instrument can be marked
-  `validity_status='validated'`. Implementation: `assessment_instruments.body_json.
-  measurement_invariance_json` with per-language fit statistics. Until populated for a
-  given language, the localisation runs as `dev_stub`.
-
----
-
-## 8. Timeline & deferrals
-
-- **Original high-risk recruitment AI obligations:** 2 August 2026.
-- **May 2026 deferral** extends to **2 December 2027** for standalone systems.
-- **Engineering posture:** build to the original requirements; treat the extension as
-  schedule relief, not a permission slip. This file's discipline is enforced today.
-
----
-
-## 9. What this milestone implements
-
-Concrete structural changes shipped alongside this document:
-
-1. `assessment_instruments` deny-list CHECK refusing MBTI, DISC, learning-styles, Belbin.
-2. `lifecycle_decisions` table — human-decided post-hire actions (promotion / PIP / etc.)
-   with rationale + override fields, gated by `ongoing_management` consent.
-3. `guidance_compose` extended with refusal categories + the `guidance_refusal_kind` enum;
-   refused requests still produce an audit row.
-4. `consent_purpose` enum extended with `fairness_monitoring` for the future
-   sensitive-attribute table.
-5. Tests verifying: deny-list refuses MBTI/DISC, refusal categories produce refusal rows
-   not freeform output, lifecycle_decisions cannot be inserted without rationale.
+- Recruitment/evaluation/promotion/termination/performance-monitoring AI is **high-risk under Annex
+  III §4.** Provider+deployer obligations: risk-management system (Art. 9), data governance (Art. 10),
+  technical documentation (Art. 11/Annex IV), event logging (Art. 12), transparency (Art. 13), human
+  oversight (Art. 14), accuracy/robustness/security (Art. 15); deployers must inform workers + worker
+  reps (Art. 26(7)); FRIA for some deployments (Art. 27). Fines up to €35M / 7% global turnover.
+- **Timeline:** Annex III high-risk obligations were originally **2 August 2026**. The **May 2026
+  *Digital Omnibus on AI* (COM(2025) 836)** provisional agreement (announced 7 May 2026, confirmed by
+  Member-State representatives 13 May 2026) defers them to **2 December 2027** for standalone systems,
+  pending formal adoption. **Build to the original requirements; treat the extension as schedule
+  relief, not a permission slip.** Keep all policy logic in configurable rules, not hard-coded, because
+  the landscape is still moving (EDPB consultations open).
+- GDPR Art. 22 (no solely-automated significant decisions) + Art. 35 (DPIA for systematic profiling)
+  layer on top. Nordic DPAs (Datatilsynet NO, IMY SE, Datatilsynet DK) have aligned guidance with EDPB
+  Opinion 28/2024.
 
 ---
 
-*See `CLAUDE.md` for engineering rules, `PHASE0-SPEC.md` for the data substrate,
-`DESIGN.md` for the UI system. Conflicts with this file are bugs against the
-implementation, not the spec.*
+## Staged scientific roadmap (maps onto the build phases)
+
+- **Stage 0 (pre-launch, ~Phase 0–1 foundation):** license nothing proprietary — IPIP + HEXACO-PI-R
+  open items + in-house IRT-CAT matrix bank; lock the Frameworks Library schema (evidence graph w/
+  citations+tier+version) and seed ~40 validated plays; stand up the RAG pipeline (EU-hosted, refusal
+  taxonomy, full logging); begin Nordic norm collection (≥1,500/country by month 6 via partner agencies).
+- **Stage 1 (recruitment-agency launch, ~Phase 1):** structured-interview kit (the top Sackett-2022
+  predictor) + contextualized Big Five + CAT cognitive + H-H integrity; live adverse-impact &
+  differential-prediction dashboards per role; publish v1 technical manual + bias audit; pursue EFPA
+  review. **Advance threshold:** ≥5 placements/agency/month at ≥0.30 observed local validity vs 90-day
+  performance on the first 200 placements.
+- **Stage 2 (employer / lifecycle, ~Phase 2–3):** re-evaluation, pulse, four-quadrant fit,
+  manager-guidance RAG, Pareto weighting tool; complete Nordic norm set (3,000+/country) + publish;
+  begin DACH/Benelux norms. **Advance threshold:** scalar measurement invariance across Nordic
+  languages + ≥50 employer customers + AI Act conformity assessment passed & registered.
+- **Stage 3 (EU scale, ~Phase 4):** domain-specific predictive models per vertical with outcome
+  feedback loops; open Frameworks Library to customer-authored tier-C plays under peer review.
+  **Instrument-set expansion threshold:** a new instrument enters only on incremental validity Δρ ≥ .05
+  over the current composite in a **pre-registered Nordic validation study.**
+
+---
+
+## The hard caveats (carry into every phase)
+
+- Sackett et al. (2022) is itself contested (Bobko 2024 rebuttal; Sackett 2024 reply) — best current
+  estimate, not final truth.
+- Most personality validities are modest (.10–.25); resist accuracy marketing.
+- Trait ranges are an interpretive layer, not a reject-outside-range licence.
+- "Potential" prediction beyond past performance is empirically weak (Silzer & Church 2009); 9-box/HiPo
+  survive on faith.
+- The evolution vector is the most speculative element — structured forecast, never a measurement claim.
+- Nordic culture is not monolithic (DK ≠ SE on power distance/uncertainty; FI/IS different language
+  groups) — per-country norms matter.
+- Defensibility is only as strong as the documentation produced — the Role Profile must *generate* the
+  AI Act Annex IV tech doc, the GDPR Art. 35 DPIA, and a Uniform-Guidelines-style validity dossier on
+  demand. Defensibility is a feature, not a footnote.
