@@ -1193,6 +1193,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      role_version_create: {
+        Args: { p_role_id: string; p_new_definition: Json; p_new_authored_by?: Json }
+        Returns: string
+      }
+      placement_execute: {
+        Args: { p_requisition_id: string; p_person_id: string; p_to_org_id: string; p_consent_id: string }
+        Returns: string
+      }
       audit_log_event: {
         Args: {
           p_action: string
