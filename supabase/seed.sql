@@ -1,0 +1,176 @@
+-- supabase/seed.sql — Phase 0 development fixtures.
+--
+-- Two orgs (agency + employer) and a small cast of people configured to exercise:
+--   - cross-org tenant isolation
+--   - manager-chain scope (Erik -> Sara -> Jonas, three-deep)
+--   - consent gate on profiles
+--   - the placement hand-off (Petra has profile_portability for FjordTech)
+--
+-- Idempotent: every INSERT uses ON CONFLICT DO NOTHING against a stable key
+-- (id, email, or a partial unique). Re-running this file is a no-op.
+--
+-- Fixed UUIDs make it possible to reference fixtures by name from test SQL.
+
+-- ============================== auth.users ===============================
+insert into auth.users (id, email) values
+  ('b1000000-0000-0000-0000-000000000001', 'astrid.berg@nordic-recruit.test'),
+  ('b1000000-0000-0000-0000-000000000002', 'magnus.holm@nordic-recruit.test'),
+  ('b1000000-0000-0000-0000-000000000003', 'linnea.strand@fjordtech.test'),
+  ('b1000000-0000-0000-0000-000000000004', 'erik.lund@fjordtech.test'),
+  ('b1000000-0000-0000-0000-000000000005', 'sara.vik@fjordtech.test'),
+  ('b1000000-0000-0000-0000-000000000006', 'jonas.dahl@fjordtech.test'),
+  ('b1000000-0000-0000-0000-000000000007', 'petra.nilsson@candidate.test'),
+  ('b1000000-0000-0000-0000-000000000008', 'henrik.ek@candidate.test')
+on conflict (id) do nothing;
+
+-- ============================ organizations ==============================
+insert into public.organizations (id, name, type, country, locale_default, data_region)
+values
+  ('a1000000-0000-0000-0000-000000000001', 'Nordic Recruit AB', 'agency',   'SE', 'sv-SE', 'us'),
+  ('a1000000-0000-0000-0000-000000000002', 'FjordTech AS',      'employer', 'NO', 'nb-NO', 'us')
+on conflict (id) do nothing;
+
+-- ================================ people =================================
+-- Each person's id matches their auth.users.id for deterministic look-ups.
+insert into public.people (id, primary_email, full_name, given_name, family_name, auth_user_id)
+values
+  ('b1000000-0000-0000-0000-000000000001', 'astrid.berg@nordic-recruit.test',   'Astrid Berg',    'Astrid',  'Berg',    'b1000000-0000-0000-0000-000000000001'),
+  ('b1000000-0000-0000-0000-000000000002', 'magnus.holm@nordic-recruit.test',   'Magnus Holm',    'Magnus',  'Holm',    'b1000000-0000-0000-0000-000000000002'),
+  ('b1000000-0000-0000-0000-000000000003', 'linnea.strand@fjordtech.test',      'Linnea Strand',  'Linnea',  'Strand',  'b1000000-0000-0000-0000-000000000003'),
+  ('b1000000-0000-0000-0000-000000000004', 'erik.lund@fjordtech.test',          'Erik Lund',      'Erik',    'Lund',    'b1000000-0000-0000-0000-000000000004'),
+  ('b1000000-0000-0000-0000-000000000005', 'sara.vik@fjordtech.test',           'Sara Vik',       'Sara',    'Vik',     'b1000000-0000-0000-0000-000000000005'),
+  ('b1000000-0000-0000-0000-000000000006', 'jonas.dahl@fjordtech.test',         'Jonas Dahl',     'Jonas',   'Dahl',    'b1000000-0000-0000-0000-000000000006'),
+  ('b1000000-0000-0000-0000-000000000007', 'petra.nilsson@candidate.test',      'Petra Nilsson',  'Petra',   'Nilsson', 'b1000000-0000-0000-0000-000000000007'),
+  ('b1000000-0000-0000-0000-000000000008', 'henrik.ek@candidate.test',          'Henrik Ek',      'Henrik',  'Ek',      'b1000000-0000-0000-0000-000000000008')
+on conflict (id) do nothing;
+
+-- ============================ memberships ================================
+insert into public.memberships (id, org_id, person_id, status, joined_at) values
+  ('c1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000001', 'active', now()),
+  ('c1000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000002', 'active', now()),
+  ('c1000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000003', 'active', now()),
+  ('c1000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000004', 'active', now()),
+  ('c1000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000005', 'active', now()),
+  ('c1000000-0000-0000-0000-000000000006', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000006', 'active', now())
+on conflict (id) do nothing;
+
+-- ====================== membership_roles (RBAC) ==========================
+-- Attach the system roles to each membership.
+insert into public.membership_roles (membership_id, rbac_role_id)
+select c.mem, r.id
+from (values
+  ('c1000000-0000-0000-0000-000000000001'::uuid, 'org_admin'),         -- Astrid
+  ('c1000000-0000-0000-0000-000000000002'::uuid, 'recruiter'),         -- Magnus
+  ('c1000000-0000-0000-0000-000000000003'::uuid, 'people_ops_admin'),  -- Linnea
+  ('c1000000-0000-0000-0000-000000000004'::uuid, 'hiring_manager'),    -- Erik
+  ('c1000000-0000-0000-0000-000000000005'::uuid, 'manager'),           -- Sara
+  ('c1000000-0000-0000-0000-000000000006'::uuid, 'employee')           -- Jonas
+) as c(mem, role_key)
+join public.rbac_roles r on r.org_id is null and r.key = c.role_key
+on conflict do nothing;
+
+-- ============================ roles_catalog ==============================
+-- Agency role (will be referenced by the requisition).
+insert into public.roles_catalog (id, org_id, title, family, is_template, status, version, definition_json)
+values (
+  'd1000000-0000-0000-0000-000000000001',
+  'a1000000-0000-0000-0000-000000000001',
+  'Senior Backend Engineer', 'engineering', false, 'active', 1,
+  '{"competencies":[{"key":"systems","weight":0.4},{"key":"code_craft","weight":0.3},{"key":"collaboration","weight":0.3}],"trait_targets":{"openness":[0.5,0.9]},"cognitive_demand":null}'::jsonb
+)
+on conflict (id) do nothing;
+
+-- Employer roles (each a non-template instance).
+insert into public.roles_catalog (id, org_id, title, family, is_template, status, version, definition_json)
+values
+  ('d1000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000002', 'Engineering Manager',     'engineering', false, 'active', 1, '{}'::jsonb),
+  ('d1000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000002', 'Software Engineering Lead','engineering', false, 'active', 1, '{}'::jsonb),
+  ('d1000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000002', 'Software Engineer',       'engineering', false, 'active', 1, '{}'::jsonb)
+on conflict (id) do nothing;
+
+-- ============================== positions ================================
+-- Three-deep manager chain in the employer org: Erik (top) <- Sara <- Jonas.
+insert into public.positions (id, org_id, role_id, person_id, status, start_date)
+values
+  -- Erik (top of chain — no manager_position_id)
+  ('e1000000-0000-0000-0000-000000000001',
+   'a1000000-0000-0000-0000-000000000002',
+   'd1000000-0000-0000-0000-000000000002',  -- Engineering Manager
+   'b1000000-0000-0000-0000-000000000004',  -- Erik
+   'filled', current_date)
+on conflict (id) do nothing;
+
+insert into public.positions (id, org_id, role_id, person_id, manager_position_id, status, start_date)
+values
+  -- Sara (reports to Erik)
+  ('e1000000-0000-0000-0000-000000000002',
+   'a1000000-0000-0000-0000-000000000002',
+   'd1000000-0000-0000-0000-000000000003',  -- Software Engineering Lead
+   'b1000000-0000-0000-0000-000000000005',  -- Sara
+   'e1000000-0000-0000-0000-000000000001',  -- under Erik
+   'filled', current_date),
+  -- Jonas (reports to Sara)
+  ('e1000000-0000-0000-0000-000000000003',
+   'a1000000-0000-0000-0000-000000000002',
+   'd1000000-0000-0000-0000-000000000004',  -- Software Engineer
+   'b1000000-0000-0000-0000-000000000006',  -- Jonas
+   'e1000000-0000-0000-0000-000000000002',  -- under Sara
+   'filled', current_date)
+on conflict (id) do nothing;
+
+-- ========================== consent_grants ===============================
+-- Petra: profile_portability granted to FjordTech (for the placement hand-off).
+-- Petra: hiring_decision granted to Nordic Recruit (so they can use her profile).
+insert into public.consent_grants (id, person_id, granted_to_org_id, purpose, status)
+values
+  ('f1000000-0000-0000-0000-000000000001',
+   'b1000000-0000-0000-0000-000000000007',  -- Petra
+   'a1000000-0000-0000-0000-000000000001',  -- Nordic Recruit
+   'hiring_decision', 'active'),
+  ('f1000000-0000-0000-0000-000000000002',
+   'b1000000-0000-0000-0000-000000000007',  -- Petra
+   'a1000000-0000-0000-0000-000000000002',  -- FjordTech
+   'profile_portability', 'active')
+on conflict (id) do nothing;
+
+-- ============================== profiles =================================
+-- Petra has a profile in the agency, bound to her hiring_decision consent.
+insert into public.profiles (id, org_id, person_id, source, consent_id, traits_json, cognitive_json, values_json, derived_json)
+values (
+  'a2000000-0000-0000-0000-000000000001',
+  'a1000000-0000-0000-0000-000000000001',  -- Nordic Recruit (agency)
+  'b1000000-0000-0000-0000-000000000007',  -- Petra
+  'assessment',
+  'f1000000-0000-0000-0000-000000000001',  -- her hiring_decision consent
+  '{"openness":0.78,"conscientiousness":0.82,"extraversion":0.55}'::jsonb,
+  '{"reasoning":0.71}'::jsonb,
+  '{"autonomy":0.6,"impact":0.7}'::jsonb,
+  '{"strengths":["systems thinking"],"friction":[]}'::jsonb
+)
+on conflict (id) do nothing;
+
+-- ============================ requisition ================================
+insert into public.requisitions (id, org_id, role_id, status, created_by)
+values (
+  'a3000000-0000-0000-0000-000000000001',
+  'a1000000-0000-0000-0000-000000000001',  -- agency-owned
+  'd1000000-0000-0000-0000-000000000001',  -- Senior Backend Engineer
+  'shortlisting',
+  'b1000000-0000-0000-0000-000000000002'   -- Magnus (the recruiter)
+)
+on conflict (id) do nothing;
+
+-- ======================= requisition_candidates ==========================
+insert into public.requisition_candidates (id, org_id, requisition_id, person_id, stage)
+values
+  ('a4000000-0000-0000-0000-000000000001',
+   'a1000000-0000-0000-0000-000000000001',
+   'a3000000-0000-0000-0000-000000000001',
+   'b1000000-0000-0000-0000-000000000007',  -- Petra
+   'interview'),
+  ('a4000000-0000-0000-0000-000000000002',
+   'a1000000-0000-0000-0000-000000000001',
+   'a3000000-0000-0000-0000-000000000001',
+   'b1000000-0000-0000-0000-000000000008',  -- Henrik
+   'screening')
+on conflict (id) do nothing;
