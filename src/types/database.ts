@@ -1978,6 +1978,10 @@ export type Database = {
         }
         Returns: string
       }
+      compute_fit_for_candidate: {
+        Args: { p_person_id: string; p_requisition_id: string }
+        Returns: string
+      }
       compute_role_definition_divergence: {
         Args: { p_requisition_id: string }
         Returns: Json
@@ -1999,6 +2003,10 @@ export type Database = {
           p_requisition_id: string
           p_to_org_id: string
         }
+        Returns: string
+      }
+      placement_report_generate: {
+        Args: { p_person_id: string; p_requisition_id: string }
         Returns: string
       }
       reconcile_role_definition: {
