@@ -1,0 +1,28 @@
+{
+  "name": "heitobias",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "db:migrate": "supabase db push",
+    "db:types": "supabase gen types typescript --linked --schema public > src/types/database.ts",
+    "test:sql": "node scripts/run-sql-tests.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.11.10",
+    "dotenv": "^16.4.7",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
