@@ -82,6 +82,120 @@ export type Database = {
           },
         ]
       }
+      audit_log: {
+        Row: {
+          action: string
+          actor_person_id: string | null
+          after_json: Json | null
+          at: string
+          before_json: Json | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          org_id: string | null
+          request_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_person_id?: string | null
+          after_json?: Json | null
+          at?: string
+          before_json?: Json | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          org_id?: string | null
+          request_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_person_id?: string | null
+          after_json?: Json | null
+          at?: string
+          before_json?: Json | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          org_id?: string | null
+          request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_log_actor_person_id_fkey"
+            columns: ["actor_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consent_grants: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          granted_at: string
+          granted_to_org_id: string
+          id: string
+          legal_basis: Database["public"]["Enums"]["consent_legal_basis"]
+          person_id: string
+          purpose: Database["public"]["Enums"]["consent_purpose"]
+          revoked_at: string | null
+          scope_json: Json
+          status: Database["public"]["Enums"]["consent_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string
+          granted_to_org_id: string
+          id?: string
+          legal_basis?: Database["public"]["Enums"]["consent_legal_basis"]
+          person_id: string
+          purpose: Database["public"]["Enums"]["consent_purpose"]
+          revoked_at?: string | null
+          scope_json?: Json
+          status?: Database["public"]["Enums"]["consent_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string
+          granted_to_org_id?: string
+          id?: string
+          legal_basis?: Database["public"]["Enums"]["consent_legal_basis"]
+          person_id?: string
+          purpose?: Database["public"]["Enums"]["consent_purpose"]
+          revoked_at?: string | null
+          scope_json?: Json
+          status?: Database["public"]["Enums"]["consent_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_grants_granted_to_org_id_fkey"
+            columns: ["granted_to_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_grants_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           created_at: string
@@ -319,6 +433,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "placements_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "placements_from_org_id_fkey"
             columns: ["from_org_id"]
             isOneToOne: false
@@ -476,6 +597,13 @@ export type Database = {
           values_json?: Json
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_org_id_fkey"
             columns: ["org_id"]
@@ -906,6 +1034,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      audit_log_event: {
+        Args: {
+          p_action: string
+          p_after_json?: Json
+          p_before_json?: Json
+          p_entity_id?: string
+          p_entity_type: string
+          p_org_id: string
+          p_request_id?: string
+        }
+        Returns: string
+      }
       consent_active: { Args: { consent_grant_id: string }; Returns: boolean }
       has_permission: {
         Args: { org_id: string; permission_key: string }
@@ -920,6 +1060,13 @@ export type Database = {
     Enums: {
       assessment_status: "invited" | "in_progress" | "completed" | "expired"
       assessment_type: "cognitive" | "personality" | "values" | "composite"
+      consent_legal_basis: "consent" | "legitimate_interest" | "contract"
+      consent_purpose:
+        | "hiring_decision"
+        | "profile_portability"
+        | "ongoing_management"
+        | "research_anonymized"
+      consent_status: "active" | "revoked" | "expired"
       data_region: "eu" | "us" | "apac"
       membership_status: "invited" | "active" | "suspended" | "removed"
       org_status: "active" | "suspended" | "archived"
@@ -1076,6 +1223,14 @@ export const Constants = {
     Enums: {
       assessment_status: ["invited", "in_progress", "completed", "expired"],
       assessment_type: ["cognitive", "personality", "values", "composite"],
+      consent_legal_basis: ["consent", "legitimate_interest", "contract"],
+      consent_purpose: [
+        "hiring_decision",
+        "profile_portability",
+        "ongoing_management",
+        "research_anonymized",
+      ],
+      consent_status: ["active", "revoked", "expired"],
       data_region: ["eu", "us", "apac"],
       membership_status: ["invited", "active", "suspended", "removed"],
       org_status: ["active", "suspended", "archived"],
