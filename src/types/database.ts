@@ -919,6 +919,9 @@ export type Database = {
           org_id: string
           output_json: Json
           person_id: string
+          refusal_kind:
+            | Database["public"]["Enums"]["guidance_refusal_kind"]
+            | null
           updated_at: string
           validity_status: Database["public"]["Enums"]["validity_status"]
         }
@@ -938,6 +941,9 @@ export type Database = {
           org_id: string
           output_json: Json
           person_id: string
+          refusal_kind?:
+            | Database["public"]["Enums"]["guidance_refusal_kind"]
+            | null
           updated_at?: string
           validity_status?: Database["public"]["Enums"]["validity_status"]
         }
@@ -957,6 +963,9 @@ export type Database = {
           org_id?: string
           output_json?: Json
           person_id?: string
+          refusal_kind?:
+            | Database["public"]["Enums"]["guidance_refusal_kind"]
+            | null
           updated_at?: string
           validity_status?: Database["public"]["Enums"]["validity_status"]
         }
@@ -1145,6 +1154,100 @@ export type Database = {
             columns: ["role_id"]
             isOneToOne: false
             referencedRelation: "roles_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lifecycle_decisions: {
+        Row: {
+          consent_id: string
+          created_at: string
+          decided_at: string
+          decided_by: string
+          guidance_item_id: string | null
+          id: string
+          kind: Database["public"]["Enums"]["lifecycle_decision_kind"]
+          org_id: string
+          overrode_recommendation: boolean
+          person_id: string
+          rationale: string
+          recommendation_summary: string | null
+          refit_evaluation_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          consent_id: string
+          created_at?: string
+          decided_at?: string
+          decided_by: string
+          guidance_item_id?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["lifecycle_decision_kind"]
+          org_id: string
+          overrode_recommendation?: boolean
+          person_id: string
+          rationale: string
+          recommendation_summary?: string | null
+          refit_evaluation_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          consent_id?: string
+          created_at?: string
+          decided_at?: string
+          decided_by?: string
+          guidance_item_id?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["lifecycle_decision_kind"]
+          org_id?: string
+          overrode_recommendation?: boolean
+          person_id?: string
+          rationale?: string
+          recommendation_summary?: string | null
+          refit_evaluation_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lifecycle_decisions_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lifecycle_decisions_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lifecycle_decisions_guidance_item_id_fkey"
+            columns: ["guidance_item_id"]
+            isOneToOne: false
+            referencedRelation: "guidance_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lifecycle_decisions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lifecycle_decisions_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lifecycle_decisions_refit_evaluation_id_fkey"
+            columns: ["refit_evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "refit_evaluations"
             referencedColumns: ["id"]
           },
         ]
@@ -2672,6 +2775,10 @@ export type Database = {
         }
         Returns: string
       }
+      _infer_guidance_refusal: {
+        Args: { p_context_json: Json }
+        Returns: Database["public"]["Enums"]["guidance_refusal_kind"]
+      }
       _invite_from_header: { Args: never; Returns: string }
       assessment_capture_consent: { Args: { p_token: string }; Returns: string }
       assessment_invite_create: {
@@ -2785,6 +2892,19 @@ export type Database = {
         Args: { p_org_id: string; p_person_id: string }
         Returns: string
       }
+      lifecycle_decision_record: {
+        Args: {
+          p_guidance_item_id?: string
+          p_kind: Database["public"]["Enums"]["lifecycle_decision_kind"]
+          p_org_id: string
+          p_overrode_recommendation?: boolean
+          p_person_id: string
+          p_rationale: string
+          p_recommendation_summary?: string
+          p_refit_evaluation_id?: string
+        }
+        Returns: string
+      }
       lifecycle_self_view: { Args: { p_token: string }; Returns: Json }
       placement_activate: { Args: { p_placement_id: string }; Returns: Json }
       placement_execute: {
@@ -2860,6 +2980,7 @@ export type Database = {
         | "profile_portability"
         | "ongoing_management"
         | "research_anonymized"
+        | "fairness_monitoring"
       consent_status: "active" | "revoked" | "expired"
       data_region: "eu" | "us" | "apac"
       fit_band_status: "in" | "below" | "above"
@@ -2869,7 +2990,20 @@ export type Database = {
         | "growth_focus"
         | "check_in_design"
         | "team_gap_callout"
+      guidance_refusal_kind:
+        | "medical"
+        | "legal"
+        | "dismissal"
+        | "compensation"
+        | "out_of_scope"
       hiring_decision: "advance" | "reject" | "hire" | "withdraw"
+      lifecycle_decision_kind:
+        | "promotion"
+        | "lateral_move"
+        | "role_change"
+        | "pip"
+        | "rif"
+        | "retain"
       membership_status: "invited" | "active" | "suspended" | "removed"
       module_status: "alpha" | "beta" | "stable" | "deprecated"
       org_status: "active" | "suspended" | "archived"
@@ -3052,6 +3186,7 @@ export const Constants = {
         "profile_portability",
         "ongoing_management",
         "research_anonymized",
+        "fairness_monitoring",
       ],
       consent_status: ["active", "revoked", "expired"],
       data_region: ["eu", "us", "apac"],
@@ -3063,7 +3198,22 @@ export const Constants = {
         "check_in_design",
         "team_gap_callout",
       ],
+      guidance_refusal_kind: [
+        "medical",
+        "legal",
+        "dismissal",
+        "compensation",
+        "out_of_scope",
+      ],
       hiring_decision: ["advance", "reject", "hire", "withdraw"],
+      lifecycle_decision_kind: [
+        "promotion",
+        "lateral_move",
+        "role_change",
+        "pip",
+        "rif",
+        "retain",
+      ],
       membership_status: ["invited", "active", "suspended", "removed"],
       module_status: ["alpha", "beta", "stable", "deprecated"],
       org_status: ["active", "suspended", "archived"],

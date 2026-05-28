@@ -46,7 +46,14 @@ type GuidanceItem = {
   id: string
   kind: string
   framework_ids: string[]
-  output_json: { items?: Array<{ framework_id: string; framework_key: string; prompt?: string; manager_prompts?: string[] }> }
+  output_json: {
+    items?: Array<{ framework_id: string; framework_key: string; prompt?: string; manager_prompts?: string[] }>
+    refused?: boolean
+    refusal_kind?: 'medical' | 'legal' | 'dismissal' | 'compensation' | 'out_of_scope'
+    redirect?: string
+    citation?: string
+  }
+  refusal_kind?: 'medical' | 'legal' | 'dismissal' | 'compensation' | 'out_of_scope' | null
   generated_at: string
   action: string | null
   action_at: string | null
@@ -101,7 +108,7 @@ export function ManagerEmployeeDetailPage() {
         .eq('person_id', id).eq('org_id', FJORDTECH_ID)
         .order('generated_at', { ascending: false }).limit(10),
       supabase.from('guidance_items')
-        .select('id, kind, framework_ids, output_json, generated_at, action, action_at, action_notes')
+        .select('id, kind, framework_ids, output_json, refusal_kind, generated_at, action, action_at, action_notes')
         .eq('person_id', id).eq('org_id', FJORDTECH_ID)
         .order('generated_at', { ascending: false }).limit(10),
     ])
@@ -352,24 +359,44 @@ function QuadrantPill({ q }: { q: Refit['quadrant'] }) {
 
 function GuidanceCard({ g, busy, onAction }: { g: GuidanceItem; busy: string | null; onAction: (a: 'acted_on' | 'noted' | 'snoozed' | 'dismissed') => void }) {
   const items = g.output_json.items ?? []
+  const refused = g.refusal_kind ?? g.output_json.refusal_kind
   return (
-    <div className="border border-line rounded-lg p-4 bg-surface">
+    <div className={['border rounded-lg p-4 bg-surface', refused ? 'border-rust' : 'border-line'].join(' ')}>
       <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
-        <Pill tone="interview">
-          <Sparkles size={11} strokeWidth={2.5} /> {g.kind.replace(/_/g, ' ')}
-        </Pill>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Pill tone={refused ? 'reject' : 'interview'}>
+            <Sparkles size={11} strokeWidth={2.5} /> {g.kind.replace(/_/g, ' ')}
+          </Pill>
+          {refused && (
+            <Pill tone="reject">
+              <Shield size={11} strokeWidth={2.5} /> Refused · {refused.replace('_', ' ')}
+            </Pill>
+          )}
+        </div>
         <StubBadge />
       </div>
-      <div className="space-y-2">
-        {items.slice(0, 3).map((it, i) => (
-          <div key={i} className="border-l-2 border-role pl-3 py-1">
-            <p className="text-sm text-ink">{it.prompt ?? (it.manager_prompts ?? [])[0] ?? '(no prompt)'}</p>
-            <p className="eyebrow mt-1 flex items-center gap-1.5">
-              <ChevronRight size={11} /> grounded · {it.framework_key}
-            </p>
-          </div>
-        ))}
-      </div>
+      {refused ? (
+        <div className="border-l-4 border-rust pl-3 py-2 bg-reject-bg/30 rounded">
+          <p className="text-sm text-ink font-semibold">This question is out of scope for the guidance composer.</p>
+          {g.output_json.redirect && (
+            <p className="text-sm text-ink mt-1">{g.output_json.redirect}</p>
+          )}
+          <p className="eyebrow mt-2 flex items-center gap-1.5">
+            <ChevronRight size={11} /> grounded · {g.output_json.citation ?? 'refusal_policy_v0'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {items.slice(0, 3).map((it, i) => (
+            <div key={i} className="border-l-2 border-role pl-3 py-1">
+              <p className="text-sm text-ink">{it.prompt ?? (it.manager_prompts ?? [])[0] ?? '(no prompt)'}</p>
+              <p className="eyebrow mt-1 flex items-center gap-1.5">
+                <ChevronRight size={11} /> grounded · {it.framework_key}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="mt-3 flex flex-wrap gap-2 items-center">
         <span className="eyebrow">Action:</span>
         {(['acted_on', 'noted', 'snoozed', 'dismissed'] as const).map((a) => (

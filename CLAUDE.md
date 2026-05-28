@@ -119,12 +119,14 @@ The seam matters because we cannot fabricate science. We can fabricate a clearly
 - ❌ Never enforce tenant isolation or authorization in the UI/API only — it must hold at the DB (RLS).
 - ❌ Never move data between orgs except via a consent-gated, audited `placement`.
 - ❌ Never let any gate other than `consent_active()` serve as the visibility check for personal data (profiles/assessments). Memberships, RBAC permissions, and scope checks govern *existence and operations*; consent governs *data*. (See `PHASE0-SPEC.md` §4.4.)
-- ❌ Never let a model/score auto-make a hiring or performance decision — human-in-the-loop, always.
-- ❌ Never emit freeform LLM advice about a named person from priors — ground it (RAG + structured data) and log it.
+- ❌ Never let a model/score auto-make a hiring or performance decision — human-in-the-loop, always. (GDPR Art. 22 + EU AI Act Art. 14; see `SCIENCE-SPEC.md` §5.)
+- ❌ Never emit freeform LLM advice about a named person from priors — ground it (RAG + structured data) and log it. The guidance composer must REFUSE medical / legal / dismissal / compensation queries (see `SCIENCE-SPEC.md` §6).
 - ❌ Never store personal data outside the EU region.
 - ❌ Never add a hardcoded path for something the template/module system should configure.
 - ❌ Never implement peer-rates-peer personality evaluation — team composition is built from members' **own** validated profiles only.
 - ❌ Never ship a row with `validity_status = 'validated'` that carries fabricated values; the DB enforces this (see the *Validated science & DEV STUBs* section).
+- ❌ Never ingest MBTI, DISC, learning-styles, or Belbin as scored instruments — `SCIENCE-SPEC.md` §3.2 deny-list, enforced by DB CHECK on `assessment_instruments`.
+- ❌ Never model a trait target as a single threshold or "more is better" — trait targets are bands with direction + justification (`SCIENCE-SPEC.md` §2).
 - ❌ Never hand-maintain types the database already defines.
 
 ---
@@ -132,5 +134,6 @@ The seam matters because we cannot fabricate science. We can fabricate a clearly
 ## Reference docs in this repo
 
 - `PHASE0-SPEC.md` — full Phase 0 data model, RLS approach, consent, acceptance checklist.
+- `SCIENCE-SPEC.md` — I/O psychology + EU AI Act / GDPR compliance: instrument allow/deny list, trait-band rules, decision architecture, guidance refusal categories, fairness practices. **Load-bearing for anything touching measurement, fit, fairness, or post-hire decision support.**
 - `DESIGN.md` — UI system: shadcn/ui base + the project's distinctive visual style and tokens.
 - (Project brief / architecture / build-plan documents describe the product strategy and phasing.)
