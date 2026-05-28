@@ -174,3 +174,83 @@ values
    'b1000000-0000-0000-0000-000000000008',  -- Henrik
    'screening')
 on conflict (id) do nothing;
+
+-- ============================ PHASE 2 demo state =========================
+-- Idempotent append that walks ONE candidate (Sigrid) through the entire
+-- Phase 1 + Phase 2 lifecycle so the employer-activations + kickstart
+-- surfaces have something to show on a fresh seed:
+--   1. Sigrid is a candidate sourced through Nordic Recruit.
+--   2. Assessment invited, consent captured, 5 items answered, scored.
+--   3. Fit computed; "hire" decision recorded.
+--   4. Sigrid grants portability to FjordTech via her consent dashboard.
+--   5. placement_execute transfers profile + position to FjordTech;
+--      Sigrid's agency membership atomically flips to "removed".
+--   6. placement_activate captures ongoing_management consent at FjordTech
+--      (legal_basis = contract).
+--   7. kickstart_generate produces a 90-day plan grounded in the seeded
+--      DEV-STUB frameworks.
+-- Petra remains in her shortlisting state so the recruiter desk has an
+-- interactive candidate to walk through end-to-end.
+
+insert into auth.users (id, email) values
+  ('b1000000-0000-0000-0000-000000000009', 'sigrid.lund@candidate.test')
+on conflict (id) do nothing;
+
+insert into public.people (id, full_name, primary_email, auth_user_id)
+values ('b1100000-0000-0000-0000-000000000009', 'Sigrid Lund',
+        'sigrid.lund@candidate.test', 'b1000000-0000-0000-0000-000000000009')
+on conflict (id) do nothing;
+
+insert into public.memberships (id, org_id, person_id, status)
+values ('b2100000-0000-0000-0000-000000000009',
+        'a1000000-0000-0000-0000-000000000001',  -- Nordic Recruit
+        'b1100000-0000-0000-0000-000000000009',
+        'invited')
+on conflict (id) do nothing;
+
+do $seed_phase2$
+declare
+  agency_a   constant uuid := 'a1000000-0000-0000-0000-000000000001';
+  employer_a constant uuid := 'a1000000-0000-0000-0000-000000000002';
+  agency_req constant uuid := 'a3000000-0000-0000-0000-000000000001';
+  sigrid     constant uuid := 'b1100000-0000-0000-0000-000000000009';
+  v_existing_placement uuid;
+  inv jsonb; tok text; cap_consent uuid; ct_token text; it record;
+  port_grant uuid; placement_id uuid;
+begin
+  -- Skip the whole demo bootstrap if Sigrid has already been placed once
+  -- (re-running the seed is then a no-op).
+  select id into v_existing_placement from public.placements
+    where person_id = sigrid and to_org_id = employer_a limit 1;
+  if v_existing_placement is not null then return; end if;
+
+  -- Phase 1 pipeline: invite → consent → take → score → fit → decide.
+  inv := public.assessment_invite_create(agency_a, sigrid, 'sample_personality_v0', 'personality', 14);
+  tok := inv->>'token';
+  cap_consent := public.assessment_capture_consent(tok);
+  for it in
+    select i.id from public.assessment_items i
+    join public.assessment_instruments ai on ai.id = i.instrument_id
+    where ai.key = 'sample_personality_v0'
+  loop
+    perform public.assessment_submit_response(tok, it.id, jsonb_build_object('value', 4));
+  end loop;
+  perform public.assessment_run_scoring((inv->>'assessment_id')::uuid);
+  perform public.compute_fit_for_candidate(agency_req, sigrid);
+  perform public.hiring_decision_record(agency_req, sigrid, 'hire',
+    'DEMO STATE: confirming hire so Phase 2 surfaces have a placed candidate.');
+
+  -- Phase 2: candidate dashboard grants portability.
+  select token into ct_token from public.consent_tokens
+    where person_id = sigrid and revoked_at is null limit 1;
+  port_grant := public.portability_grant(ct_token, employer_a);
+
+  -- Placement transfer.
+  placement_id := public.placement_execute(agency_req, sigrid, employer_a, port_grant);
+
+  -- Employer activation: captures ongoing_management.
+  perform public.placement_activate(placement_id);
+
+  -- 90-day kickstart plan.
+  perform public.kickstart_generate(sigrid, employer_a);
+end$seed_phase2$;
