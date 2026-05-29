@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AlertTriangle, FileCheck2, FileText, Gauge, Loader2, LogOut, ShieldAlert, Sparkles } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
+import { useCurrentOrgId } from '../lib/currentOrg.js'
 import { Button } from '../components/ui/button.js'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
 import { Pill, StubBadge } from '../components/ui/badges.js'
@@ -15,7 +16,8 @@ const DEMO_USERS = import.meta.env.DEV
     ] as const
   : ([] as ReadonlyArray<{ email: string; label: string }>)
 
-const FJORDTECH_ID = 'a1000000-0000-0000-0000-000000000002'
+// FjordTech UUID was hardcoded here. Org is now resolved at runtime
+// from the caller's first active membership via useCurrentOrgId().
 
 type ModelRow = { id: string; key: string; family: string; version: string; validity_status: string; _dev_stub: boolean; created_at: string; card_signed_off_at: string | null }
 type CardRow  = { id: string; model_id: string; intended_use: string | null; validity_status: string; _dev_stub: boolean; signed_off_by: string | null }
@@ -27,6 +29,8 @@ type ArtifactRow = { id: string; kind: string; key: string; sign_off_status: str
 
 export function ModelingAdminPage() {
   const supabase = browserSupabase()
+  const orgState = useCurrentOrgId()
+  const orgId = orgState.state === 'ready' ? orgState.orgId : null
   const [signedIn, setSignedIn] = useState<string | null>(null)
   const [authBusy, setAuthBusy] = useState(false)
   const [tab, setTab] = useState<'models' | 'pareto' | 'fairness' | 'monitoring' | 'compliance'>('models')
@@ -48,16 +52,16 @@ export function ModelingAdminPage() {
   }, [supabase])
 
   const load = useCallback(async () => {
-    if (!signedIn) return
+    if (!signedIn || !orgId) return
     setLoading(true)
     setTopErr(null)
     try {
-      const m = await supabase.from('model_registry' as never).select('id,key,family,version,validity_status,_dev_stub,created_at').eq('org_id', FJORDTECH_ID).order('created_at', { ascending: false }).limit(20)
+      const m = await supabase.from('model_registry' as never).select('id,key,family,version,validity_status,_dev_stub,created_at').eq('org_id', orgId).order('created_at', { ascending: false }).limit(20)
       const c = await supabase.from('model_cards' as never).select('id,model_id,intended_use,validity_status,_dev_stub,signed_off_by')
-      const cu = await supabase.from('pareto_curves' as never).select('id,key,default_weight_validity,regularization_lambda,computed_at,_dev_stub').eq('org_id', FJORDTECH_ID).order('computed_at', { ascending: false }).limit(5)
+      const cu = await supabase.from('pareto_curves' as never).select('id,key,default_weight_validity,regularization_lambda,computed_at,_dev_stub').eq('org_id', orgId).order('computed_at', { ascending: false }).limit(5)
       const fm = await supabase.from('fairness_metrics' as never).select('id,characteristic,reference_group,protected_group,adverse_impact_ratio,ci_lower,ci_upper,four_fifths_inspection_triggered,interpretation_by_expert').limit(50)
-      const al = await supabase.from('monitoring_alerts' as never).select('id,severity,status,message,opened_at,resolved_at').eq('org_id', FJORDTECH_ID).order('opened_at', { ascending: false }).limit(20)
-      const ar = await supabase.from('compliance_artifacts' as never).select('id,kind,key,sign_off_status,generated_at,signed_off_at').eq('org_id', FJORDTECH_ID).order('generated_at', { ascending: false }).limit(20)
+      const al = await supabase.from('monitoring_alerts' as never).select('id,severity,status,message,opened_at,resolved_at').eq('org_id', orgId).order('opened_at', { ascending: false }).limit(20)
+      const ar = await supabase.from('compliance_artifacts' as never).select('id,kind,key,sign_off_status,generated_at,signed_off_at').eq('org_id', orgId).order('generated_at', { ascending: false }).limit(20)
       setModels(((m.data as unknown) as ModelRow[]) ?? [])
       setCards(((c.data as unknown) as CardRow[]) ?? [])
       setCurves(((cu.data as unknown) as CurveRow[]) ?? [])
@@ -79,7 +83,7 @@ export function ModelingAdminPage() {
     } finally {
       setLoading(false)
     }
-  }, [signedIn, supabase])
+  }, [signedIn, orgId, supabase])
 
   useEffect(() => { void load() }, [load])
 

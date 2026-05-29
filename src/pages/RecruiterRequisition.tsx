@@ -30,10 +30,15 @@ import {
 import { HitlNotice } from '../components/HitlNotice.js'
 import { Shell } from '../components/Shell.js'
 
-const DEMO_USERS = [
-  { email: 'astrid.berg@nordic-recruit.test', label: 'Astrid Berg — org_admin' },
-  { email: 'magnus.holm@nordic-recruit.test', label: 'Magnus Holm — recruiter' },
-] as const
+// Demo personas — only in dev/staging builds. `import.meta.env.DEV` is a
+// Vite-time constant; in `npm run build` it becomes `false` and the
+// ternary collapses to `[]`, taking the email literals with it.
+const DEMO_USERS = import.meta.env.DEV
+  ? [
+      { email: 'astrid.berg@nordic-recruit.test', label: 'Astrid Berg — org_admin' },
+      { email: 'magnus.holm@nordic-recruit.test', label: 'Magnus Holm — recruiter' },
+    ] as const
+  : ([] as ReadonlyArray<{ email: string; label: string }>)
 
 type Requisition = { id: string; org_id: string; role_id: string; status: string }
 type Role = { id: string; title: string; version: number; family: string | null }
@@ -76,7 +81,7 @@ export function RecruiterRequisitionPage() {
   const supabase = browserSupabase()
   const [signedIn, setSignedIn] = useState<string | null>(null)
   const [authBusy, setAuthBusy] = useState(false)
-  const [selectedDemo, setSelectedDemo] = useState<string>(DEMO_USERS[0].email)
+  const [selectedDemo, setSelectedDemo] = useState<string>(DEMO_USERS[0]?.email ?? '')
   const [req, setReq] = useState<Requisition | null>(null)
   const [role, setRole] = useState<Role | null>(null)
   const [candidates, setCandidates] = useState<CandidateView[]>([])
@@ -84,6 +89,7 @@ export function RecruiterRequisitionPage() {
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [tab, setTab] = useState<'candidates' | 'role' | 'team'>('candidates')
+  const [employerOrgs, setEmployerOrgs] = useState<Array<{ id: string; name: string }>>([])
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => {
@@ -96,6 +102,10 @@ export function RecruiterRequisitionPage() {
   }, [supabase])
 
   const signIn = useCallback(async () => {
+    if (!import.meta.env.DEV) {
+      setTopErr('Dev-only sign-in helper is disabled in production.')
+      return
+    }
     setAuthBusy(true)
     setTopErr(null)
     const { error } = await supabase.auth.signInWithPassword({ email: selectedDemo, password: 'demo' })
@@ -207,6 +217,23 @@ export function RecruiterRequisitionPage() {
   useEffect(() => {
     void load()
   }, [load])
+
+  // Load employer-type orgs the recruiter has SELECT visibility on.
+  // RLS scopes this naturally — the recruiter can only see orgs they
+  // have memberships in or active placements against. For an agency,
+  // that's the employer counterparties they've placed candidates with.
+  useEffect(() => {
+    if (!signedIn) return
+    void (async () => {
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('id, name, type')
+        .eq('type', 'employer')
+        .order('name', { ascending: true })
+      if (error) return
+      setEmployerOrgs(((data ?? []) as Array<{ id: string; name: string }>))
+    })()
+  }, [supabase, signedIn])
 
   const wrap = useCallback(
     async (key: string, fn: () => Promise<void>) => {
@@ -409,6 +436,7 @@ export function RecruiterRequisitionPage() {
                     onGenerateReport={() => generateReport(c)}
                     onDecide={(d, r) => recordDecision(c, d, r)}
                     onPlace={(toOrg) => place(c, toOrg)}
+                    employerOrgs={employerOrgs}
                   />
                 ))}
               </div>
@@ -440,6 +468,7 @@ function CandidateRow({
   onGenerateReport,
   onDecide,
   onPlace,
+  employerOrgs,
 }: {
   c: CandidateView
   busy: string | null
@@ -448,12 +477,19 @@ function CandidateRow({
   onGenerateReport: () => void
   onDecide: (d: string, r: string) => void
   onPlace: (toOrgId: string) => void
+  employerOrgs: Array<{ id: string; name: string }>
 }) {
   const [showDecide, setShowDecide] = useState(false)
   const [decision, setDecision] = useState<'advance' | 'hire' | 'reject' | 'withdraw'>('advance')
   const [rationale, setRationale] = useState('')
   const [showPlace, setShowPlace] = useState(false)
-  const [toOrg, setToOrg] = useState('a1000000-0000-0000-0000-000000000002')
+  // Default to the first available employer; empty string until the
+  // parent's fetch completes. The Place button stays disabled until
+  // toOrg is non-empty (see render below).
+  const [toOrg, setToOrg] = useState('')
+  useEffect(() => {
+    if (!toOrg && employerOrgs.length > 0) setToOrg(employerOrgs[0]!.id)
+  }, [employerOrgs, toOrg])
   const [showToken, setShowToken] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -618,12 +654,22 @@ function CandidateRow({
             consent. Atomic with: agency membership → removed, candidate stage → placed, requisition
             → placed.
           </p>
-          <Select value={toOrg} onChange={(e) => setToOrg(e.target.value)} className="w-full mb-3">
-            <option value="a1000000-0000-0000-0000-000000000002">FjordTech AS (seeded employer)</option>
-          </Select>
+          {employerOrgs.length === 0 ? (
+            <div className="mb-3 rounded border border-line bg-canvas p-3 text-xs text-muted">
+              No employer organisations visible at your RLS scope yet. Placement requires at
+              least one employer org. Contact your org admin to confirm the consent-gated
+              employer relationships in scope.
+            </div>
+          ) : (
+            <Select value={toOrg} onChange={(e) => setToOrg(e.target.value)} className="w-full mb-3">
+              {employerOrgs.map(o => (
+                <option key={o.id} value={o.id}>{o.name}</option>
+              ))}
+            </Select>
+          )}
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setShowPlace(false)} className="text-xs px-3 py-1.5">cancel</Button>
-            <Button onClick={() => { onPlace(toOrg); setShowPlace(false) }} disabled={busy === `place:${c.id}`} className="text-xs px-3 py-1.5">
+            <Button onClick={() => { onPlace(toOrg); setShowPlace(false) }} disabled={busy === `place:${c.id}` || !toOrg} className="text-xs px-3 py-1.5">
               {busy === `place:${c.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
               Execute placement
             </Button>

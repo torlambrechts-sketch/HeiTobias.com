@@ -12,6 +12,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
+import { useCurrentOrgId } from '../lib/currentOrg.js'
 import { Button } from '../components/ui/button.js'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
 import { Select } from '../components/ui/select.js'
@@ -31,7 +32,10 @@ const DEMO_USERS = import.meta.env.DEV
     ] as const
   : ([] as ReadonlyArray<{ email: string; label: string }>)
 
-const FJORDTECH_ID = 'a1000000-0000-0000-0000-000000000002'
+// Note: the previous version hardcoded FJORDTECH_ID here. We now read
+// the current org from the caller's first active membership via
+// useCurrentOrgId(). The FjordTech UUID is still seeded as the demo
+// org, but it's no longer hardcoded into a production-bound query path.
 
 type Person = { id: string; full_name: string; primary_email: string }
 type Refit = {
@@ -69,6 +73,8 @@ type GuidanceItem = {
 export function ManagerEmployeeDetailPage() {
   const { id } = useParams<{ id: string }>()
   const supabase = browserSupabase()
+  const orgState = useCurrentOrgId()
+  const orgId = orgState.state === 'ready' ? orgState.orgId : null
   const [signedIn, setSignedIn] = useState<string | null>(null)
   const [selectedDemo, setSelectedDemo] = useState<string>(DEMO_USERS[0]?.email ?? '')
   const [authBusy, setAuthBusy] = useState(false)
@@ -104,22 +110,22 @@ export function ManagerEmployeeDetailPage() {
   }, [supabase])
 
   const load = useCallback(async () => {
-    if (!id || !signedIn) return
+    if (!id || !signedIn || !orgId) return
     setLoading(true)
     setTopErr(null)
     const [pRes, hRes, sRes, gRes] = await Promise.all([
       supabase.from('people').select('id, full_name, primary_email').eq('id', id).maybeSingle(),
       supabase.from('refit_evaluations')
         .select('id, quadrant, computed_at, fit_json, _dev_stub')
-        .eq('person_id', id).eq('org_id', FJORDTECH_ID)
+        .eq('person_id', id).eq('org_id', orgId)
         .order('computed_at', { ascending: false }).limit(20),
       supabase.from('signals')
         .select('id, kind, value_json, source_json, generated_at')
-        .eq('person_id', id).eq('org_id', FJORDTECH_ID)
+        .eq('person_id', id).eq('org_id', orgId)
         .order('generated_at', { ascending: false }).limit(10),
       supabase.from('guidance_items')
         .select('id, kind, framework_ids, output_json, refusal_kind, generated_at, action, action_at, action_notes')
-        .eq('person_id', id).eq('org_id', FJORDTECH_ID)
+        .eq('person_id', id).eq('org_id', orgId)
         .order('generated_at', { ascending: false }).limit(10),
     ])
     setLoading(false)
@@ -128,42 +134,42 @@ export function ManagerEmployeeDetailPage() {
     setRefitHistory((hRes.data as Refit[]) ?? [])
     setSignals((sRes.data as Signal[]) ?? [])
     setGuidance((gRes.data as GuidanceItem[]) ?? [])
-  }, [supabase, id, signedIn])
+  }, [supabase, id, signedIn, orgId])
 
   useEffect(() => { void load() }, [load])
 
   const recompute = useCallback(async () => {
-    if (!id) return
+    if (!id || !orgId) return
     setBusy('refit')
-    const { error } = await supabase.rpc('refit_compute', { p_person_id: id, p_org_id: FJORDTECH_ID } as never)
+    const { error } = await supabase.rpc('refit_compute', { p_person_id: id, p_org_id: orgId } as never)
     setBusy(null)
     if (error) setTopErr(error.message)
     else await load()
-  }, [supabase, id, load])
+  }, [supabase, id, orgId, load])
 
   const recomputeSignals = useCallback(async () => {
-    if (!id) return
+    if (!id || !orgId) return
     setBusy('signals')
-    const { error } = await supabase.rpc('signal_compute', { p_person_id: id, p_org_id: FJORDTECH_ID, p_window_n: 4 } as never)
+    const { error } = await supabase.rpc('signal_compute', { p_person_id: id, p_org_id: orgId, p_window_n: 4 } as never)
     setBusy(null)
     if (error) setTopErr(error.message)
     else await load()
-  }, [supabase, id, load])
+  }, [supabase, id, orgId, load])
 
   const composeGuidance = useCallback(async (kind: 'one_on_one_prep' | 'growth_focus') => {
-    if (!id) return
+    if (!id || !orgId) return
     setBusy('guidance')
     const latestQ = refitHistory[0]?.quadrant
     const { error } = await supabase.rpc('guidance_compose', {
       p_person_id: id,
-      p_org_id: FJORDTECH_ID,
+      p_org_id: orgId,
       p_kind: kind,
       p_context_json: latestQ ? { refit_quadrant: latestQ } : {},
     } as never)
     setBusy(null)
     if (error) setTopErr(error.message)
     else await load()
-  }, [supabase, id, load, refitHistory])
+  }, [supabase, id, orgId, load, refitHistory])
 
   const recordAction = useCallback(async (itemId: string, action: 'acted_on' | 'noted' | 'snoozed' | 'dismissed') => {
     setBusy(`action:${itemId}`)
