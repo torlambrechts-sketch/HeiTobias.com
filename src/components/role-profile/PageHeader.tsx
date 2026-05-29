@@ -5,6 +5,7 @@ import type { RoleProfileRow } from '../../types/roleProfile.js'
 import { browserSupabase } from '../../lib/browser-supabase.js'
 import { Pill } from '../ui/badges.js'
 import { Button } from '../ui/button.js'
+import { UseForRequisitionDialog } from './UseForRequisitionDialog.js'
 
 // Page header: title, family, version pills, action buttons.
 // Actions are RBAC-AND-state-gated:
@@ -19,6 +20,7 @@ export function PageHeader({ row, onChanged }: { row: RoleProfileRow; onChanged:
   const [canSignoff, setCanSignoff] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   const vstatus = row.definition_json.identity_and_governance?.version_status ?? 'draft'
   const validity = row.definition_json.identity_and_governance?.validation_status ?? 'dev_stub'
@@ -64,9 +66,19 @@ export function PageHeader({ row, onChanged }: { row: RoleProfileRow; onChanged:
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
-        <Button variant="ghost" disabled title="Use for requisition — choose a requisition; coming in CP6 follow-up">
+        <Button
+          variant="ghost"
+          disabled={row.is_template || row.org_id === null}
+          onClick={() => setDialogOpen(true)}
+          title={
+            row.is_template || row.org_id === null
+              ? 'Templates cannot be attached directly — instantiate via a team-based definition run first'
+              : 'Pick a requisition to attach this role version to'
+          }
+        >
           <Send size={14} /> Use for requisition
         </Button>
+        {dialogOpen && <UseForRequisitionDialog row={row} onClose={() => setDialogOpen(false)} />}
         <Link to="/team-def/new" title={canEdit ? 'Start a Delphi-style team-based revision of this role' : 'Requires role.create in this role\'s org'}>
           <Button variant="ghost" disabled={!canEdit}>
             <GitMerge size={14} /> Start team-based revision
