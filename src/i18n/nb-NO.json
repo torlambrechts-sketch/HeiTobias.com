@@ -1,0 +1,5 @@
+{
+  "_meta.locale": "nb-NO",
+  "_meta.coverage": "HANDOFF — pending native-speaker translation",
+  "_meta.handoff": "Translation of the load-bearing UI copy (guardrail, stub banner, HITL notice, seal callout) is HANDOFF to a Nordic localiser per CLAUDE.md i18n mandate. Until a key is supplied here, the translate function falls back to en. Do NOT machine-translate scientific/legal terms — those need a human reviewer."
+}

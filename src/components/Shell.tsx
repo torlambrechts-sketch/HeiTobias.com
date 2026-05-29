@@ -14,6 +14,8 @@ import {
   Users,
 } from 'lucide-react'
 import { cn } from '../lib/cn.js'
+import { useLocale, useT, LOCALES, type Locale } from '../lib/i18n.js'
+import { DemoBanner } from './DemoBanner.js'
 
 /**
  * The three-tier canonical app shell (DESIGN.md §2):
@@ -32,13 +34,16 @@ export function Shell({
   orgLabel?: string
 }) {
   return (
-    <div className="grid grid-cols-[60px_1fr] lg:grid-cols-[60px_220px_1fr] min-h-screen">
-      <IconRail />
-      <SectionNav />
-      <main className="flex flex-col min-w-0">
-        <AppBar breadcrumb={breadcrumb} orgLabel={orgLabel} signedInLabel={signedInLabel} />
-        <div className="px-8 py-8 max-w-[1280px] w-full">{children}</div>
-      </main>
+    <div className="flex flex-col min-h-screen">
+      <DemoBanner />
+      <div className="grid grid-cols-[60px_1fr] lg:grid-cols-[60px_220px_1fr] flex-1">
+        <IconRail />
+        <SectionNav />
+        <main className="flex flex-col min-w-0">
+          <AppBar breadcrumb={breadcrumb} orgLabel={orgLabel} signedInLabel={signedInLabel} />
+          <div className="px-8 py-8 max-w-[1280px] w-full">{children}</div>
+        </main>
+      </div>
     </div>
   )
 }
@@ -46,7 +51,7 @@ export function Shell({
 function IconRail() {
   const items = [
     { icon: Home, to: '/' },
-    { icon: Briefcase, to: '/requisitions/a3000000-0000-0000-0000-000000000001' },
+    { icon: Briefcase, to: '/requisitions' },
     { icon: Users, to: '/people' },
     { icon: TrendingUp, to: '/growth' },
     { icon: LayoutGrid, to: '/insights' },
@@ -100,26 +105,26 @@ function SectionNav() {
       <nav className="px-3.5 pb-5 flex flex-col gap-4">
         <NavGroup icon={Home} title="Dashboard" />
         <NavGroup icon={Briefcase} title="Hiring" defaultOpen>
-          <NavSub to="/requisitions/a3000000-0000-0000-0000-000000000001">Requisitions</NavSub>
-          <NavSub to="#">Role library</NavSub>
-          <NavSub to="#">Team-based definition</NavSub>
+          <NavSub to="/req">Requisitions</NavSub>
+          <NavSub to="/roles/dd000000-0000-0000-0000-000000000001">Role library</NavSub>
+          <NavSub to="/team-def">Team-based definition</NavSub>
         </NavGroup>
         <NavGroup icon={Users} title="People" defaultOpen>
           <NavSub to="/people">All people</NavSub>
-          <NavSub to="#">My team</NavSub>
-          <NavSub to="#">Candidates</NavSub>
+          <NavSub to="/team">My team</NavSub>
+          <NavSub to="/me">My profile (self-view)</NavSub>
         </NavGroup>
         <NavGroup icon={TrendingUp} title="Growth">
-          <NavSub to="#">Re-fit & growth</NavSub>
-          <NavSub to="#">Team composition</NavSub>
-          <NavSub to="#">1:1 prep</NavSub>
+          <NavSub to="/team">Re-fit &amp; growth</NavSub>
+          <NavSub to="/team">Team composition</NavSub>
+          <NavSub to="/team">1:1 prep</NavSub>
         </NavGroup>
         <NavGroup icon={LayoutGrid} title="Insights">
-          <NavSub to="#">Fit trends</NavSub>
-          <NavSub to="#">Retention signals</NavSub>
+          <NavSub to="/admin">Fit trends</NavSub>
+          <NavSub to="/admin">Retention signals</NavSub>
         </NavGroup>
         <NavGroup icon={Building2} title="Company">
-          <NavSub to="#">Settings</NavSub>
+          <NavSub to="/admin">Settings</NavSub>
         </NavGroup>
       </nav>
     </aside>
@@ -184,6 +189,7 @@ function AppBar({
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
           <Building2 size={15} className="text-forest" /> {orgLabel}
         </div>
+        <LocaleSwitcher />
         <Check size={18} className="text-muted" />
         <Bell size={18} className="text-muted" />
         <div className="w-9 h-9 rounded-full bg-forest text-white flex items-center justify-center font-bold text-[13px]">
@@ -191,5 +197,26 @@ function AppBar({
         </div>
       </div>
     </div>
+  )
+}
+
+function LocaleSwitcher() {
+  const { locale, setLocale } = useLocale()
+  const t = useT()
+  return (
+    <label className="flex items-center gap-2 text-xs">
+      <span className="sr-only">{t('locale_switcher.label')}</span>
+      <select
+        data-test="locale-switcher"
+        value={locale}
+        onChange={e => setLocale(e.target.value as Locale)}
+        className="border border-line rounded px-2 py-1 bg-surface text-xs font-medium"
+        aria-label={t('locale_switcher.label')}
+      >
+        {LOCALES.map(l => (
+          <option key={l.code} value={l.code}>{l.nativeLabel}</option>
+        ))}
+      </select>
+    </label>
   )
 }

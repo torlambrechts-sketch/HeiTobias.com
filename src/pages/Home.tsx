@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { AlertTriangle, Briefcase, Building2, Smartphone, Users } from 'lucide-react'
+import { AlertTriangle, Briefcase, Building2, Layers, Smartphone, Users } from 'lucide-react'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
 import { envReady } from '../lib/browser-supabase.js'
 
@@ -42,7 +42,7 @@ export function HomePage() {
         )}
 
         <div className="grid sm:grid-cols-2 gap-5">
-          <Link to="/requisitions/a3000000-0000-0000-0000-000000000001" className="block group">
+          <Link to="/requisitions" className="block group">
             <Card className="h-full group-hover:shadow-soft transition-shadow">
               <CardBody>
                 <div className="flex items-center gap-3 mb-2">
@@ -96,6 +96,22 @@ export function HomePage() {
             </Card>
           </Link>
         </div>
+
+        <Card className="mt-6" data-test="architecture-link">
+          <CardBody className="flex items-start gap-3">
+            <span className="w-10 h-10 rounded-lg bg-canvas-2 text-forest flex items-center justify-center flex-shrink-0">
+              <Layers size={18} strokeWidth={2} />
+            </span>
+            <div className="flex-1">
+              <CardEyebrow>Reference architecture</CardEyebrow>
+              <p className="mt-2 text-sm text-ink leading-relaxed">
+                The 4-layer system architecture + the Talent Data Spine (Role + Person profiles) +
+                the 5-stage data flow + the recruiter-channel land-and-expand motion.
+                {' '}<a href="/architecture.html" target="_blank" rel="noopener" className="text-role hover:underline font-semibold">Open architecture.html →</a>
+              </p>
+            </div>
+          </CardBody>
+        </Card>
 
         <Card className="mt-6">
           <CardBody className="flex items-start gap-3">

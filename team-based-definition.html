@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HeiTobias — Team-Based Role Definition</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --canvas:#f3f1e8;--canvas-2:#eceadf;--surface:#ffffff;
+    --forest:#3a4d3f;--forest-2:#2f4034;--rail:#2c3b30;
+    --green:#3f7d5a;--ink:#2a2a26;--muted:#8a8a7e;--faint:#a6a698;
+    --line:#e4e1d5;--line-2:#d8d4c6;
+
+    --open-bg:#dcebdf;--open-fg:#3f7d5a;
+    --draft-bg:#ece7d6;--draft-fg:#8a7a52;
+    --internal-bg:#f3e9cf;--internal-fg:#a8862f;
+    --reject-bg:#f4dedb;--reject-fg:#b8584a;
+    --interview-bg:#dde7f0;--interview-fg:#42729e;
+
+    --role:#42729e;--person:#3f7d5a;--amber:#a8862f;--rust:#b8584a;
+    --stub:#a8862f;--stub-bg:#f6efd9;
+
+    --e1:#42729e;--e2:#3f7d5a;--e3:#a8862f;--e4:#7a5fa0;--e5:#b8584a;--e6:#3aa3a3;--e7:#c87a4a;
+
+    --radius:6px;--radius-lg:8px;
+    --shadow:0 1px 2px rgba(58,77,63,.05),0 6px 18px rgba(58,77,63,.05);
+    --font-display:"Playfair Display",Georgia,serif;
+    --font:"Inter",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--canvas);color:var(--ink);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased}
+  svg{display:block}
+  .ic{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .ic-sm{width:15px;height:15px}.ic-lg{width:21px;height:21px}
+
+  .app{display:grid;grid-template-columns:60px 220px 1fr;min-height:100vh}
+
+  /* rail */
+  .rail{background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:16px 0;position:sticky;top:0;height:100vh}
+  .rail .logo{width:34px;height:34px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:19px;color:var(--rail);margin-bottom:18px}
+  .rail .ri{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#9db0a3;cursor:pointer;margin-bottom:4px;position:relative}
+  .rail .ri:hover{background:rgba(255,255,255,.08);color:#fff}
+  .rail .ri.active{background:#fff;color:var(--rail)}
+  .rail .ri.active::before{content:"";position:absolute;left:-16px;top:8px;bottom:8px;width:3px;border-radius:2px;background:#fff}
+  .rail .sp{flex:1}
+  .rail .ri-ava{width:34px;height:34px;border-radius:50%;background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;border:2px solid rgba(255,255,255,.25)}
+
+  .side{background:var(--canvas);border-right:1px solid var(--line);position:sticky;top:0;height:100vh;overflow:auto;padding:20px 14px}
+  .wordmark{font-family:var(--font-display);font-size:23px;font-weight:700;letter-spacing:-.3px;padding:0 6px 16px}
+  .nav-section{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);padding:14px 6px 4px}
+  .side a{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:5px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:500}
+  .side a:hover{background:var(--canvas-2);color:var(--ink)}
+  .side a.active{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+
+  .main{min-width:0}
+  .appbar{display:flex;align-items:center;gap:14px;padding:16px 32px;border-bottom:1px solid var(--line);background:var(--canvas);position:sticky;top:0;z-index:5}
+  .bc{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .bc .sep{color:var(--faint)} .bc b{color:var(--ink);font-weight:600}
+  .right{margin-left:auto;display:flex;align-items:center;gap:16px}
+  .org{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+  .me-ava{width:36px;height:36px;border-radius:50%;background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+
+  .content{padding:30px 32px 80px;max-width:1320px}
+
+  .ptitle{display:flex;align-items:flex-start;gap:18px;margin-bottom:14px;flex-wrap:wrap}
+  .ptitle .titleblock{flex:1;min-width:300px}
+  .ptitle h1{font-family:var(--font-display);font-size:36px;font-weight:600;letter-spacing:-.4px;line-height:1.05}
+  .ptitle .ti-sub{font-size:13px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ptitle .ti-sub .d{color:var(--faint)}
+  .ptitle .ti-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+  .pill{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:5px 11px;border-radius:20px;display:inline-flex;align-items:center;gap:6px}
+  .pill.open{background:var(--open-bg);color:var(--open-fg)}
+  .pill.draft{background:var(--draft-bg);color:var(--draft-fg)}
+  .pill.internal{background:var(--internal-bg);color:var(--internal-fg)}
+  .pill.reject{background:var(--reject-bg);color:var(--reject-fg)}
+  .pill.interview{background:var(--interview-bg);color:var(--interview-fg)}
+  .pill.role-blue{background:#eaf0f7;color:var(--role)}
+  .pill.stub{background:var(--stub-bg);color:var(--stub);border:1px dashed var(--stub)}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:9px 14px;border-radius:var(--radius);border:1px solid var(--line-2);background:var(--surface);cursor:pointer;color:var(--ink);text-decoration:none}
+  .btn:hover{background:var(--canvas-2)}
+  .btn-primary{background:var(--forest);color:#fff;border-color:var(--forest)}
+  .btn-primary:hover{background:var(--forest-2)}
+  .btn-amber{background:var(--amber);color:#fff;border-color:var(--amber)}
+
+  /* stage stepper */
+  .stepper{display:flex;align-items:stretch;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:20px;box-shadow:var(--shadow)}
+  .step{flex:1;padding:14px 16px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--line);position:relative;cursor:pointer}
+  .step:last-child{border-right:none}
+  .step .sn{width:28px;height:28px;border-radius:50%;background:var(--canvas-2);color:var(--muted);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+  .step.done .sn{background:var(--green);color:#fff}
+  .step.active{background:var(--canvas)}
+  .step.active .sn{background:var(--forest);color:#fff}
+  .step.todo .sn{background:var(--canvas-2);color:var(--muted)}
+  .step .l{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .step .t{font-weight:600;font-size:14px;margin-top:2px}
+  .step.done .t,.step.active .t{color:var(--ink)}
+  .step .arrow{position:absolute;right:-12px;top:50%;transform:translateY(-50%);width:24px;height:24px;background:var(--canvas);border-top:1px solid var(--line);border-right:1px solid var(--line);transform-origin:center;transform:translateY(-50%) rotate(45deg);z-index:1}
+  .step:last-child .arrow{display:none}
+
+  /* tab band */
+  .tabband{background:var(--forest);border-radius:var(--radius-lg) var(--radius-lg) 0 0;display:flex;align-items:stretch;overflow:hidden}
+  .tab{padding:15px 18px;color:#cdd6cf;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;border-right:1px solid rgba(255,255,255,.07)}
+  .tab.active{background:var(--surface);color:var(--ink);font-weight:700;border-radius:var(--radius) var(--radius) 0 0;margin:5px 0 0 5px}
+  .tab.right{margin-left:auto;border-right:none}
+
+  .panel{background:var(--surface);border:1px solid var(--line);border-top:none;border-radius:0 0 var(--radius-lg) var(--radius-lg);box-shadow:var(--shadow);overflow:hidden}
+  .panel-body{padding:30px 36px}
+
+  /* surveillance guardrail callout */
+  .guardrail{background:#f4dedb;border:1px solid var(--rust);border-left:4px solid var(--rust);border-radius:var(--radius);padding:14px 18px;font-size:13px;color:var(--ink);display:flex;gap:12px;align-items:flex-start;line-height:1.55;margin-bottom:24px}
+  .guardrail .lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--rust);background:#fff;padding:3px 8px;border-radius:4px;flex-shrink:0;white-space:nowrap;margin-top:1px}
+
+  .seal-callout{background:#eaf0f7;border:1px solid var(--role);border-left:4px solid var(--role);border-radius:var(--radius);padding:14px 18px;font-size:13px;color:var(--ink);display:flex;gap:12px;align-items:flex-start;line-height:1.55;margin-bottom:24px}
+  .seal-callout .lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--role);background:#fff;padding:3px 8px;border-radius:4px;flex-shrink:0;white-space:nowrap;margin-top:1px}
+
+  .stub-banner{background:var(--stub-bg);border:1px dashed var(--stub);border-radius:var(--radius);padding:13px 16px;font-size:12.5px;color:var(--ink);display:flex;gap:11px;align-items:flex-start;line-height:1.55;margin-bottom:24px}
+  .stub-banner .lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--stub);background:#fff;padding:3px 8px;border-radius:4px;flex-shrink:0;white-space:nowrap;margin-top:1px}
+
+  /* section heading */
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin:6px 0 8px;flex-wrap:wrap}
+  .sec-num{font-family:var(--font-display);font-size:13px;color:var(--faint);font-weight:600}
+  .sec-head h2{font-family:var(--font-display);font-size:24px;font-weight:600;letter-spacing:-.3px}
+  .sec-lead{color:var(--muted);font-size:13px;line-height:1.55;margin-bottom:22px;max-width:780px}
+  .sec-cite{font-size:11.5px;color:var(--faint);font-style:italic;display:block;margin-top:6px}
+
+  /* evaluator roster */
+  .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:24px}
+  .ev-card{border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;background:var(--surface);position:relative}
+  .ev-card .ev-h{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .ev-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11px}
+  .ev-card .ev-name{font-weight:600;font-size:13.5px;line-height:1.2}
+  .ev-card .ev-role{font-size:11px;color:var(--muted);margin-top:1px}
+  .ev-card .ev-status{font-size:11px;font-weight:600;display:flex;align-items:center;gap:6px;padding:4px 0 0;border-top:1px solid var(--line);margin-top:10px;padding-top:10px}
+  .ev-card .ev-status.submitted{color:var(--green)}
+  .ev-card .ev-status.pending{color:var(--amber)}
+  .ev-card .ev-status.overdue{color:var(--rust)}
+
+  /* progress */
+  .progress-row{display:flex;align-items:center;gap:18px;padding:18px 20px;background:var(--canvas);border-radius:var(--radius);margin-bottom:24px}
+  .progress-row .stat{display:flex;flex-direction:column}
+  .progress-row .stat .n{font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1}
+  .progress-row .stat .l{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:3px}
+  .progress-row .bar{flex:1;height:10px;background:#fff;border:1px solid var(--line-2);border-radius:20px;overflow:hidden;position:relative;min-width:200px}
+  .progress-row .bar i{position:absolute;top:0;bottom:0;left:0;background:var(--forest);border-radius:20px}
+
+  /* DIVERGENCE VIEW — the signature component */
+  .divergence{display:flex;flex-direction:column;gap:20px}
+  .div-item{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);overflow:hidden}
+  .div-h{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .div-h .icon{color:var(--role)}
+  .div-h .crit-name{font-weight:700;font-size:14.5px;flex:1;min-width:200px}
+  .div-h .crit-type{font-size:11px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,monospace}
+  .div-h .consensus{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:5px 10px;border-radius:20px}
+  .consensus.high{background:var(--open-bg);color:var(--open-fg)}
+  .consensus.moderate{background:var(--internal-bg);color:var(--internal-fg)}
+  .consensus.low{background:var(--reject-bg);color:var(--reject-fg);border:1px solid var(--rust)}
+  .div-body{padding:24px 26px 22px}
+
+  /* divergence scale */
+  .scale-wrap{position:relative;padding:24px 0 36px}
+  .scale-axis{position:relative;height:2px;background:var(--canvas-2);border-radius:2px}
+  .scale-tick{position:absolute;top:-3px;width:1px;height:8px;background:var(--line-2)}
+  .scale-tick-label{position:absolute;top:14px;font-size:10px;color:var(--faint);font-family:ui-monospace,monospace;transform:translateX(-50%)}
+  .ev-marker{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transform:translate(-50%,-50%);cursor:pointer}
+  .ev-marker .ev-tip{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;background:var(--ink);color:#fff;padding:3px 7px;border-radius:4px;white-space:nowrap;font-family:ui-monospace,monospace;opacity:0;transition:opacity .15s;pointer-events:none}
+  .ev-marker:hover .ev-tip{opacity:1}
+  /* band overlay variant (for trait targets) */
+  .band-overlay{position:absolute;top:50%;height:14px;border-radius:20px;transform:translateY(-50%);mix-blend-mode:multiply;opacity:.35}
+  .div-stats{display:flex;gap:24px;font-size:11.5px;color:var(--muted);margin-top:6px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .div-stats b{color:var(--ink);font-weight:700;font-family:ui-monospace,monospace}
+
+  /* rationale notes (expanded) */
+  .rationale-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  .rationale-h{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px}
+  .rationale-list{display:flex;flex-direction:column;gap:10px}
+  .rationale{display:grid;grid-template-columns:auto 1fr;gap:12px;font-size:12.5px;color:var(--ink);line-height:1.55}
+  .rationale .src{display:flex;align-items:center;gap:7px;font-weight:600;font-family:ui-monospace,monospace;font-size:11px;color:var(--muted);white-space:nowrap}
+
+  /* anonymity toggle */
+  .anon-bar{display:flex;align-items:center;gap:10px;background:var(--canvas);padding:10px 14px;border-radius:var(--radius);margin-bottom:18px;font-size:12.5px;color:var(--muted)}
+  .anon-bar .toggle{display:inline-flex;align-items:center;gap:7px;cursor:pointer;color:var(--ink);font-weight:600}
+  .anon-bar .toggle .sw{width:26px;height:14px;border-radius:20px;background:var(--green);position:relative;transition:.2s}
+  .anon-bar .toggle .sw::after{content:"";position:absolute;left:14px;top:1px;width:12px;height:12px;border-radius:50%;background:#fff;transition:.2s}
+
+  /* reconciliation widget */
+  .recon-row{margin-top:18px;padding:14px 18px;background:var(--canvas);border-left:3px solid var(--rust);border-radius:var(--radius);display:flex;align-items:flex-start;gap:14px}
+  .recon-row .icon{color:var(--rust);margin-top:1px}
+  .recon-row .body{flex:1}
+  .recon-row .body .h{font-weight:700;font-size:13px;margin-bottom:4px}
+  .recon-row .body .d{font-size:12.5px;color:var(--muted);line-height:1.5}
+  .recon-row .body .a{margin-top:10px;display:flex;gap:8px}
+
+  /* rating preview (Stage 2 mock) */
+  .rating-form{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:14px}
+  .rating-card{border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;background:var(--surface)}
+  .rating-card h4{font-size:14px;font-weight:700;margin-bottom:6px}
+  .rating-card .d{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:14px}
+  .crit-slider{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+  .crit-label{font-size:12.5px;font-weight:500;min-width:130px}
+  .crit-track{flex:1;height:6px;background:var(--canvas-2);border-radius:20px;position:relative}
+  .crit-fill{position:absolute;top:0;bottom:0;left:0;background:var(--role);border-radius:20px}
+  .crit-handle{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:#fff;border:2.5px solid var(--role);transform:translate(-50%,-50%);cursor:grab}
+  .crit-val{font-family:ui-monospace,monospace;font-weight:700;font-size:12px;width:40px;text-align:right}
+
+  /* timeline */
+  .timeline{display:flex;flex-direction:column;gap:18px;padding-left:30px;position:relative}
+  .timeline::before{content:"";position:absolute;left:11px;top:8px;bottom:8px;width:1.5px;background:var(--line)}
+  .tl-item{position:relative}
+  .tl-item::before{content:"";position:absolute;left:-26px;top:6px;width:12px;height:12px;border-radius:50%;background:#fff;border:2.5px solid var(--green)}
+  .tl-item.now::before{border-color:var(--forest);background:var(--forest)}
+  .tl-item.future::before{border-color:var(--line-2)}
+  .tl-item .t{font-size:11px;color:var(--faint);font-family:ui-monospace,monospace}
+  .tl-item .h{font-weight:600;font-size:13.5px;margin-top:2px}
+  .tl-item .d{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.5}
+
+  /* INTEGRATION footer */
+  .integration{margin-top:30px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:26px 30px;box-shadow:var(--shadow)}
+  .integration h3{font-family:var(--font-display);font-size:22px;font-weight:600;margin-bottom:8px}
+  .integration p.lead{font-size:13px;color:var(--muted);margin-bottom:20px;max-width:780px;line-height:1.55}
+  .int-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .int-card{border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+  .int-card h4{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .int-card .d{font-size:12.5px;color:var(--muted);line-height:1.5}
+  .int-card .a{margin-top:10px;font-size:11px;color:var(--role);font-family:ui-monospace,monospace}
+
+  @media(max-width:1100px){
+    .app{grid-template-columns:60px 1fr}.side{display:none}
+    .rating-form{grid-template-columns:1fr}.stepper{flex-direction:column}.step{border-right:none;border-bottom:1px solid var(--line)}.step .arrow{display:none}
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
+  <symbol id="i-trending" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+  <symbol id="i-clipboard" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></symbol>
+  <symbol id="i-edit-3" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></symbol>
+  <symbol id="i-git-merge" viewBox="0 0 24 24"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+</defs></svg>
+
+<div class="app">
+  <div class="rail">
+    <div class="logo">H</div>
+    <div class="ri"><svg class="ic ic-lg"><use href="#i-grid"/></svg></div>
+    <div class="ri active"><svg class="ic ic-lg"><use href="#i-briefcase"/></svg></div>
+    <div class="ri"><svg class="ic ic-lg"><use href="#i-users"/></svg></div>
+    <div class="ri"><svg class="ic ic-lg"><use href="#i-trending"/></svg></div>
+    <div class="ri"><svg class="ic ic-lg"><use href="#i-chart"/></svg></div>
+    <div class="ri"><svg class="ic ic-lg"><use href="#i-building"/></svg></div>
+    <div class="sp"></div>
+    <div class="ri"><svg class="ic ic-lg"><use href="#i-settings"/></svg></div>
+    <div class="ri-ava">SH</div>
+  </div>
+
+  <aside class="side">
+    <div class="wordmark">HeiTobias</div>
+    <div class="nav-section">Hiring</div>
+    <a href="#">Requisitions</a>
+    <a href="#">Role library</a>
+    <a href="#" class="active">Team-based definition</a>
+    <div class="nav-section">People</div>
+    <a href="#">My team</a>
+    <a href="#">All people</a>
+    <a href="#">Candidates</a>
+    <div class="nav-section">Growth</div>
+    <a href="#">Re-fit &amp; growth</a>
+    <a href="#">Frameworks</a>
+  </aside>
+
+  <main class="main">
+    <div class="appbar">
+      <div class="bc">Hiring <span class="sep">›</span> Team-based definition <span class="sep">›</span> <b>Senior Backend Engineer · run #r-2014</b></div>
+      <div class="right">
+        <div class="org" style="color:var(--ink)"><svg class="ic ic-sm" style="color:var(--forest)"><use href="#i-building"/></svg>The Acme Corporation</div>
+        <svg class="ic"><use href="#i-bell"/></svg>
+        <div class="me-ava">SH</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- HEADER -->
+      <div class="ptitle">
+        <div class="titleblock">
+          <h1>Senior Backend Engineer</h1>
+          <div class="ti-sub">
+            <span>Engineering · Platform · L5</span>
+            <span class="d">•</span>
+            <span style="font-family:ui-monospace,monospace">run #r-2014</span>
+            <span class="d">•</span>
+            <span>Owner: Maja Strand (VP Engineering)</span>
+            <span class="d">•</span>
+            <span>Started 14 May 2026</span>
+          </div>
+          <div class="ti-sub" style="margin-top:6px">
+            <span class="pill internal">Stage 3 — Divergence</span>
+            <span class="pill role-blue">Purpose: Evolution revision</span>
+            <span class="pill stub">Thresholds: dev_stub</span>
+          </div>
+        </div>
+        <div class="ti-r">
+          <a class="btn" href="#"><svg class="ic ic-sm"><use href="#i-message"/></svg>Message evaluators</a>
+          <a class="btn btn-primary" href="#"><svg class="ic ic-sm"><use href="#i-git-merge"/></svg>Begin reconciliation</a>
+        </div>
+      </div>
+
+      <!-- FOUR-STAGE STEPPER -->
+      <div class="stepper">
+        <div class="step done"><span class="sn"><svg class="ic ic-sm" style="stroke:#fff"><use href="#i-check"/></svg></span><div><div class="l">Stage 1</div><div class="t">Setup</div></div><div class="arrow"></div></div>
+        <div class="step done"><span class="sn"><svg class="ic ic-sm" style="stroke:#fff"><use href="#i-check"/></svg></span><div><div class="l">Stage 2</div><div class="t">Independent rating</div></div><div class="arrow"></div></div>
+        <div class="step active"><span class="sn">3</span><div><div class="l">Stage 3 · current</div><div class="t">Divergence</div></div><div class="arrow"></div></div>
+        <div class="step todo"><span class="sn">4</span><div><div class="l">Stage 4</div><div class="t">Reconciliation &amp; sign-off</div></div></div>
+      </div>
+
+      <!-- TAB BAND -->
+      <div class="tabband">
+        <div class="tab"><svg class="ic ic-sm"><use href="#i-clipboard"/></svg>Run dashboard</div>
+        <div class="tab"><svg class="ic ic-sm"><use href="#i-edit-3"/></svg>My rating</div>
+        <div class="tab active"><svg class="ic ic-sm"><use href="#i-chart"/></svg>Divergence</div>
+        <div class="tab"><svg class="ic ic-sm"><use href="#i-git-merge"/></svg>Reconciliation</div>
+        <div class="tab right"><svg class="ic ic-sm"><use href="#i-settings"/></svg>Manage</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-body">
+
+          <!-- SURVEILLANCE GUARDRAIL -->
+          <div class="guardrail">
+            <span class="lbl"><svg class="ic ic-sm" style="display:inline;vertical-align:-2px"><use href="#i-shield"/></svg> Guardrail</span>
+            <span>Evaluators are rating <strong>the role</strong> — its tasks, competency weights, trait targets for the role context, and context factors. <strong>They are not rating each other.</strong> Peer rating of any named person's personality is blocked at the schema level (PHASE0-SPEC §2.7, SCIENCE-SPEC §7). Team composition data is derived only from each member's own validated profile.</span>
+          </div>
+
+          <!-- SEAL CALLOUT -->
+          <div class="seal-callout">
+            <span class="lbl"><svg class="ic ic-sm" style="display:inline;vertical-align:-2px"><use href="#i-unlock"/></svg> Sealed at 22 May 14:02</span>
+            <span>Stage 2 ran from <span style="font-family:ui-monospace,monospace">14 May 09:00</span> to <span style="font-family:ui-monospace,monospace">22 May 14:02</span>. All 6 evaluators submitted independently; no pre-reveal reads were attempted (audit log clean). The submissions below are now immutable. Per Linstone &amp; Turoff (1975) Delphi method.</span>
+          </div>
+
+          <!-- STUB BANNER -->
+          <div class="stub-banner">
+            <span class="lbl"><svg class="ic ic-sm" style="display:inline;vertical-align:-2px"><use href="#i-alert"/></svg> Stub thresholds</span>
+            <span>Consensus thresholds (low_consensus_sd_cutoff = 1.4, min_evaluators_for_valid_run = 4) are <code>validity_status = 'dev_stub'</code> until the engaged I/O psychologist signs off. Values shown will change once tuned per SCIENCE-SPEC §7.</span>
+          </div>
+
+          <!-- PROGRESS -->
+          <div class="progress-row">
+            <div class="stat"><div class="n">6 / 6</div><div class="l">Submitted</div></div>
+            <div class="stat"><div class="n">12</div><div class="l">Criteria rated</div></div>
+            <div class="stat"><div class="n" style="color:var(--rust)">3</div><div class="l">Low consensus</div></div>
+            <div class="stat"><div class="n" style="color:var(--amber)">2</div><div class="l">Moderate</div></div>
+            <div class="stat"><div class="n" style="color:var(--green)">7</div><div class="l">High consensus</div></div>
+            <div class="bar"><i style="width:100%"></i></div>
+          </div>
+
+          <!-- EVALUATOR ROSTER -->
+          <div class="sec-head"><span class="sec-num">A</span><h2>Evaluators &amp; submissions</h2></div>
+          <p class="sec-lead">Six evaluators were invited at Stage 1 with role-balanced representation (managers, team members, peer team lead, recruiter). All submitted before the deadline; submissions were sealed automatically at deadline. Anonymous attribution in the divergence view below by default; named only where the evaluator consented to attribution. <span class="sec-cite">SCIENCE-SPEC §7; Linstone &amp; Turoff (1975).</span></p>
+
+          <div class="roster">
+            <div class="ev-card"><div class="ev-h"><div class="ev-dot" style="background:var(--e1)">E1</div><div><div class="ev-name">Maja Strand</div><div class="ev-role">Manager · VP Eng</div></div></div><div class="ev-status submitted"><svg class="ic ic-sm"><use href="#i-check"/></svg>Submitted 19 May · named OK</div></div>
+            <div class="ev-card"><div class="ev-h"><div class="ev-dot" style="background:var(--e2)">E2</div><div><div class="ev-name">Kjetil Rønning</div><div class="ev-role">Team member · Staff Eng.</div></div></div><div class="ev-status submitted"><svg class="ic ic-sm"><use href="#i-check"/></svg>Submitted 17 May · named OK</div></div>
+            <div class="ev-card"><div class="ev-h"><div class="ev-dot" style="background:var(--e3)">E3</div><div><div class="ev-name">Anonymous</div><div class="ev-role">Team member · Senior Eng.</div></div></div><div class="ev-status submitted"><svg class="ic ic-sm"><use href="#i-check"/></svg>Submitted 18 May · anon only</div></div>
+            <div class="ev-card"><div class="ev-h"><div class="ev-dot" style="background:var(--e4)">E4</div><div><div class="ev-name">Pernille Vik</div><div class="ev-role">Recruiter · Eng. lead</div></div></div><div class="ev-status submitted"><svg class="ic ic-sm"><use href="#i-check"/></svg>Submitted 20 May · named OK</div></div>
+            <div class="ev-card"><div class="ev-h"><div class="ev-dot" style="background:var(--e5)">E5</div><div><div class="ev-name">Anonymous</div><div class="ev-role">Peer team lead · Data Platform</div></div></div><div class="ev-status submitted"><svg class="ic ic-sm"><use href="#i-check"/></svg>Submitted 22 May · anon only</div></div>
+            <div class="ev-card"><div class="ev-h"><div class="ev-dot" style="background:var(--e6)">E6</div><div><div class="ev-name">Tor Bakke</div><div class="ev-role">External SME · Architect</div></div></div><div class="ev-status submitted"><svg class="ic ic-sm"><use href="#i-check"/></svg>Submitted 21 May · named OK</div></div>
+          </div>
+
+          <!-- ANONYMITY TOGGLE -->
+          <div class="anon-bar">
+            <svg class="ic ic-sm"><use href="#i-eye-off"/></svg>
+            <span>Showing E1–E6 codes. </span>
+            <span class="toggle"><span class="sw"></span>Anonymized by default (4 evaluators consented to named attribution)</span>
+          </div>
+
+          <!-- DIVERGENCE — the signature -->
+          <div class="sec-head" style="margin-top:14px"><span class="sec-num">B</span><h2>Divergence — criterion by criterion</h2></div>
+          <p class="sec-lead">For each criterion, the system shows the individual positions rather than averaging them away. Low-consensus items are flagged for reconciliation in Stage 4. Spread metrics are computed; verdicts are deferred to the human reconciler. <span class="sec-cite">SCIENCE-SPEC §7 "surfaces divergence, never averages it"; spread method per Kendall's W + SD.</span></p>
+
+          <div class="divergence">
+
+            <!-- HIGH CONSENSUS example -->
+            <div class="div-item">
+              <div class="div-h">
+                <svg class="ic icon"><use href="#i-target"/></svg>
+                <div>
+                  <div class="crit-name">Analyzing &amp; interpreting (UCF.2)</div>
+                  <div class="crit-type">Competency weight · target 0–1 scale</div>
+                </div>
+                <span class="consensus high"><svg class="ic ic-sm"><use href="#i-check"/></svg>High consensus</span>
+              </div>
+              <div class="div-body">
+                <div class="scale-wrap">
+                  <div class="scale-axis">
+                    <div class="scale-tick" style="left:0%"></div><div class="scale-tick-label" style="left:0%">0.00</div>
+                    <div class="scale-tick" style="left:25%"></div><div class="scale-tick-label" style="left:25%">0.05</div>
+                    <div class="scale-tick" style="left:50%"></div><div class="scale-tick-label" style="left:50%">0.10</div>
+                    <div class="scale-tick" style="left:75%"></div><div class="scale-tick-label" style="left:75%">0.15</div>
+                    <div class="scale-tick" style="left:100%"></div><div class="scale-tick-label" style="left:100%">0.20</div>
+                    <div class="ev-marker" style="left:88%;background:var(--e1)"><div class="ev-tip">E1 · 0.18</div></div>
+                    <div class="ev-marker" style="left:92%;background:var(--e2)"><div class="ev-tip">E2 · 0.19</div></div>
+                    <div class="ev-marker" style="left:90%;background:var(--e3)"><div class="ev-tip">E3 · 0.18</div></div>
+                    <div class="ev-marker" style="left:86%;background:var(--e4)"><div class="ev-tip">E4 · 0.17</div></div>
+                    <div class="ev-marker" style="left:90%;background:var(--e5)"><div class="ev-tip">E5 · 0.18</div></div>
+                    <div class="ev-marker" style="left:94%;background:var(--e6)"><div class="ev-tip">E6 · 0.19</div></div>
+                  </div>
+                </div>
+                <div class="div-stats">
+                  <span>Mean: <b>0.18</b></span>
+                  <span>SD: <b>0.008</b></span>
+                  <span>Range: <b>0.02</b></span>
+                  <span>Kendall's W: <b>0.91</b></span>
+                  <span style="color:var(--green)">Below SD cutoff (1.4 → high consensus)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- LOW CONSENSUS — Tolerance for ambiguity (trait target) -->
+            <div class="div-item">
+              <div class="div-h">
+                <svg class="ic icon" style="color:var(--rust)"><use href="#i-alert"/></svg>
+                <div>
+                  <div class="crit-name">Tolerance for ambiguity (Openness facet, IPIP-NEO)</div>
+                  <div class="crit-type">Trait target band · centre on 0–100 scale</div>
+                </div>
+                <span class="consensus low"><svg class="ic ic-sm"><use href="#i-alert"/></svg>Low consensus — flagged</span>
+              </div>
+              <div class="div-body">
+                <div class="scale-wrap">
+                  <!-- band overlays -->
+                  <div class="band-overlay" style="left:35%;width:25%;background:var(--e1)"></div>
+                  <div class="band-overlay" style="left:55%;width:20%;background:var(--e2)"></div>
+                  <div class="band-overlay" style="left:50%;width:25%;background:var(--e3)"></div>
+                  <div class="band-overlay" style="left:60%;width:20%;background:var(--e4)"></div>
+                  <div class="band-overlay" style="left:65%;width:20%;background:var(--e5)"></div>
+                  <div class="band-overlay" style="left:45%;width:25%;background:var(--e6)"></div>
+                  <div class="scale-axis">
+                    <div class="scale-tick" style="left:0%"></div><div class="scale-tick-label" style="left:0%">0</div>
+                    <div class="scale-tick" style="left:25%"></div><div class="scale-tick-label" style="left:25%">25</div>
+                    <div class="scale-tick" style="left:50%"></div><div class="scale-tick-label" style="left:50%">50</div>
+                    <div class="scale-tick" style="left:75%"></div><div class="scale-tick-label" style="left:75%">75</div>
+                    <div class="scale-tick" style="left:100%"></div><div class="scale-tick-label" style="left:100%">100</div>
+                    <div class="ev-marker" style="left:48%;background:var(--e1)"><div class="ev-tip">E1 · centre 48 (band 35–60)</div></div>
+                    <div class="ev-marker" style="left:65%;background:var(--e2)"><div class="ev-tip">E2 · centre 65 (band 55–75)</div></div>
+                    <div class="ev-marker" style="left:62%;background:var(--e3)"><div class="ev-tip">E3 · centre 62 (band 50–75)</div></div>
+                    <div class="ev-marker" style="left:70%;background:var(--e4)"><div class="ev-tip">E4 · centre 70 (band 60–80)</div></div>
+                    <div class="ev-marker" style="left:75%;background:var(--e5)"><div class="ev-tip">E5 · centre 75 (band 65–85)</div></div>
+                    <div class="ev-marker" style="left:58%;background:var(--e6)"><div class="ev-tip">E6 · centre 58 (band 45–70)</div></div>
+                  </div>
+                </div>
+                <div class="div-stats">
+                  <span>Centre mean: <b>63.0</b></span>
+                  <span>SD: <b>10.3</b></span>
+                  <span>Range: <b>27</b></span>
+                  <span>Kendall's W: <b>0.51</b></span>
+                  <span style="color:var(--rust)"><b>Above SD cutoff</b> — flagged for reconciliation</span>
+                </div>
+
+                <div class="rationale-section">
+                  <div class="rationale-h">Rationale notes (per evaluator)</div>
+                  <div class="rationale-list">
+                    <div class="rationale"><span class="src" style="color:var(--e1)">E1 · Maja S.</span><span>"The platform migration is still 12 months out. Current architecture work is more structured than open-ended; setting the bar too high will exclude strong candidates."</span></div>
+                    <div class="rationale"><span class="src" style="color:var(--e2)">E2 · Kjetil R.</span><span>"We're going to feel the migration's ambiguity sooner than 12 months — Q3 already has unscoped architecture decisions. I'd lean higher."</span></div>
+                    <div class="rationale"><span class="src" style="color:var(--e5)">E5 · Anon. peer lead</span><span>"From the Data Platform side we already work in this open-ended mode. If we hire toward where the role is going, not where it is, 65–85 is right."</span></div>
+                    <div class="rationale"><span class="src" style="color:var(--e6)">E6 · Tor B.</span><span>"Compromise: 45–70 captures the role today plus enough headroom that growth in 6 months doesn't require a re-hire. Forecast (§9) is the right place to push higher."</span></div>
+                  </div>
+                </div>
+
+                <div class="recon-row">
+                  <svg class="ic icon"><use href="#i-git-merge"/></svg>
+                  <div class="body">
+                    <div class="h">Needs reconciliation in Stage 4</div>
+                    <div class="d">Owner / reconciler will run a structured discussion on this item. Final value will record per-evaluator attribution + a decision_artefact. The disagreement here is real (current-role vs. forecast-role), not noise — work it through, don't average it.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- MODERATE CONSENSUS — context factor -->
+            <div class="div-item">
+              <div class="div-h">
+                <svg class="ic icon" style="color:var(--amber)"><use href="#i-zap"/></svg>
+                <div>
+                  <div class="crit-name">Adversity exposure (context factor)</div>
+                  <div class="crit-type">On-call / incident load · ordinal 1–5</div>
+                </div>
+                <span class="consensus moderate">Moderate consensus</span>
+              </div>
+              <div class="div-body">
+                <div class="scale-wrap">
+                  <div class="scale-axis">
+                    <div class="scale-tick" style="left:0%"></div><div class="scale-tick-label" style="left:0%">1</div>
+                    <div class="scale-tick" style="left:25%"></div><div class="scale-tick-label" style="left:25%">2</div>
+                    <div class="scale-tick" style="left:50%"></div><div class="scale-tick-label" style="left:50%">3</div>
+                    <div class="scale-tick" style="left:75%"></div><div class="scale-tick-label" style="left:75%">4</div>
+                    <div class="scale-tick" style="left:100%"></div><div class="scale-tick-label" style="left:100%">5</div>
+                    <div class="ev-marker" style="left:75%;background:var(--e1)"><div class="ev-tip">E1 · 4</div></div>
+                    <div class="ev-marker" style="left:75%;background:var(--e2)"><div class="ev-tip">E2 · 4</div></div>
+                    <div class="ev-marker" style="left:100%;background:var(--e3)"><div class="ev-tip">E3 · 5</div></div>
+                    <div class="ev-marker" style="left:75%;background:var(--e4)"><div class="ev-tip">E4 · 4</div></div>
+                    <div class="ev-marker" style="left:100%;background:var(--e5)"><div class="ev-tip">E5 · 5</div></div>
+                    <div class="ev-marker" style="left:75%;background:var(--e6)"><div class="ev-tip">E6 · 4</div></div>
+                  </div>
+                </div>
+                <div class="div-stats">
+                  <span>Mean: <b>4.3</b></span>
+                  <span>SD: <b>0.47</b></span>
+                  <span>Range: <b>1</b></span>
+                  <span>Kendall's W: <b>0.78</b></span>
+                  <span style="color:var(--amber)">Near cutoff — reconcile or accept consensus</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- TIMELINE OF EVENTS -->
+          <div class="sec-head" style="margin-top:38px"><span class="sec-num">C</span><h2>Run timeline (audit trail)</h2></div>
+          <p class="sec-lead">Every event in this run writes an immutable audit_log row, available to the AI Act Art. 11 technical documentation export. Reads, submissions, seal transitions, reconciliations and sign-offs are all recorded. <span class="sec-cite">SCIENCE-SPEC §10; PHASE0-SPEC audit_log invariants.</span></p>
+
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="t">14 May · 09:00 · audit #a-9241</div>
+              <div class="h">Run launched (Stage 1 → 2)</div>
+              <div class="d">Maja Strand created run #r-2014; invited 6 evaluators; system seeded definition from Engineering family template. Thresholds snapshotted (stub).</div>
+            </div>
+            <div class="tl-item">
+              <div class="t">17–22 May · submissions audit #a-9251 to #a-9268</div>
+              <div class="h">All 6 evaluators submitted independently</div>
+              <div class="d">Submissions sealed at row-level on submit. Zero pre-reveal read attempts during Stage 2 (RLS-enforced + logged).</div>
+            </div>
+            <div class="tl-item now">
+              <div class="t">22 May · 14:02 · audit #a-9269</div>
+              <div class="h">Stage 2 → 3 transition (rpc_seal_evaluations)</div>
+              <div class="d">All evaluators submitted before deadline. Divergence computed: 7 high / 2 moderate / 3 low consensus. Currently here.</div>
+            </div>
+            <div class="tl-item future">
+              <div class="t">expected within 5 working days</div>
+              <div class="h">Stage 4 reconciliation</div>
+              <div class="d">Reconciler walks the 3 low-consensus items + optionally the 2 moderate. Each decision records attribution + decision_artefact.</div>
+            </div>
+            <div class="tl-item future">
+              <div class="t">on sign-off</div>
+              <div class="h">rpc_signoff_role_version → new roles_catalog version</div>
+              <div class="d">Creates the new role version with full provenance (ICC, Kendall's W, evaluator count, reconciliation summary). Frozen for downstream use.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- INTEGRATION MAP -->
+      <div class="integration">
+        <h3>Integration with other modules</h3>
+        <p class="lead">This module is the single canonical writer of role versions. Every other module reads downstream. The integration contracts here are tested explicitly so the system doesn't silently drift toward "latest by family" instead of pinned versions, or read peer-personality data where none should exist.</p>
+        <div class="int-grid">
+          <div class="int-card">
+            <h4><svg class="ic ic-sm" style="color:var(--role)"><use href="#i-file"/></svg>Role Profile detail page</h4>
+            <div class="d">Renders the signed-off version with full provenance (ICC, Kendall's W, evaluator count, reconciliation summary, attribution).</div>
+            <div class="a">→ /roles/:role_id/:version</div>
+          </div>
+          <div class="int-card">
+            <h4><svg class="ic ic-sm" style="color:var(--role)"><use href="#i-briefcase"/></svg>Requisitions &amp; hiring</h4>
+            <div class="d">A requisition pins to <code>role_version_id</code>. A superseding version does NOT change the requisition's frozen view — fairness across candidates depends on it.</div>
+            <div class="a">→ requisitions.role_version_id (immutable)</div>
+          </div>
+          <div class="int-card">
+            <h4><svg class="ic ic-sm" style="color:var(--role)"><use href="#i-target"/></svg>Fit scoring</h4>
+            <div class="d">Scores a candidate against the version pinned at decision time, never "latest." Captured in decision_artefact.</div>
+            <div class="a">→ fit_score.against_role_version_id</div>
+          </div>
+          <div class="int-card">
+            <h4><svg class="ic ic-sm" style="color:var(--role)"><use href="#i-layers"/></svg>Frameworks Library</h4>
+            <div class="d">Seeds the initial draft (competencies, family-default trait bands, context defaults). Evaluators tune; they never start blank.</div>
+            <div class="a">→ frameworks.role_family_templates</div>
+          </div>
+          <div class="int-card">
+            <h4><svg class="ic ic-sm" style="color:var(--role)"><use href="#i-refresh"/></svg>Re-fit engine (Phase 3)</h4>
+            <div class="d">Reads evolved versions to compute fit-trajectory. Evolution vector generated at reconciliation labelled as forecast.</div>
+            <div class="a">→ refit.against_role_version_id (time-series)</div>
+          </div>
+          <div class="int-card">
+            <h4><svg class="ic ic-sm" style="color:var(--role)"><use href="#i-users"/></svg>Team-gap context</h4>
+            <div class="d">Reads role version + members' OWN profiles, never peer-personality. Surveillance guardrail enforced at schema level.</div>
+            <div class="a">→ team_gap.{role_version_id, members_own_profiles}</div>
+          </div>
+          <div class="int-card">
+            <h4><svg class="ic ic-sm" style="color:var(--role)"><use href="#i-shield"/></svg>Phase 4 audit / DPIA export</h4>
+            <div class="d">Includes the full Delphi provenance per role version: evaluators, submissions, divergence, reconciliations, sign-off attribution.</div>
+            <div class="a">→ exports.ai_act_annex_iv · exports.dpia_art_35</div>
+          </div>
+          <div class="int-card">
+            <h4><svg class="ic ic-sm" style="color:var(--role)"><use href="#i-clipboard"/></svg>Decision artefacts</h4>
+            <div class="d">Every reconciliation override + sign-off writes a decision_artefact (Hardening §A4). The role version carries pointers to all of them.</div>
+            <div class="a">→ decision_artefacts.linked_role_version_id</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

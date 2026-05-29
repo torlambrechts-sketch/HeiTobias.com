@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Talent Lifecycle Platform — Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Mono:wght@400;700&family=Archivo:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --ink:#13131a;
+    --paper:#f4f1ea;
+    --line:#2a2a35;
+    --accent:#e8593a;       /* warm signal red */
+    --accent2:#2f6f5e;      /* deep green */
+    --accent3:#c9a227;      /* ochre */
+    --accent4:#3b5b8c;      /* slate blue */
+    --muted:#6a675e;
+    --card:#fbfaf6;
+    --shadow:6px 6px 0 var(--ink);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Archivo',sans-serif;
+    line-height:1.5;
+    padding:0 0 80px;
+    background-image:radial-gradient(var(--ink) 0.5px, transparent 0.5px);
+    background-size:22px 22px;
+    background-position:-11px -11px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+
+  header{
+    border-bottom:3px solid var(--ink);
+    padding:48px 0 28px;
+    margin-bottom:40px;
+    background:
+      linear-gradient(transparent 0, transparent calc(100% - 3px), var(--ink) 100%);
+  }
+  .eyebrow{
+    font-family:'Space Mono',monospace;
+    text-transform:uppercase;
+    letter-spacing:3px;
+    font-size:12px;
+    color:var(--accent);
+    font-weight:700;
+    display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow::before{content:"";width:34px;height:2px;background:var(--accent)}
+  h1{
+    font-family:'Fraunces',serif;
+    font-size:clamp(34px,6vw,62px);
+    font-weight:600;
+    line-height:0.98;
+    margin:16px 0 14px;
+    letter-spacing:-1.5px;
+  }
+  h1 em{font-style:italic;color:var(--accent)}
+  .sub{max-width:660px;font-size:17px;color:var(--muted)}
+  .legend{
+    display:flex;flex-wrap:wrap;gap:18px;margin-top:24px;
+    font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;
+  }
+  .legend span{display:flex;align-items:center;gap:7px}
+  .dot{width:13px;height:13px;border:2px solid var(--ink);display:inline-block}
+  .d1{background:var(--accent)}.d2{background:var(--accent2)}.d3{background:var(--accent3)}.d4{background:var(--accent4)}
+
+  /* Layer band */
+  .layer{margin-bottom:14px;position:relative}
+  .layer-head{
+    display:flex;align-items:baseline;gap:14px;margin-bottom:14px;
+  }
+  .layer-num{
+    font-family:'Space Mono',monospace;font-weight:700;font-size:13px;
+    background:var(--ink);color:var(--paper);padding:3px 9px;
+  }
+  .layer-title{
+    font-family:'Fraunces',serif;font-size:24px;font-weight:600;letter-spacing:-0.5px;
+  }
+  .layer-tag{
+    font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:1px;margin-left:auto;
+  }
+
+  .grid{display:grid;gap:14px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+
+  .box{
+    background:var(--card);
+    border:2.5px solid var(--ink);
+    padding:16px 16px 18px;
+    box-shadow:var(--shadow);
+    position:relative;
+    transition:transform .15s ease, box-shadow .15s ease;
+    cursor:default;
+  }
+  .box:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--ink)}
+  .box .bt{
+    font-weight:800;font-size:15px;margin-bottom:6px;display:flex;align-items:center;gap:8px;
+  }
+  .box .bd{font-size:13px;color:var(--muted);line-height:1.45}
+  .box .tech{
+    font-family:'Space Mono',monospace;font-size:10.5px;margin-top:10px;
+    padding-top:9px;border-top:1.5px dashed #cfcabd;color:var(--ink);
+    text-transform:uppercase;letter-spacing:0.5px;
+  }
+  .tick{width:11px;height:11px;border:2px solid var(--ink);flex-shrink:0}
+  .t1{background:var(--accent)}.t2{background:var(--accent2)}.t3{background:var(--accent3)}.t4{background:var(--accent4)}
+
+  .flowbar{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;
+    color:var(--muted);margin:6px 0 26px;
+  }
+  .flowbar .arrow{font-size:18px;color:var(--accent)}
+
+  .spine{
+    border:2.5px dashed var(--ink);background:repeating-linear-gradient(45deg,#fbfaf6,#fbfaf6 10px,#f2efe6 10px,#f2efe6 20px);
+    padding:18px 20px;box-shadow:var(--shadow);
+  }
+  .spine .bt{font-family:'Fraunces',serif;font-size:18px;font-weight:600}
+
+  .spine-pair{
+    display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch;margin-top:20px;
+  }
+  .spine-card{
+    border:2.5px solid var(--ink);background:var(--card);padding:16px 18px;
+  }
+  .spine-role{box-shadow:5px 5px 0 var(--accent4)}
+  .spine-person{box-shadow:5px 5px 0 var(--accent2)}
+  .sc-tag{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--accent);font-weight:700}
+  .sc-title{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin:3px 0 12px;letter-spacing:-0.5px}
+  .sc-list{display:flex;flex-direction:column;gap:7px}
+  .sc-list span{font-size:13px;padding-left:18px;position:relative;color:var(--ink)}
+  .sc-list span::before{content:"";position:absolute;left:0;top:6px;width:9px;height:9px;border:2px solid var(--ink);background:var(--paper)}
+  .sc-list span.hl{font-weight:700}
+  .sc-list span.hl::before{background:var(--accent3)}
+  .sc-list em{font-style:italic;color:var(--muted)}
+  .sc-foot{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1.5px dashed #cfcabd;text-transform:uppercase;letter-spacing:0.5px}
+  .spine-vs{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 22px;gap:10px}
+  .vs-circle{
+    width:64px;height:64px;border-radius:50%;border:3px solid var(--ink);background:var(--accent);
+    color:var(--paper);display:flex;align-items:center;justify-content:center;
+    font-family:'Space Mono',monospace;font-weight:700;font-size:14px;letter-spacing:1px;
+    box-shadow:3px 3px 0 var(--ink);
+  }
+  .vs-line{font-family:'Space Mono',monospace;font-size:10px;text-align:center;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;line-height:1.5}
+
+  @media(max-width:860px){
+    .spine-pair{grid-template-columns:1fr}
+    .spine-vs{flex-direction:row;padding:14px 0}
+  }
+
+  .section-rule{
+    display:flex;align-items:center;gap:16px;margin:42px 0 26px;
+  }
+  .section-rule::before,.section-rule::after{content:"";height:2px;background:var(--ink);flex:1}
+  .section-rule span{
+    font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:700;
+  }
+
+  /* data flow diagram */
+  .flowmap{
+    border:2.5px solid var(--ink);background:var(--card);box-shadow:var(--shadow);
+    padding:26px;margin-top:10px;
+  }
+  .stage-row{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative}
+  .stage-row.five{grid-template-columns:repeat(5,1fr)}
+  .stage{
+    text-align:center;padding:0 10px;position:relative;
+  }
+  .stage .num{
+    font-family:'Space Mono',monospace;font-size:11px;color:var(--accent);font-weight:700;
+  }
+  .stage .nm{font-family:'Fraunces',serif;font-size:19px;font-weight:600;margin:4px 0 8px}
+  .stage .ds{font-size:12.5px;color:var(--muted)}
+  .stage:not(:last-child)::after{
+    content:"→";position:absolute;right:-9px;top:34px;font-size:22px;color:var(--accent);font-weight:700;
+  }
+  .databar{
+    margin-top:22px;padding:13px 18px;background:var(--ink);color:var(--paper);
+    font-family:'Space Mono',monospace;font-size:12px;display:flex;align-items:center;gap:12px;
+    letter-spacing:0.5px;
+  }
+  .databar b{color:var(--accent3)}
+
+  .note{
+    font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);
+    margin-top:8px;padding-left:2px;
+  }
+
+  .quad{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .q{border:2px solid var(--ink);padding:9px 10px;display:flex;flex-direction:column;gap:2px}
+  .q b{font-size:13px}
+  .q span{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.3px}
+  .q-a{background:#fdf3ec}.q-b{background:#fbeee9}.q-c{background:#eef4f1}.q-d{background:#f6ece8;border-color:var(--accent)}
+
+  .channel-row{display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch}
+  .ch{border:2.5px solid var(--ink);padding:16px 18px}
+  .ch-agency{background:#fbeee9;box-shadow:5px 5px 0 var(--accent)}
+  .ch-employer{background:#eef4f1;box-shadow:5px 5px 0 var(--accent2)}
+  .ch-who{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.2px;font-weight:700;color:var(--ink)}
+  .ch-nm{font-family:'Fraunces',serif;font-size:19px;font-weight:600;margin:4px 0 8px}
+  .ch-ds{font-size:13px;color:var(--muted);line-height:1.45}
+  .ch-surf{font-family:'Space Mono',monospace;font-size:10px;margin-top:11px;padding-top:9px;border-top:1.5px dashed #cfcabd;text-transform:uppercase;letter-spacing:0.5px}
+  .ch-bridge{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 20px;gap:9px}
+  .ch-bridge-circle{width:58px;height:58px;border-radius:50%;border:3px solid var(--ink);background:var(--accent3);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;box-shadow:3px 3px 0 var(--ink)}
+  .ch-bridge-txt{font-family:'Space Mono',monospace;font-size:10px;text-align:center;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;line-height:1.5}
+  .ch-bridge-txt span{color:var(--muted);font-weight:400}
+
+  .models{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  .model{border:2px solid var(--ink);padding:13px 15px;background:var(--card)}
+  .model-t{font-weight:800;font-size:14px;margin-bottom:5px}
+  .model-d{font-size:12.5px;color:var(--muted);line-height:1.45}
+
+  footer{
+    margin-top:50px;border-top:3px solid var(--ink);padding-top:20px;
+    font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;text-transform:uppercase;letter-spacing:1px;
+  }
+
+  @media(max-width:860px){
+    .g4{grid-template-columns:repeat(2,1fr)}
+    .g3{grid-template-columns:1fr}
+    .g4{grid-template-columns:repeat(2,1fr)}
+    .stage-row{grid-template-columns:1fr;gap:18px}
+    .stage-row.five{grid-template-columns:1fr}
+    .quad{grid-template-columns:1fr}
+    .channel-row{grid-template-columns:1fr}
+    .ch-bridge{flex-direction:row;padding:14px 0}
+    .models{grid-template-columns:1fr}
+    .stage:not(:last-child)::after{content:"↓";right:auto;left:50%;top:auto;bottom:-15px;transform:translateX(-50%)}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">System Architecture · v0.1 · Talent Lifecycle Platform</div>
+    <h1>From candidate to <em>high&nbsp;performer</em>,<br>one data spine.</h1>
+    <p class="sub">A continuous talent intelligence platform. The pre-hire assessment isn't a transaction — it's the seeding event for an ongoing relationship that makes managers better and teams sharper.</p>
+    <div class="legend">
+      <span><i class="dot d1"></i>Client / Edge</span>
+      <span><i class="dot d2"></i>Application & Logic</span>
+      <span><i class="dot d3"></i>Intelligence / Science</span>
+      <span><i class="dot d4"></i>Data & Platform</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- LAYER 1: CLIENTS -->
+  <div class="layer">
+    <div class="layer-head">
+      <span class="layer-num">01</span>
+      <span class="layer-title">Client surfaces</span>
+      <span class="layer-tag">who touches the system</span>
+    </div>
+    <div class="grid g4">
+      <div class="box">
+        <div class="bt"><i class="tick t1"></i>Candidate portal</div>
+        <div class="bd">Mobile-first assessment experience. Cognitive + personality + work-style. ~30 min, no login friction.</div>
+        <div class="tech">React · responsive web</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t1"></i>Manager workspace</div>
+        <div class="bd">The core daily surface. Per-report profiles, weekly guidance, 1:1 prep, team composition view.</div>
+        <div class="tech">React · web app</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t1"></i>Employee view</div>
+        <div class="bd">Self-insight, growth conversations, lightweight pulse check-ins. Owns their own data.</div>
+        <div class="tech">React · web + mobile</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t1"></i>Admin / People ops</div>
+        <div class="bd">Org setup, role library, RBAC, compliance & audit export, billing.</div>
+        <div class="tech">React · admin console</div>
+      </div>
+      <div class="box" style="box-shadow:5px 5px 0 var(--accent)">
+        <div class="bt"><i class="tick t1"></i>Recruiter workspace ★</div>
+        <div class="bd">The acquisition channel. Agencies run assessment + team-based role definition during placements — then hand the profile to the employer.</div>
+        <div class="tech">React · multi-client · the wedge</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flowbar"><span>auth + API requests</span><span class="arrow">↓</span><span>signed JWT · row-level scoped</span></div>
+
+  <!-- LAYER 2: APPLICATION -->
+  <div class="layer">
+    <div class="layer-head">
+      <span class="layer-num">02</span>
+      <span class="layer-title">Application & domain logic</span>
+      <span class="layer-tag">the modular engine</span>
+    </div>
+    <div class="grid g3">
+      <div class="box">
+        <div class="bt"><i class="tick t2"></i>Assessment module</div>
+        <div class="bd">Serves & scores instruments, adaptive item selection, validity/consistency checks, anti-cheat signals.</div>
+        <div class="tech">edge functions · scoring service</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t2"></i>Lifecycle orchestrator</div>
+        <div class="bd">The 90-day kickstart, tenure milestones, quarterly growth triggers. Turns profile data into timed actions.</div>
+        <div class="tech">workflow engine · job queue</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t2"></i>Team composition engine</div>
+        <div class="bd">Aggregates individual profiles → team strengths, predictable friction, project-fit recommendations.</div>
+        <div class="tech">aggregation service</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t2"></i>Pulse & signals</div>
+        <div class="bd">Lightweight ongoing check-ins. Feeds live updates into manager profiles instead of annual surveys.</div>
+        <div class="tech">events · scheduler</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t2"></i>Guidance composer</div>
+        <div class="bd">Generates the "do this on Monday" recommendations per person/context. Profile + role + tenure → action.</div>
+        <div class="tech">rules + LLM layer</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t2"></i>Role architecture engine</div>
+        <div class="bd">Builds & versions role profiles from job analysis. The target every fit-score is measured against — the system's reference frame.</div>
+        <div class="tech">role library · job-analysis flow</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t2"></i>Notification / delivery</div>
+        <div class="bd">Pushes guidance into the manager's real workflow — Slack, Teams, calendar, email digests.</div>
+        <div class="tech">integration hub</div>
+      </div>
+    </div>
+    <div class="note">↑ Reuses your Conscia modular pattern: each capability is a configurable module; findings auto-create follow-up actions.</div>
+  </div>
+
+  <div class="flowbar"><span>reads from / writes to</span><span class="arrow">↕</span><span>shared services</span></div>
+
+  <!-- LAYER 3: INTELLIGENCE -->
+  <div class="layer">
+    <div class="layer-head">
+      <span class="layer-num">03</span>
+      <span class="layer-title">Intelligence & science layer</span>
+      <span class="layer-tag">where defensibility lives</span>
+    </div>
+    <div class="grid g3">
+      <div class="box">
+        <div class="bt"><i class="tick t3"></i>Psychometric core</div>
+        <div class="bd">Validated instruments (Big Five / IPIP-NEO, cognitive ability). Norms, reliability, validity coefficients. <b>Requires I/O psychologist.</b></div>
+        <div class="tech">licensed + proprietary norms</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t3"></i>Predictive models</div>
+        <div class="bd">Role-fit & performance prediction. Trained on outcome data as it accumulates — the long-term moat.</div>
+        <div class="tech">model registry · ML pipeline</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t3"></i>Bias & fairness audit</div>
+        <div class="bd">Adverse-impact monitoring across protected groups. Mandatory under EU AI Act (hiring = high-risk).</div>
+        <div class="tech">fairness metrics · audit logs</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t3"></i>Frameworks library</div>
+        <div class="bd">The IP behind guidance — management playbooks, development frameworks, mapped to traits & contexts.</div>
+        <div class="tech">content engine · versioned</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t3"></i>LLM guidance generation</div>
+        <div class="bd">Turns structured profile + framework into natural, specific manager advice. Grounded, never freeform.</div>
+        <div class="tech">Claude / LLM API · RAG</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t3"></i>Nordic validation set</div>
+        <div class="bd">Locally-normed data — the cultural-fit defensibility vs. US-built incumbents (Plum, PI).</div>
+        <div class="tech">research data store</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flowbar"><span>persists to</span><span class="arrow">↓</span><span>secured, scoped, audited</span></div>
+
+  <!-- LAYER 4: DATA + PLATFORM -->
+  <div class="layer">
+    <div class="layer-head">
+      <span class="layer-num">04</span>
+      <span class="layer-title">Data & platform foundation</span>
+      <span class="layer-tag">EU-hosted · GDPR-native</span>
+    </div>
+    <div class="grid g4">
+      <div class="box">
+        <div class="bt"><i class="tick t4"></i>Core database</div>
+        <div class="bd">People, roles, orgs, assessments, profiles, actions. Row-level security per tenant & role.</div>
+        <div class="tech">Postgres · Supabase RLS</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t4"></i>Identity & access</div>
+        <div class="bd">SSO (Okta, Entra, Google), RBAC, consent management. Employee owns/consents to their data.</div>
+        <div class="tech">auth · SCIM · SSO</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t4"></i>Integrations / HRIS</div>
+        <div class="bd">Two-way sync with HiBob, Personio, Workday, ATS, calendar. Don't reinvent the system of record.</div>
+        <div class="tech">API connectors · webhooks</div>
+      </div>
+      <div class="box">
+        <div class="bt"><i class="tick t4"></i>Compliance & audit</div>
+        <div class="bd">Immutable audit trail, data residency (EU), retention policies, AI Act technical documentation export.</div>
+        <div class="tech">audit log · EU region</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE SPINE -->
+  <div class="section-rule"><span>The thing that makes it one product</span></div>
+  <div class="spine">
+    <div class="bt">⟶ &nbsp;The Talent Data Spine — two co-equal entities</div>
+    <p style="font-size:14px;color:var(--ink);margin-top:8px;max-width:860px">
+      Most platforms have <em>one</em> spine: the person. That's the mistake. <strong>Fit, prediction and guidance are all comparisons</strong> — and a comparison needs two sides. The <strong>Role Profile</strong> is the measuring stick; the <strong>Person Profile</strong> is what gets measured. Neither is meaningful alone. This is the most overlooked entity in the entire category, and making it first-class is a genuine differentiator.
+    </p>
+    <div class="spine-pair">
+      <div class="spine-card spine-role">
+        <div class="sc-tag">ENTITY A · the target</div>
+        <div class="sc-title">Role Profile</div>
+        <div class="sc-list">
+          <span>Weighted competency requirements</span>
+          <span>Trait <em>target ranges</em> — bands, not "more is better"</span>
+          <span>Calibrated cognitive demand (defensible)</span>
+          <span>Context: autonomy · ambiguity · pace · stakeholder load</span>
+          <span>Concrete success criteria for <em>this</em> role</span>
+          <span class="hl">Evolution vector — where the role is heading</span>
+          <span class="hl">Team-authored — co-defined, divergence surfaced</span>
+          <span class="hl">Team-gap context — what's missing around it</span>
+        </div>
+        <div class="sc-foot">team-defined · job-relevant · versioned = legal armor</div>
+      </div>
+
+      <div class="spine-vs">
+        <div class="vs-circle">FIT</div>
+        <div class="vs-line">scored, predicted,<br>guided — over a lifetime</div>
+      </div>
+
+      <div class="spine-card spine-person">
+        <div class="sc-tag">ENTITY B · what's measured</div>
+        <div class="sc-title">Person Profile</div>
+        <div class="sc-list">
+          <span>Cognitive ability scores</span>
+          <span>Personality / work-style traits</span>
+          <span>Values & motivational drivers</span>
+          <span>Strengths & predictable friction points</span>
+          <span>Live pulse signals (ongoing, not annual)</span>
+          <span class="hl">Performance outcomes over tenure</span>
+          <span class="hl">Growth trajectory vs. role evolution</span>
+        </div>
+        <div class="sc-foot">seeded at assessment · enriched continuously · employee-consented</div>
+      </div>
+    </div>
+    <p style="font-size:13.5px;color:var(--muted);margin-top:18px;max-width:860px">
+      The accumulated <strong>Person × Role × Outcome</strong> triples are what train sharper predictions over time — competitors who store only the person, or only the role, can never assemble this. The role's <em>evolution vector</em> is also the conceptual bridge that makes "hire → develop → grow" one continuous product instead of two: you develop people toward where the role is <em>going</em>.
+    </p>
+  </div>
+
+  <!-- DATA FLOW -->
+  <div class="section-rule"><span>How the data flows through a lifetime</span></div>
+  <div class="flowmap">
+    <div class="stage-row five">
+      <div class="stage">
+        <div class="num">STAGE 00</div>
+        <div class="nm">Define</div>
+        <div class="ds">The <strong>team</strong> co-defines the role: criteria, weights, gaps. Divergence surfaced & reconciled.</div>
+      </div>
+      <div class="stage">
+        <div class="num">STAGE 01</div>
+        <div class="nm">Assess</div>
+        <div class="ds">Finalists measured against role <em>and</em> team-gap. Profile created.</div>
+      </div>
+      <div class="stage">
+        <div class="num">STAGE 02</div>
+        <div class="nm">Hire &amp; onboard</div>
+        <div class="ds">Decision report + auto-generated tailored 90-day plan for the manager.</div>
+      </div>
+      <div class="stage">
+        <div class="num">STAGE 03</div>
+        <div class="nm">Manage</div>
+        <div class="ds">Living profile drives weekly guidance, 1:1 prep, team-fit insight.</div>
+      </div>
+      <div class="stage">
+        <div class="num">STAGE 04</div>
+        <div class="nm">Re-fit &amp; grow</div>
+        <div class="ds">Periodic re-evaluation: person-drift vs. role-drift → the fit trajectory.</div>
+      </div>
+    </div>
+    <div class="databar">
+      <span>↻ FEEDBACK LOOP:</span>
+      <span>performance outcomes from <b>Stage 03–04</b> retrain the predictive models in <b>Layer 03</b> — every hire makes the next prediction sharper.</span>
+    </div>
+  </div>
+
+  <!-- FIT OVER TIME -->
+  <div class="section-rule"><span>Fit is a trajectory, not a snapshot</span></div>
+  <div class="grid g2" style="gap:14px">
+    <div class="box" style="box-shadow:5px 5px 0 var(--accent4)">
+      <div class="bt"><i class="tick t4"></i>Re-evaluation over time</div>
+      <div class="bd" style="margin-bottom:12px">Both sides drift. Re-measure the person against the (evolved) role on a cadence. The <em>gap between person-drift and role-drift</em> is the most actionable signal in the system.</div>
+      <div class="quad">
+        <div class="q q-a"><b>Growth gap</b><span>role moved ahead → develop</span></div>
+        <div class="q q-b"><b>Flight risk</b><span>person outgrew role → promote</span></div>
+        <div class="q q-c"><b>Stable fit</b><span>well-matched → leave alone</span></div>
+        <div class="q q-d"><b>Emerging misfit</b><span>diverging → intervene early</span></div>
+      </div>
+      <div class="tech" style="margin-top:12px">consent-owned · developmental framing, never surveillance</div>
+    </div>
+    <div class="box" style="box-shadow:5px 5px 0 var(--accent2)">
+      <div class="bt"><i class="tick t2"></i>Team-based role definition</div>
+      <div class="bd" style="margin-bottom:10px">The team that will work with the role co-defines it — not one manager's mental model of "someone like me."</div>
+      <div class="sc-list" style="gap:8px">
+        <span class="hl">Multiple evaluators rate criteria importance independently</span>
+        <span>Reconciliation flow <em>surfaces</em> disagreement (the useful signal)</span>
+        <span>Candidate scored vs. role <em>+ existing team composition gap</em></span>
+        <span>Collective definition = documented, bias-reduced, AI-Act defensible</span>
+      </div>
+      <div class="tech" style="margin-top:12px">⚠ team composition from members' own profiles — NOT peers rating peers</div>
+    </div>
+  </div>
+
+  <!-- RECRUITMENT CHANNEL -->
+  <div class="section-rule"><span>The recruiter is the wedge — land &amp; expand</span></div>
+  <div class="flowmap">
+    <p style="font-size:14px;color:var(--ink);max-width:880px;margin-bottom:22px">
+      The hardest problem in the lifecycle model is <em>seeding</em> the spine and getting employers onto the post-hire layer. Recruiters solve it. They already do assessment &amp; role-definition work during placements — that work <strong>is</strong> your seed data. At placement it travels to the employer, who arrives pre-populated instead of blank. The agency becomes the customer-acquisition engine.
+    </p>
+    <div class="channel-row">
+      <div class="ch ch-agency">
+        <div class="ch-who">AGENCY · acquisition layer</div>
+        <div class="ch-nm">Recruiter does the work</div>
+        <div class="ch-ds">Team-based role definition with the hiring team · candidate assessment · placement-quality signal. Billable, rigorous, defensible.</div>
+        <div class="ch-surf">uses: Define + Assess surfaces</div>
+      </div>
+      <div class="ch-bridge">
+        <div class="ch-bridge-circle">⇄</div>
+        <div class="ch-bridge-txt">PLACEMENT EVENT<br><span>candidate-consented<br>profile hand-off</span></div>
+      </div>
+      <div class="ch ch-employer">
+        <div class="ch-who">EMPLOYER · retention layer</div>
+        <div class="ch-nm">Profile arrives pre-seeded</div>
+        <div class="ch-ds">New hire already profiled · 90-day plan auto-generated · lifecycle product activates on day one. Switching cost is real — the data's already here.</div>
+        <div class="ch-surf">uses: Manage + Re-fit + Grow surfaces</div>
+      </div>
+    </div>
+
+    <div class="models">
+      <div class="model">
+        <div class="model-t">Model 1 — Hand-over (acquires new employers)</div>
+        <div class="model-d">Agency &amp; employer have separate instances. At placement, the profile transfers (consent-gated). This is how agencies <strong>bring you employers who aren't customers yet.</strong></div>
+      </div>
+      <div class="model">
+        <div class="model-t">Model 2 — Shared workspace (stickier)</div>
+        <div class="model-d">Employer is already on-platform; agency is invited into a requisition as a scoped collaborator. Data is simply <strong>already there</strong> at close. No transfer.</div>
+      </div>
+    </div>
+
+    <div class="databar" style="margin-top:22px">
+      <span>⚠ DESIGN-IN FROM SCHEMA:</span>
+      <span>candidate-owned, <b>consent-gated portability</b> (3-party GDPR: agency · candidate · employer) · quality floors so weak agencies can't seed garbage · clear channel posture to avoid disintermediation fear.</span>
+    </div>
+  </div>
+
+  <!-- BUSINESS SHAPE -->
+  <div class="section-rule"><span>Why this unifies the whole business</span></div>
+  <div class="spine">
+    <div class="bt">⟶ &nbsp;One funnel, not two products</div>
+    <p style="font-size:14px;color:var(--ink);margin-top:8px;max-width:880px">
+      Recruiting and lifecycle stopped being competing ideas. <strong>The recruiting product is the acquisition layer; the lifecycle product is the retention &amp; expansion layer</strong> — land-and-expand built into the structure. This is also where your three strengths finally converge: <em>recruiting</em> sells the agency side, <em>leadership/management</em> delivers the employer value, <em>scale-up building</em> runs the channel-led growth motion.
+    </p>
+  </div>
+
+  <footer>
+    <span>Talent Lifecycle Platform — reference architecture</span>
+    <span>Stack: React · Supabase/Postgres · Edge functions · LLM API · EU-hosted</span>
+  </footer>
+
+</div>
+</body>
+</html>
