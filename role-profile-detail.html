@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HeiTobias — Role Profile · Senior Backend Engineer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --canvas:#f3f1e8;--canvas-2:#eceadf;--surface:#ffffff;
+    --forest:#3a4d3f;--forest-2:#2f4034;--rail:#2c3b30;
+    --green:#3f7d5a;--ink:#2a2a26;--muted:#8a8a7e;--faint:#a6a698;
+    --line:#e4e1d5;--line-2:#d8d4c6;
+
+    --open-bg:#dcebdf;--open-fg:#3f7d5a;
+    --draft-bg:#ece7d6;--draft-fg:#8a7a52;
+    --internal-bg:#f3e9cf;--internal-fg:#a8862f;
+    --reject-bg:#f4dedb;--reject-fg:#b8584a;
+    --interview-bg:#dde7f0;--interview-fg:#42729e;
+    --offer-bg:#dcebdf;--offer-fg:#3f7d5a;
+
+    --role:#42729e;--person:#3f7d5a;--amber:#a8862f;--rust:#b8584a;
+    --stub:#a8862f;--stub-bg:#f6efd9;
+
+    --radius:6px;--radius-lg:8px;
+    --shadow:0 1px 2px rgba(58,77,63,.05),0 6px 18px rgba(58,77,63,.05);
+    --font-display:"Playfair Display",Georgia,serif;
+    --font:"Inter",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--canvas);color:var(--ink);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased}
+  svg{display:block}
+  .ic{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .ic-sm{width:15px;height:15px;stroke-width:2}
+  .ic-lg{width:21px;height:21px}
+
+  .app{display:grid;grid-template-columns:60px 220px 1fr;min-height:100vh}
+
+  .rail{background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:16px 0;position:sticky;top:0;height:100vh}
+  .rail .logo{width:34px;height:34px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:19px;color:var(--rail);margin-bottom:18px}
+  .rail .ri{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#9db0a3;cursor:pointer;margin-bottom:4px;position:relative}
+  .rail .ri:hover{background:rgba(255,255,255,.08);color:#fff}
+  .rail .ri.active{background:#fff;color:var(--rail)}
+  .rail .ri.active::before{content:"";position:absolute;left:-16px;top:8px;bottom:8px;width:3px;border-radius:2px;background:#fff}
+  .rail .sp{flex:1}
+  .rail .ri-ava{width:34px;height:34px;border-radius:50%;background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;border:2px solid rgba(255,255,255,.25)}
+
+  .side{background:var(--canvas);border-right:1px solid var(--line);position:sticky;top:0;height:100vh;overflow:auto;padding:20px 14px}
+  .wordmark{font-family:var(--font-display);font-size:23px;font-weight:700;letter-spacing:-.3px;padding:0 6px 16px}
+  .side .nav-section{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);padding:14px 6px 4px}
+  .side a{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:5px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:500}
+  .side a:hover{background:var(--canvas-2);color:var(--ink)}
+  .side a.active{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+
+  .main{min-width:0}
+  .appbar{display:flex;align-items:center;gap:14px;padding:16px 32px;border-bottom:1px solid var(--line);background:var(--canvas);position:sticky;top:0;z-index:5}
+  .bc{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .bc .sep{color:var(--faint)}
+  .bc b{color:var(--ink);font-weight:600}
+  .appbar .right{margin-left:auto;display:flex;align-items:center;gap:16px}
+  .org{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+  .iconbtn{color:var(--muted);cursor:pointer;display:flex}
+  .me-ava{width:36px;height:36px;border-radius:50%;background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+
+  .content{padding:30px 32px 80px;max-width:1300px}
+
+  /* page header */
+  .ptitle{display:flex;align-items:flex-start;gap:18px;margin-bottom:20px;flex-wrap:wrap}
+  .ptitle .titleblock{flex:1;min-width:300px}
+  .ptitle h1{font-family:var(--font-display);font-size:40px;font-weight:600;letter-spacing:-.5px;line-height:1.05}
+  .ptitle .ti-sub{font-size:13.5px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ptitle .ti-sub .d{color:var(--faint)}
+  .ptitle .ti-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:9px 14px;border-radius:var(--radius);border:1px solid var(--line-2);background:var(--surface);cursor:pointer;color:var(--ink);text-decoration:none}
+  .btn:hover{background:var(--canvas-2)}
+  .btn-primary{background:var(--forest);color:#fff;border-color:var(--forest)}
+  .btn-primary:hover{background:var(--forest-2)}
+
+  .pill{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:5px 11px;border-radius:20px;display:inline-flex;align-items:center;gap:6px}
+  .pill.open{background:var(--open-bg);color:var(--open-fg)}
+  .pill.draft{background:var(--draft-bg);color:var(--draft-fg)}
+  .pill.internal{background:var(--internal-bg);color:var(--internal-fg)}
+  .pill.reject{background:var(--reject-bg);color:var(--reject-fg)}
+  .pill.interview{background:var(--interview-bg);color:var(--interview-fg)}
+  .pill.role-blue{background:#eaf0f7;color:var(--role)}
+  .pill.stub{background:var(--stub-bg);color:var(--stub);border:1px dashed var(--stub)}
+
+  /* forest tab band */
+  .tabband{background:var(--forest);border-radius:var(--radius-lg) var(--radius-lg) 0 0;display:flex;align-items:stretch;overflow:hidden}
+  .tabband .tab{padding:15px 18px;color:#cdd6cf;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;border-right:1px solid rgba(255,255,255,.07)}
+  .tabband .tab:hover{color:#fff;background:rgba(255,255,255,.05)}
+  .tabband .tab.active{background:var(--surface);color:var(--ink);font-weight:700;border-radius:var(--radius) var(--radius) 0 0;margin:5px 0 0 5px}
+  .tabband .tab.right{margin-left:auto;border-right:none}
+
+  /* main panel with left subnav */
+  .panel{background:var(--surface);border:1px solid var(--line);border-top:none;border-radius:0 0 var(--radius-lg) var(--radius-lg);box-shadow:var(--shadow);display:grid;grid-template-columns:240px 1fr}
+  .subnav{border-right:1px solid var(--line);padding:18px 12px;position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto}
+  .subnav a{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:var(--radius);text-decoration:none;color:var(--muted);font-size:13px;font-weight:500;line-height:1.3;margin-bottom:1px}
+  .subnav a:hover{background:var(--canvas);color:var(--ink)}
+  .subnav a.active{background:var(--canvas);color:var(--ink);font-weight:700}
+  .subnav .num{font-family:var(--font-display);font-size:12px;color:var(--faint);width:18px;flex-shrink:0}
+  .subnav a.active .num{color:var(--role)}
+
+  .body{padding:30px 36px}
+  .body section{padding:6px 0 36px;border-bottom:1px solid var(--line);scroll-margin-top:80px}
+  .body section:last-child{border-bottom:none;padding-bottom:0}
+  .body section .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px;flex-wrap:wrap}
+  .body section .sec-num{font-family:var(--font-display);font-size:14px;color:var(--faint);font-weight:600}
+  .body section h2{font-family:var(--font-display);font-size:26px;font-weight:600;letter-spacing:-.3px}
+  .body section .sec-lead{color:var(--muted);font-size:13.5px;line-height:1.55;margin-bottom:18px;max-width:780px}
+  .body section .sec-cite{font-size:11.5px;color:var(--faint);font-style:italic;margin-top:8px;display:block}
+
+  .seclabel{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);margin:18px 0 10px;display:flex;align-items:center;gap:8px}
+
+  /* governance card */
+  .gov{display:grid;grid-template-columns:1fr 1fr;gap:24px 36px;background:var(--canvas);border:1px solid var(--line);border-radius:var(--radius);padding:20px 24px}
+  .gov .row{display:flex;flex-direction:column;gap:3px}
+  .gov .k{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .gov .v{font-size:14px;font-weight:500;color:var(--ink)}
+  .gov .v.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--muted)}
+  .gov-foot{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}
+
+  /* task table */
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  thead th{text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:10px 12px;border-bottom:1.5px solid var(--line)}
+  thead th.c{text-align:center}thead th.r{text-align:right}
+  tbody td{padding:14px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  .crit{display:inline-flex;gap:2px}
+  .crit i{width:7px;height:14px;border-radius:1.5px;background:var(--line-2);display:inline-block}
+  .crit i.on{background:var(--ink)}
+  .crit i.warn{background:var(--amber)}
+  .src-chip{font-size:10.5px;color:var(--faint);font-family:ui-monospace,monospace}
+
+  /* competency card */
+  .comp-list{display:flex;flex-direction:column;gap:14px}
+  .comp{border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;background:var(--surface)}
+  .comp-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+  .comp-name{font-weight:700;font-size:15px;display:flex;align-items:center;gap:10px}
+  .comp-meta{display:flex;align-items:center;gap:14px}
+  .weight-bar{position:relative;width:120px;height:6px;background:var(--canvas-2);border-radius:20px;overflow:hidden}
+  .weight-fill{position:absolute;top:0;bottom:0;left:0;background:var(--role);border-radius:20px}
+  .weight-val{font-family:ui-monospace,monospace;font-size:12px;font-weight:700;color:var(--ink);width:36px;text-align:right}
+  .comp-desc{font-size:13px;color:var(--muted);margin-bottom:10px}
+  .bars{margin-top:8px}
+  .bars-h{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+  .bars ul{list-style:none;padding:0}
+  .bars li{font-size:12.5px;padding:4px 0 4px 22px;position:relative;color:var(--ink)}
+  .bars li::before{content:"";position:absolute;left:0;top:11px;width:14px;height:1.5px;background:var(--line-2)}
+  .frame-link{font-size:11px;color:var(--faint);font-family:ui-monospace,monospace;margin-top:6px}
+
+  /* trait range — signature component */
+  .trait{margin-bottom:24px}.trait:last-child{margin-bottom:0}
+  .trait-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:10px}
+  .trait-name{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .trait-name .instr{font-size:10.5px;color:var(--faint);font-family:ui-monospace,monospace;font-weight:400}
+  .trait-direction{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--role);background:#eaf0f7;padding:3px 8px;border-radius:4px}
+  .trait-direction.threshold{color:var(--amber);background:var(--internal-bg)}
+  .trait-read{font-size:11.5px;color:var(--muted);font-family:ui-monospace,monospace}
+  .track-wrap{margin:22px 0 6px}
+  .track-scale{display:flex;justify-content:space-between;font-size:10px;color:var(--faint);font-family:ui-monospace,monospace;margin-top:8px}
+  .track{position:relative;height:10px;background:var(--canvas-2);border-radius:20px}
+  .band{position:absolute;top:0;bottom:0;background:#cfe0ec;border-radius:20px}
+  .band-edge{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--role)}
+  .band-tick{position:absolute;top:-22px;font-size:9.5px;font-weight:700;color:var(--role);font-family:ui-monospace,monospace;transform:translateX(-50%)}
+  .band-centre{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:#fff;border:2.5px solid var(--role);transform:translate(-50%,-50%)}
+  .trait-just{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:14px;padding:12px 14px;background:var(--canvas);border-radius:var(--radius);border-left:3px solid var(--role)}
+  .trait-just b{color:var(--ink);font-weight:600}
+  .trait-just .ev{font-size:11px;font-family:ui-monospace,monospace;color:var(--faint);display:block;margin-top:6px}
+
+  /* cognitive demand */
+  .cog{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;background:var(--canvas);border:1px solid var(--line);border-radius:var(--radius);padding:22px 26px}
+  .cog-level{text-align:center}
+  .cog-level .n{font-family:var(--font-display);font-size:54px;font-weight:600;color:var(--ink);line-height:1}
+  .cog-level .l{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:4px}
+  .cog-bar{display:flex;gap:5px;margin-top:12px}
+  .cog-bar i{width:18px;height:6px;background:var(--line-2);border-radius:2px}
+  .cog-bar i.on{background:var(--role)}
+  .cog-body .row{display:flex;gap:14px;align-items:baseline;padding:6px 0}
+  .cog-body .row .k{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);min-width:120px}
+  .cog-body .row .v{font-size:13.5px;color:var(--ink)}
+
+  /* context factors radar-ish */
+  .ctx-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 24px}
+  .ctx{display:grid;grid-template-columns:160px 1fr 30px;gap:12px;align-items:center}
+  .ctx-name{font-size:12.5px;font-weight:500}
+  .ctx-bar{position:relative;height:8px;background:var(--canvas-2);border-radius:20px;overflow:hidden}
+  .ctx-fill{position:absolute;top:0;bottom:0;left:0;background:var(--forest);border-radius:20px}
+  .ctx-val{font-family:ui-monospace,monospace;font-size:12px;font-weight:700;text-align:right}
+  .ctx-coh{margin-top:18px;padding:12px 14px;background:var(--canvas);border-radius:var(--radius);font-size:12.5px;color:var(--muted);display:flex;gap:11px;align-items:flex-start;border-left:3px solid var(--role)}
+  .ctx-coh b{color:var(--ink)}
+
+  /* values */
+  .values{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .values-card{border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  .values-card h4{font-family:var(--font-display);font-size:16px;font-weight:600;margin-bottom:12px}
+  .vchip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 10px;border-radius:20px;background:var(--canvas);margin:3px 4px 3px 0;font-weight:500;color:var(--ink)}
+  .vchip.primary{background:#eaf0f7;color:var(--role);font-weight:600}
+  .sdt{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+  .sdt .row{display:grid;grid-template-columns:130px 1fr 40px;gap:10px;align-items:center;font-size:12.5px}
+  .sdt .row .b{height:6px;background:var(--canvas-2);border-radius:20px;position:relative;overflow:hidden}
+  .sdt .row .b i{position:absolute;top:0;bottom:0;left:0;background:var(--person);border-radius:20px}
+  .sdt .row .v{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted);text-align:right}
+
+  /* success criteria */
+  .crit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .crit-card{border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  .crit-card .tf{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--role);margin-bottom:10px}
+  .crit-card .dim{font-size:11px;font-weight:600;color:var(--muted);background:var(--canvas);padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:8px}
+  .crit-card .o{font-size:13px;color:var(--ink);margin-bottom:10px;line-height:1.5}
+  .crit-card .m{font-size:11.5px;color:var(--muted);font-family:ui-monospace,monospace;line-height:1.5}
+
+  /* evolution vector — FORECAST */
+  .evo{background:var(--internal-bg);border:1px solid var(--internal-fg);border-left:4px solid var(--internal-fg);border-radius:var(--radius);padding:22px 26px}
+  .evo-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .evo-head .lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--internal-fg);background:#fff;padding:4px 9px;border-radius:4px;border:1px solid var(--internal-fg)}
+  .evo-head .conf{font-size:11.5px;color:var(--muted)}
+  .evo p{font-size:14px;color:var(--ink);line-height:1.6;margin-bottom:14px}
+  .evo-deltas{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:10px}
+  .evo-deltas h5{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink);margin-bottom:8px}
+  .evo-deltas ul{list-style:none}
+  .evo-deltas li{font-size:12.5px;color:var(--ink);padding:4px 0 4px 22px;position:relative}
+  .evo-deltas li::before{content:"↑";position:absolute;left:0;top:4px;font-weight:700;color:var(--green);font-size:13px}
+  .evo-deltas li.down::before{content:"↓";color:var(--rust)}
+  .evo-foot{margin-top:14px;padding-top:14px;border-top:1px dashed var(--internal-fg);font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  /* team gap */
+  .tg{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .tg-card{border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  .tg-card h4{font-family:var(--font-display);font-size:16px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .tg-card .desc{font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+  .tg-card ul{list-style:none}
+  .tg-card li{padding:8px 0;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+  .tg-card li:last-child{border-bottom:none}
+  .tg-card li .l{display:flex;align-items:center;gap:8px}
+  .tg-card li .v{font-size:11.5px;color:var(--muted);font-family:ui-monospace,monospace}
+  .surv-guard{margin-top:18px;padding:14px 16px;background:#f4dedb;border:1px solid var(--rust);border-radius:var(--radius);font-size:12.5px;color:var(--ink);display:flex;gap:12px;align-items:flex-start;line-height:1.55}
+  .surv-guard .lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--rust);background:#fff;padding:3px 8px;border-radius:4px;flex-shrink:0;white-space:nowrap;margin-top:1px}
+
+  /* validation/defensibility */
+  .val{background:var(--canvas);border:1px solid var(--line);border-radius:var(--radius);padding:22px 26px}
+  .val-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 30px}
+  .val-row{display:flex;flex-direction:column;gap:4px}
+  .val-row .k{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .val-row .v{font-size:13.5px;font-weight:500;color:var(--ink)}
+  .val-row .v.mono{font-family:ui-monospace,monospace;font-size:12px;color:var(--muted)}
+  .val-foot{margin-top:18px;padding-top:18px;border-top:1px dashed var(--line);display:flex;flex-wrap:wrap;gap:8px}
+  .doc-chip{font-size:11px;font-weight:600;padding:5px 10px;border-radius:4px;background:#fff;border:1px solid var(--line-2);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .doc-chip:hover{border-color:var(--forest);color:var(--forest)}
+
+  /* stub banner */
+  .stub-banner{margin:0 0 22px;padding:14px 18px;background:var(--stub-bg);border:1px dashed var(--stub);border-radius:var(--radius);font-size:13px;color:var(--ink);display:flex;gap:12px;align-items:flex-start;line-height:1.55}
+  .stub-banner .lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--stub);background:#fff;padding:3px 8px;border-radius:4px;flex-shrink:0;white-space:nowrap;margin-top:1px}
+
+  @media(max-width:1100px){
+    .app{grid-template-columns:60px 1fr}.side{display:none}
+    .panel{grid-template-columns:1fr}.subnav{position:relative;border-right:none;border-bottom:1px solid var(--line);max-height:none;display:flex;flex-wrap:wrap;gap:4px;padding:14px}
+    .subnav a{padding:6px 10px}
+    .gov,.evo-deltas,.crit-grid,.values,.tg,.val-grid,.ctx-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
+  <symbol id="i-trending" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-brain" viewBox="0 0 24 24"><path d="M9.5 2a2.5 2.5 0 0 1 2.5 2.5v15A2.5 2.5 0 1 1 7 19.5v-3a2.5 2.5 0 0 1-2.5-2.5A2.5 2.5 0 0 1 4 11.5a2.5 2.5 0 0 1 1.5-2.3A2.5 2.5 0 0 1 5 7a2.5 2.5 0 0 1 2.5-2.5"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15A2.5 2.5 0 1 0 17 19.5v-3a2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0 .5-2.5 2.5 2.5 0 0 0-1.5-2.3A2.5 2.5 0 0 0 19 7a2.5 2.5 0 0 0-2.5-2.5"/></symbol>
+  <symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+</defs></svg>
+
+<div class="app">
+
+  <!-- icon rail -->
+  <div class="rail">
+    <div class="logo">H</div>
+    <div class="ri"><svg class="ic ic-lg"><use href="#i-grid"/></svg></div>
+    <div class="ri active"><svg class="ic ic-lg"><use href="#i-briefcase"/></svg></div>
+    <div class="ri"><svg class="ic ic-lg"><use href="#i-users"/></svg></div>
+    <div class="ri"><svg class="ic ic-lg"><use href="#i-trending"/></svg></div>
+    <div class="ri"><svg class="ic ic-lg"><use href="#i-chart"/></svg></div>
+    <div class="ri"><svg class="ic ic-lg"><use href="#i-building"/></svg></div>
+    <div class="sp"></div>
+    <div class="ri"><svg class="ic ic-lg"><use href="#i-settings"/></svg></div>
+    <div class="ri-ava">SH</div>
+  </div>
+
+  <!-- section nav -->
+  <aside class="side">
+    <div class="wordmark">HeiTobias</div>
+    <div class="nav-section">Hiring</div>
+    <a href="#">Requisitions</a>
+    <a href="#" class="active">Role library</a>
+    <a href="#">Team-based definition</a>
+    <div class="nav-section">People</div>
+    <a href="#">My team</a>
+    <a href="#">All people</a>
+    <a href="#">Candidates</a>
+    <div class="nav-section">Growth</div>
+    <a href="#">Re-fit &amp; growth</a>
+    <a href="#">Frameworks</a>
+  </aside>
+
+  <main class="main">
+    <div class="appbar">
+      <div class="bc">Role library <span class="sep">›</span> Engineering <span class="sep">›</span> <b>Senior Backend Engineer</b></div>
+      <div class="right">
+        <div class="org" style="color:var(--ink)"><svg class="ic ic-sm" style="color:var(--forest)"><use href="#i-building"/></svg>The Acme Corporation</div>
+        <span class="iconbtn"><svg class="ic"><use href="#i-bell"/></svg></span>
+        <div class="me-ava">SH</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- HEADER -->
+      <div class="ptitle">
+        <div class="titleblock">
+          <h1>Senior Backend Engineer</h1>
+          <div class="ti-sub">
+            <span>Engineering · Platform</span>
+            <span class="d">•</span>
+            <span>Level L5</span>
+            <span class="d">•</span>
+            <span style="font-family:ui-monospace,monospace">v3.2</span>
+            <span class="d">•</span>
+            <span>O*NET-SOC 15-1252.00</span>
+            <span class="d">•</span>
+            <span>ESCO &#8203;<span style="font-family:ui-monospace,monospace">ICT-application-developers</span></span>
+          </div>
+          <div class="ti-sub" style="margin-top:4px">
+            <span class="pill open">Signed off</span>
+            <span class="pill role-blue">Active version</span>
+            <span class="pill internal">SAMPLE template</span>
+          </div>
+        </div>
+        <div class="ti-r">
+          <a class="btn" href="#"><svg class="ic ic-sm"><use href="#i-download"/></svg>Export tech doc</a>
+          <a class="btn" href="#"><svg class="ic ic-sm"><use href="#i-edit"/></svg>Edit (new version)</a>
+          <a class="btn btn-primary" href="#"><svg class="ic ic-sm"><use href="#i-target"/></svg>Use for requisition</a>
+        </div>
+      </div>
+
+      <!-- FOREST TAB BAND -->
+      <div class="tabband">
+        <div class="tab active"><svg class="ic ic-sm"><use href="#i-file"/></svg>Profile</div>
+        <div class="tab"><svg class="ic ic-sm"><use href="#i-users"/></svg>Team definition</div>
+        <div class="tab"><svg class="ic ic-sm"><use href="#i-clock"/></svg>Version history</div>
+        <div class="tab"><svg class="ic ic-sm"><use href="#i-shield"/></svg>Defensibility</div>
+        <div class="tab right"><svg class="ic ic-sm"><use href="#i-settings"/></svg>Manage</div>
+      </div>
+
+      <!-- PANEL with subnav -->
+      <div class="panel">
+
+        <nav class="subnav">
+          <a href="#sec-1" class="active"><span class="num">1</span>Identity &amp; governance</a>
+          <a href="#sec-2"><span class="num">2</span>Tasks &amp; outcomes</a>
+          <a href="#sec-3"><span class="num">3</span>Weighted competencies</a>
+          <a href="#sec-4"><span class="num">4</span>Trait target bands</a>
+          <a href="#sec-5"><span class="num">5</span>Cognitive demand</a>
+          <a href="#sec-6"><span class="num">6</span>Context factors</a>
+          <a href="#sec-7"><span class="num">7</span>Values &amp; motivation</a>
+          <a href="#sec-8"><span class="num">8</span>Success criteria</a>
+          <a href="#sec-9"><span class="num">9</span>Evolution vector</a>
+          <a href="#sec-10"><span class="num">10</span>Team-gap context</a>
+          <a href="#sec-11"><span class="num">11</span>Validation &amp; defensibility</a>
+        </nav>
+
+        <div class="body">
+
+          <div class="stub-banner">
+            <span class="lbl">Sample template</span>
+            <span>This is a research-derived SAMPLE Role Profile shipped for the demo. Trait bands, competency weights, BARS anchors, and cognitive complexity must be validated per-organization by the engaged I/O psychologist before live decisions. <code>validity_status</code> remains <code>dev_stub</code>; rows cannot transition to <code>validated</code> until a signed-off methodology produces real values. Per <code>SCIENCE-SPEC §2, §5</code>.</span>
+          </div>
+
+          <!-- 1. IDENTITY & GOVERNANCE -->
+          <section id="sec-1">
+            <div class="sec-head"><span class="sec-num">01</span><h2>Identity &amp; governance</h2></div>
+            <p class="sec-lead">Versioned, attributable, governance-grade. Generates EU AI Act Art. 11/12/26 technical documentation on demand. <span class="sec-cite">SCIENCE-SPEC §5; PHASE0-SPEC §2.7.</span></p>
+            <div class="gov">
+              <div class="row"><span class="k">Title</span><span class="v">Senior Backend Engineer</span></div>
+              <div class="row"><span class="k">Family · Level</span><span class="v">Engineering · L5</span></div>
+              <div class="row"><span class="k">Version</span><span class="v mono">v3.2 (supersedes v3.1, 14 Mar 2026)</span></div>
+              <div class="row"><span class="k">Status</span><span class="v"><span class="pill open">Signed off</span></span></div>
+              <div class="row"><span class="k">Effective</span><span class="v">22 May 2026 → ongoing</span></div>
+              <div class="row"><span class="k">Validation status</span><span class="v"><span class="pill stub"><svg class="ic ic-sm"><use href="#i-alert"/></svg>dev_stub · awaiting I/O sign-off</span></span></div>
+              <div class="row"><span class="k">External codes</span><span class="v mono">O*NET-SOC 15-1252.00 · ESCO ICT-application-developers</span></div>
+              <div class="row"><span class="k">Framing default</span><span class="v">Developmental (re-fit conversations)</span></div>
+            </div>
+            <div class="gov-foot">
+              <svg class="ic ic-sm"><use href="#i-shield"/></svg>
+              <span>Signed off by Maja Strand (VP Engineering, 22 May 2026) and Pernille Vik (Head of People, 22 May 2026). Signature hashes recorded in <code>audit_log</code> rows <code>#a83f</code>, <code>#a840</code>.</span>
+            </div>
+          </section>
+
+          <!-- 2. TASKS -->
+          <section id="sec-2">
+            <div class="sec-head"><span class="sec-num">02</span><h2>Tasks &amp; outcomes</h2></div>
+            <p class="sec-lead">Task-based content-validity anchor — what this role actually does, how often, and how critical. Maps to O*NET Generalized &amp; Detailed Work Activities. <span class="sec-cite">Brannick et al. (2007) <em>Job and Work Analysis</em>; O*NET.</span></p>
+            <table>
+              <thead>
+                <tr><th>Task / activity</th><th class="c" style="width:90px">Crit.</th><th class="c" style="width:90px">Freq.</th><th>Outcome owned</th><th style="width:120px">Anchor</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><b>Design and own backend service architecture</b><div style="font-size:12px;color:var(--muted);margin-top:3px">API contracts, data flow, performance budgets, failure modes.</div></td>
+                  <td class="c"><span class="crit"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td>
+                  <td class="c"><span class="crit"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td>
+                  <td>Service SLO ≥ 99.9% / P95 latency budgets met</td>
+                  <td><span class="src-chip">O*NET GWA-4.A.4.b.4</span></td>
+                </tr>
+                <tr>
+                  <td><b>Lead complex feature delivery end-to-end</b><div style="font-size:12px;color:var(--muted);margin-top:3px">From requirements clarification to staged rollout and post-launch monitoring.</div></td>
+                  <td class="c"><span class="crit"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td>
+                  <td class="c"><span class="crit"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td>
+                  <td>Quarterly milestone landed on agreed scope</td>
+                  <td><span class="src-chip">O*NET DWA-4001456</span></td>
+                </tr>
+                <tr>
+                  <td><b>Code review &amp; pair-mentoring of mid-level engineers</b><div style="font-size:12px;color:var(--muted);margin-top:3px">Structured feedback (Kluger &amp; DeNisi 1996 task-focused), not ego-focused.</div></td>
+                  <td class="c"><span class="crit"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td>
+                  <td class="c"><span class="crit"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td>
+                  <td>Team merge throughput &amp; defect rate</td>
+                  <td><span class="src-chip">O*NET GWA-4.A.4.a.4</span></td>
+                </tr>
+                <tr>
+                  <td><b>Incident response — on-call rotation</b><div style="font-size:12px;color:var(--muted);margin-top:3px">Diagnose under time pressure with imperfect information; root-cause writeup after.</div></td>
+                  <td class="c"><span class="crit"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="warn"></i></span></td>
+                  <td class="c"><span class="crit"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></td>
+                  <td>MTTR &lt; 30min / RCA published within 5d</td>
+                  <td><span class="src-chip">O*NET DWA-4001517</span></td>
+                </tr>
+                <tr>
+                  <td><b>Cross-team technical proposals (RFCs)</b><div style="font-size:12px;color:var(--muted);margin-top:3px">Written, then reviewed in async + sync rounds; influence without authority.</div></td>
+                  <td class="c"><span class="crit"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td>
+                  <td class="c"><span class="crit"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></td>
+                  <td>≥ 1 RFC merged per quarter affecting ≥ 2 teams</td>
+                  <td><span class="src-chip">O*NET GWA-4.A.2.b.2</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="seclabel" style="margin-top:22px"><svg class="ic ic-sm"><use href="#i-zap"/></svg>Tools &amp; technologies</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <span class="vchip">Go / Python</span><span class="vchip">PostgreSQL</span><span class="vchip">Kubernetes</span><span class="vchip">gRPC / REST</span><span class="vchip">Datadog / OpenTelemetry</span><span class="vchip">PagerDuty</span><span class="vchip">GitHub</span><span class="vchip">Linear</span>
+            </div>
+          </section>
+
+          <!-- 3. COMPETENCIES -->
+          <section id="sec-3">
+            <div class="sec-head"><span class="sec-num">03</span><h2>Weighted competencies</h2></div>
+            <p class="sec-lead">Criterion side — defined <em>first</em>, before mapping predictors. Mapped to SHL UCF / Bartram (2005) "Great Eight." Weights sum to 1.00 across the critical set. <span class="sec-cite">Bartram (2005) <em>JAP</em>; Korn Ferry KFLA mapping in SCIENCE-SPEC §5.</span></p>
+
+            <div class="comp-list">
+
+              <div class="comp">
+                <div class="comp-head">
+                  <div class="comp-name"><svg class="ic" style="color:var(--role)"><use href="#i-target"/></svg>Analyzing &amp; interpreting</div>
+                  <div class="comp-meta">
+                    <span class="pill role-blue">Critical</span>
+                    <div class="weight-bar"><span class="weight-fill" style="width:90%"></span></div>
+                    <span class="weight-val">0.22</span>
+                  </div>
+                </div>
+                <div class="comp-desc">Diagnoses complex technical problems; reasons rigorously from incomplete data; designs experiments and reads results honestly.</div>
+                <div class="bars">
+                  <div class="bars-h">BARS — behavioural anchors at L5</div>
+                  <ul>
+                    <li>Decomposes a multi-system outage into independently testable hypotheses within 15 minutes</li>
+                    <li>Distinguishes correlation from cause in incident retros; resists premature root-cause closure</li>
+                    <li>Designs a quantitative experiment for a perf-vs-cost trade-off and pre-registers the success criteria</li>
+                  </ul>
+                </div>
+                <div class="frame-link">UCF.2 · derived via Critical Incident Technique (Flanagan 1954) · SME panel n=6</div>
+              </div>
+
+              <div class="comp">
+                <div class="comp-head">
+                  <div class="comp-name"><svg class="ic" style="color:var(--role)"><use href="#i-compass"/></svg>Creating &amp; conceptualising</div>
+                  <div class="comp-meta">
+                    <span class="pill role-blue">Critical</span>
+                    <div class="weight-bar"><span class="weight-fill" style="width:74%"></span></div>
+                    <span class="weight-val">0.18</span>
+                  </div>
+                </div>
+                <div class="comp-desc">Generates novel architectural approaches; sees structural patterns across disparate systems; writes clear RFCs.</div>
+                <div class="bars">
+                  <div class="bars-h">BARS — behavioural anchors at L5</div>
+                  <ul>
+                    <li>Proposes a design rejected as too radical, then refines it into a phased plan adopted in the next quarter</li>
+                    <li>Identifies a pattern from one subsystem that resolves a problem in another</li>
+                    <li>Documents a non-obvious failure mode discovered through thought experiment, before it occurs</li>
+                  </ul>
+                </div>
+                <div class="frame-link">UCF.5 · SME Delphi rounds: 3 · ICC(2,k) = 0.82</div>
+              </div>
+
+              <div class="comp">
+                <div class="comp-head">
+                  <div class="comp-name"><svg class="ic" style="color:var(--role)"><use href="#i-users"/></svg>Interacting &amp; presenting</div>
+                  <div class="comp-meta">
+                    <span class="pill role-blue">Critical</span>
+                    <div class="weight-bar"><span class="weight-fill" style="width:65%"></span></div>
+                    <span class="weight-val">0.16</span>
+                  </div>
+                </div>
+                <div class="comp-desc">Influences cross-team decisions through written and spoken argument; mentors juniors with task-focused feedback.</div>
+                <div class="bars">
+                  <div class="bars-h">BARS — behavioural anchors at L5</div>
+                  <ul>
+                    <li>Persuades a sceptical sibling team to adopt a shared standard via RFC, not authority</li>
+                    <li>Gives a junior code review that names what's wrong, what's right, and a concrete next step (Kluger &amp; DeNisi 1996)</li>
+                    <li>Presents a technical proposal to non-engineers without lecturing or condescension</li>
+                  </ul>
+                </div>
+                <div class="frame-link">UCF.3 · derived via SME Delphi + criterion linkage to mentee performance</div>
+              </div>
+
+              <div class="comp">
+                <div class="comp-head">
+                  <div class="comp-name"><svg class="ic" style="color:var(--role)"><use href="#i-zap"/></svg>Delivering &amp; coping with pressure</div>
+                  <div class="comp-meta">
+                    <span class="pill role-blue">Critical</span>
+                    <div class="weight-bar"><span class="weight-fill" style="width:60%"></span></div>
+                    <span class="weight-val">0.15</span>
+                  </div>
+                </div>
+                <div class="comp-desc">Sustains performance during incidents and tight delivery windows; recovers quickly from setbacks; meets commitments.</div>
+                <div class="bars">
+                  <div class="bars-h">BARS — behavioural anchors at L5</div>
+                  <ul>
+                    <li>During a Sev-1, communicates clearly, divides work, makes reversible decisions quickly</li>
+                    <li>After missing a milestone, runs a structured retro and adjusts plan rather than blaming</li>
+                    <li>Maintains code quality at end-of-sprint, not just at start</li>
+                  </ul>
+                </div>
+                <div class="frame-link">UCF.8 · contextualized to on-call requirements (see §6 Context)</div>
+              </div>
+
+              <div class="comp">
+                <div class="comp-head">
+                  <div class="comp-name"><svg class="ic" style="color:var(--role)"><use href="#i-layers"/></svg>Organising &amp; executing</div>
+                  <div class="comp-meta">
+                    <span class="pill role-blue">Critical</span>
+                    <div class="weight-bar"><span class="weight-fill" style="width:50%"></span></div>
+                    <span class="weight-val">0.12</span>
+                  </div>
+                </div>
+                <div class="comp-desc">Plans multi-month delivery; manages dependencies; ships quality reliably without over-engineering.</div>
+                <div class="bars">
+                  <div class="bars-h">BARS — behavioural anchors at L5</div>
+                  <ul>
+                    <li>Breaks a quarter-long initiative into milestones with explicit risks and unknowns</li>
+                    <li>Says "no" to scope-creep with a written reason and an alternative</li>
+                    <li>Knows when to use a checklist vs. when to optimise</li>
+                  </ul>
+                </div>
+                <div class="frame-link">UCF.6</div>
+              </div>
+
+              <div class="comp">
+                <div class="comp-head">
+                  <div class="comp-name"><svg class="ic" style="color:var(--role)"><use href="#i-refresh"/></svg>Adapting &amp; coping</div>
+                  <div class="comp-meta">
+                    <span class="pill draft">Important</span>
+                    <div class="weight-bar"><span class="weight-fill" style="width:45%"></span></div>
+                    <span class="weight-val">0.10</span>
+                  </div>
+                </div>
+                <div class="comp-desc">Operates effectively when requirements shift; learns new tools quickly; embraces useful change without thrashing.</div>
+                <div class="frame-link">UCF.7 · Pulakos (2000) adaptive performance taxonomy</div>
+              </div>
+
+              <div class="comp">
+                <div class="comp-head">
+                  <div class="comp-name"><svg class="ic" style="color:var(--role)"><use href="#i-heart"/></svg>Supporting &amp; co-operating</div>
+                  <div class="comp-meta">
+                    <span class="pill draft">Important</span>
+                    <div class="weight-bar"><span class="weight-fill" style="width:30%"></span></div>
+                    <span class="weight-val">0.07</span>
+                  </div>
+                </div>
+                <div class="comp-desc">Contributes to psychological safety on the team (Edmondson 1999); puts shared outcomes above credit.</div>
+                <div class="frame-link">UCF.1</div>
+              </div>
+
+            </div>
+            <div class="frame-link" style="margin-top:18px;text-align:right">Critical-set weights sum to 1.00 (rounded). Derivation: SME Delphi (n=6, 3 rounds, Kendall's W=0.78) + Critical Incident Technique on the prior twelve placements.</div>
+          </section>
+
+          <!-- 4. TRAIT BANDS -->
+          <section id="sec-4">
+            <div class="sec-head"><span class="sec-num">04</span><h2>Trait target bands</h2><span class="pill stub">Ranges, not maxima</span></div>
+            <p class="sec-lead">Personality and integrity targets, facet-level where evidence supports. Each band has a <em>direction</em>; a bare maximum is architecturally disallowed (PHASE0-SPEC §2.7 C3). Bands default to <code>optimum</code> for Conscientiousness &amp; Emotional Stability per the inverted-U literature. <span class="sec-cite">Le, Oh, Robbins, Ilies, Holland, Westrick (2011) <em>JAP</em>; Pierce &amp; Aguinis (2013) TMGT; Grant (2013) ambivert effect; Oh, Wang, Mount (2011) HEXACO Honesty-Humility.</span></p>
+
+            <!-- Conscientiousness -->
+            <div class="trait">
+              <div class="trait-head">
+                <div class="trait-name">Conscientiousness <span class="instr">IPIP-NEO · 12 facets · 120-item</span></div>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span class="trait-direction">Optimum band</span>
+                  <span class="trait-read">target 60–80 (centre 70) · weight 0.18</span>
+                </div>
+              </div>
+              <div class="track-wrap">
+                <div class="track">
+                  <div class="band" style="left:60%;width:20%"></div>
+                  <div class="band-edge" style="left:60%"></div>
+                  <div class="band-edge" style="left:80%"></div>
+                  <div class="band-tick" style="left:60%">60</div>
+                  <div class="band-tick" style="left:80%">80</div>
+                  <div class="band-centre" style="left:70%"></div>
+                </div>
+                <div class="track-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+              </div>
+              <div class="trait-just">
+                <b>Why a band, not "more is better."</b> Above ~80 (T-score), conscientiousness becomes counterproductive for engineering work — over-checking, perfectionism on low-stakes paths, difficulty with the structured-improvisation incidents demand. Below 60, missed commitments and inconsistent quality dominate.
+                <span class="ev">Evidence: Le et al. (2011) inverted-U β = −0.06 quadratic; Pierce &amp; Aguinis (2013) too-much-of-a-good-thing meta-analysis. Facet emphasis: Achievement-Striving, Self-Discipline, Order; de-emphasize Deliberation in incident-response sub-roles.</span>
+              </div>
+            </div>
+
+            <!-- Emotional Stability -->
+            <div class="trait">
+              <div class="trait-head">
+                <div class="trait-name">Emotional Stability <span class="instr">IPIP-NEO Neuroticism, reverse-scored</span></div>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span class="trait-direction">Optimum band</span>
+                  <span class="trait-read">target 55–80 (centre 68) · weight 0.14</span>
+                </div>
+              </div>
+              <div class="track-wrap">
+                <div class="track">
+                  <div class="band" style="left:55%;width:25%"></div>
+                  <div class="band-edge" style="left:55%"></div>
+                  <div class="band-edge" style="left:80%"></div>
+                  <div class="band-tick" style="left:55%">55</div>
+                  <div class="band-tick" style="left:80%">80</div>
+                  <div class="band-centre" style="left:68%"></div>
+                </div>
+                <div class="track-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+              </div>
+              <div class="trait-just">
+                <b>On-call rotation activates this trait (Trait Activation Theory, §6).</b> The role's high adversity-exposure context makes the lower bound matter — below 55, stress response interferes with incident judgement. Above 80, the same insensitivity that helps in incidents can dampen useful concern about edge-case risks.
+                <span class="ev">Evidence: Le et al. (2011); Tett &amp; Burnett (2003) TAT — adversity is the activating cue.</span>
+              </div>
+            </div>
+
+            <!-- Openness -->
+            <div class="trait">
+              <div class="trait-head">
+                <div class="trait-name">Openness to Experience <span class="instr">IPIP-NEO · Ideas, Aesthetics, Actions facets emphasised</span></div>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span class="trait-direction threshold">Minimum threshold</span>
+                  <span class="trait-read">target ≥ 55 · weight 0.10</span>
+                </div>
+              </div>
+              <div class="track-wrap">
+                <div class="track">
+                  <div class="band" style="left:55%;width:45%"></div>
+                  <div class="band-edge" style="left:55%"></div>
+                  <div class="band-tick" style="left:55%">55 (min)</div>
+                </div>
+                <div class="track-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+              </div>
+              <div class="trait-just">
+                <b>Threshold explicitly justified.</b> The architecture work (§2, §3-comp.2) demands curiosity about novel approaches; below ~55 candidates tend toward "standard pattern only" answers, which under-fits the role's complexity (§5 cog. demand 4). Above the threshold the role does not penalize higher scores.
+                <span class="ev">Evidence: Judge &amp; Zapata (2015) Openness × job complexity interaction; SME Delphi confirmed direction.</span>
+              </div>
+            </div>
+
+            <!-- Extraversion - ambivert -->
+            <div class="trait">
+              <div class="trait-head">
+                <div class="trait-name">Extraversion <span class="instr">IPIP-NEO · Assertiveness facet weighted up</span></div>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span class="trait-direction">Optimum band</span>
+                  <span class="trait-read">target 45–70 (centre 58) · weight 0.07</span>
+                </div>
+              </div>
+              <div class="track-wrap">
+                <div class="track">
+                  <div class="band" style="left:45%;width:25%"></div>
+                  <div class="band-edge" style="left:45%"></div>
+                  <div class="band-edge" style="left:70%"></div>
+                  <div class="band-tick" style="left:45%">45</div>
+                  <div class="band-tick" style="left:70%">70</div>
+                  <div class="band-centre" style="left:58%"></div>
+                </div>
+                <div class="track-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+              </div>
+              <div class="trait-just">
+                <b>Ambivert band, not "highly extraverted."</b> The role mixes deep solo focus with persuasion through RFCs and mentoring. Pure introversion misses the influence work; pure extraversion fragments the deep work. Assertiveness (a facet) is weighted up; Excitement-Seeking (a facet) is weighted down.
+                <span class="ev">Evidence: Grant (2013) — ambivert advantage in influencing roles; facet-level differentiation per Hough &amp; Oswald (2000).</span>
+              </div>
+            </div>
+
+            <!-- Agreeableness -->
+            <div class="trait">
+              <div class="trait-head">
+                <div class="trait-name">Agreeableness <span class="instr">IPIP-NEO · de-emphasize Compliance facet</span></div>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span class="trait-direction">Optimum band</span>
+                  <span class="trait-read">target 45–70 (centre 57) · weight 0.06</span>
+                </div>
+              </div>
+              <div class="track-wrap">
+                <div class="track">
+                  <div class="band" style="left:45%;width:25%"></div>
+                  <div class="band-edge" style="left:45%"></div>
+                  <div class="band-edge" style="left:70%"></div>
+                  <div class="band-tick" style="left:45%">45</div>
+                  <div class="band-tick" style="left:70%">70</div>
+                  <div class="band-centre" style="left:57%"></div>
+                </div>
+                <div class="track-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+              </div>
+              <div class="trait-just">
+                <b>High but not maximal.</b> Too-high agreeableness suppresses the productive disagreement engineering depends on; too-low blocks the supportive mentoring. Trust and Altruism facets weighted up; Compliance weighted down.
+                <span class="ev">Evidence: LePine &amp; Van Dyne (2001) on the voice/agreeableness tension; SME Delphi.</span>
+              </div>
+            </div>
+
+            <!-- Honesty-Humility -->
+            <div class="trait">
+              <div class="trait-head">
+                <div class="trait-name">Honesty-Humility <span class="instr">HEXACO-PI-R · 24 items, public-domain</span></div>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span class="trait-direction threshold">Minimum threshold</span>
+                  <span class="trait-read">target ≥ 50 · weight 0.10</span>
+                </div>
+              </div>
+              <div class="track-wrap">
+                <div class="track">
+                  <div class="band" style="left:50%;width:50%"></div>
+                  <div class="band-edge" style="left:50%"></div>
+                  <div class="band-tick" style="left:50%">50 (min)</div>
+                </div>
+                <div class="track-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+              </div>
+              <div class="trait-just">
+                <b>Integrity predictor for CWB avoidance (security-relevant role).</b> H-H is the strongest personality predictor of counterproductive work behaviour (Oh et al. 2011). The threshold protects against insider-risk behaviour the role's access privileges enable; no upper bound.
+                <span class="ev">Evidence: Oh, Wang, Mount (2011) <em>JAP</em> meta-analysis ρ ≈ −.51 with CWB; Berry, Carpenter &amp; Barratt (2012).</span>
+              </div>
+            </div>
+
+          </section>
+
+          <!-- 5. COGNITIVE -->
+          <section id="sec-5">
+            <div class="sec-head"><span class="sec-num">05</span><h2>Cognitive demand</h2></div>
+            <p class="sec-lead">Complexity-calibrated band, not "max." Banded use is preferred — above the band cognitive load is wasted; below it the role's reasoning demands aren't met. <span class="sec-cite">SCIENCE-SPEC §1 (Sackett et al. 2022 revised ρ for GMA ≈ .31, contested); §5 use_as = banded.</span></p>
+            <div class="cog">
+              <div class="cog-level">
+                <div class="n">4</div>
+                <div class="l">Complexity level (1–5)</div>
+                <div class="cog-bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+              </div>
+              <div class="cog-body">
+                <div class="row"><span class="k">Instrument</span><span class="v">In-house IRT/CAT matrix-reasoning bank · Nordic-normed (pending)</span></div>
+                <div class="row"><span class="k">Use as</span><span class="v">Banded (50–80 T-score)</span></div>
+                <div class="row"><span class="k">Composite weight</span><span class="v">0.15 of the predictor composite</span></div>
+                <div class="row"><span class="k">Justification</span><span class="v" style="line-height:1.55;color:var(--muted)">Architecture work and incident diagnosis place this in Job Zone 4 (analogue). Test length ~25 items via CAT (Embretson &amp; Reise 2000, equal precision at ~½ length).</span></div>
+                <div class="row"><span class="k">Adverse impact</span><span class="v" style="display:flex;align-items:center;gap:8px"><span class="pill stub"><svg class="ic ic-sm"><use href="#i-shield"/></svg>Monitoring hook live · differential prediction (Cleary) per quarter</span></span></div>
+                <div class="row"><span class="k">Contested validity</span><span class="v" style="color:var(--muted);font-size:13px;line-height:1.5">Operational ρ presented as range .31–.45 with the active Sackett vs. Oh debate; lower-bound used for risk-averse weighting.</span></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 6. CONTEXT -->
+          <section id="sec-6">
+            <div class="sec-head"><span class="sec-num">06</span><h2>Context factors</h2><span class="pill role-blue">Trait Activation layer</span></div>
+            <p class="sec-lead">The situational features that <em>activate</em> the trait targets in §4. Coherence checks enforced — e.g. high pace + high ambiguity ⇒ Conscientiousness band centre is lowered. <span class="sec-cite">Tett &amp; Burnett (2003) <em>JAP</em>; Tett et al. (2021); Rauthmann DIAMONDS (2014); O*NET Work Context.</span></p>
+            <div class="ctx-grid">
+              <div class="ctx"><span class="ctx-name">Autonomy</span><span class="ctx-bar"><span class="ctx-fill" style="width:80%"></span></span><span class="ctx-val">4/5</span></div>
+              <div class="ctx"><span class="ctx-name">Ambiguity tolerance req.</span><span class="ctx-bar"><span class="ctx-fill" style="width:80%"></span></span><span class="ctx-val">4/5</span></div>
+              <div class="ctx"><span class="ctx-name">Pace &amp; urgency</span><span class="ctx-bar"><span class="ctx-fill" style="width:60%"></span></span><span class="ctx-val">3/5</span></div>
+              <div class="ctx"><span class="ctx-name">Collaboration intensity</span><span class="ctx-bar"><span class="ctx-fill" style="width:60%"></span></span><span class="ctx-val">3/5</span></div>
+              <div class="ctx"><span class="ctx-name">Stakeholder load</span><span class="ctx-bar"><span class="ctx-fill" style="width:40%"></span></span><span class="ctx-val">2/5</span></div>
+              <div class="ctx"><span class="ctx-name">Cognitive complexity</span><span class="ctx-bar"><span class="ctx-fill" style="width:80%"></span></span><span class="ctx-val">4/5</span></div>
+              <div class="ctx"><span class="ctx-name">Adversity exposure</span><span class="ctx-bar"><span class="ctx-fill" style="width:80%"></span></span><span class="ctx-val">4/5</span></div>
+              <div class="ctx"><span class="ctx-name">Psych. safety dependence</span><span class="ctx-bar"><span class="ctx-fill" style="width:80%"></span></span><span class="ctx-val">4/5</span></div>
+              <div class="ctx"><span class="ctx-name">Feedback frequency</span><span class="ctx-bar"><span class="ctx-fill" style="width:60%"></span></span><span class="ctx-val">3/5</span></div>
+            </div>
+            <div class="ctx-coh">
+              <svg class="ic" style="color:var(--role);margin-top:2px"><use href="#i-info"/></svg>
+              <div><b>Coherence checks passed.</b> High ambiguity-tolerance requirement + high cognitive complexity ⇒ Conscientiousness band centre kept at 70 (not the engineering-default 75); high adversity exposure ⇒ Emotional Stability lower-bound at 55 rather than the family default of 50; high psych-safety dependence ⇒ Agreeableness Compliance facet de-emphasized so productive disagreement isn't suppressed.</div>
+            </div>
+          </section>
+
+          <!-- 7. VALUES -->
+          <section id="sec-7">
+            <div class="sec-head"><span class="sec-num">07</span><h2>Values &amp; motivation</h2></div>
+            <p class="sec-lead">Schwartz value priorities + Self-Determination Theory needs-supplies fit (autonomy / competence / relatedness). Operationalized as wished-for value alignment for the role context, not a personality test. <span class="sec-cite">Schwartz (1992, 2012); Deci &amp; Ryan (2000); Kristof-Brown values congruence.</span></p>
+            <div class="values">
+              <div class="values-card">
+                <h4>Schwartz value priorities — role-fit weighting</h4>
+                <div style="margin-top:4px">
+                  <span class="vchip primary">Self-direction</span>
+                  <span class="vchip primary">Achievement</span>
+                  <span class="vchip primary">Stimulation</span>
+                  <span class="vchip">Universalism</span>
+                  <span class="vchip">Benevolence</span>
+                  <span class="vchip" style="opacity:.5">Power</span>
+                  <span class="vchip" style="opacity:.5">Tradition</span>
+                  <span class="vchip" style="opacity:.5">Conformity</span>
+                </div>
+                <div style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5">Roles for which Self-direction and Achievement dominate suit candidates whose Schwartz portrait points the same way. Power and Conformity dominance is a misalignment signal for this role — not a candidate flaw.</div>
+              </div>
+              <div class="values-card">
+                <h4>SDT needs-supplies</h4>
+                <div class="sdt">
+                  <div class="row"><span>Autonomy supply</span><span class="b"><i style="width:88%"></i></span><span class="v">High</span></div>
+                  <div class="row"><span>Competence supply</span><span class="b"><i style="width:75%"></i></span><span class="v">High</span></div>
+                  <div class="row"><span>Relatedness supply</span><span class="b"><i style="width:60%"></i></span><span class="v">Mod.</span></div>
+                </div>
+                <div style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5">Role provides high autonomy and competence challenge; relatedness moderate (smaller team, async-first). Candidates with strong relatedness needs may be a fit but should know what to expect.</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 8. SUCCESS CRITERIA -->
+          <section id="sec-8">
+            <div class="sec-head"><span class="sec-num">08</span><h2>Success criteria</h2></div>
+            <p class="sec-lead">Operationalized, behaviour-anchored, time-bounded. Multi-dimensional — task performance is necessary but not sufficient. <span class="sec-cite">Campbell (1990); Borman &amp; Motowidlo (1997) contextual / OCB; Pulakos (2000) adaptive; Locke &amp; Latham specificity.</span></p>
+            <div class="crit-grid">
+              <div class="crit-card">
+                <div class="tf">90-day</div>
+                <span class="dim">Task</span>
+                <div class="o">Owns one production service end-to-end; ships one shippable improvement; on-call shadowing complete.</div>
+                <div class="m">Service ownership doc merged · ≥1 PR landed against committed scope · 2 shadow shifts</div>
+              </div>
+              <div class="crit-card">
+                <div class="tf">90-day</div>
+                <span class="dim">Contextual / OCB</span>
+                <div class="o">Code reviews are task-focused and specific; constructive in retros; helps a peer unblock without prompting.</div>
+                <div class="m">Manager + peer rating on three behavioural items (BARS); not self-report</div>
+              </div>
+              <div class="crit-card">
+                <div class="tf">90-day</div>
+                <span class="dim">Adaptive</span>
+                <div class="o">Demonstrates one example of changing approach in response to new information without thrashing.</div>
+                <div class="m">Concrete instance captured in 1:1 notes</div>
+              </div>
+              <div class="crit-card">
+                <div class="tf">6-month</div>
+                <span class="dim">Task</span>
+                <div class="o">Leads a multi-week feature end-to-end; participates in incident response with documented contribution.</div>
+                <div class="m">Feature delivered on agreed scope · ≥1 RCA co-authored</div>
+              </div>
+              <div class="crit-card">
+                <div class="tf">6-month</div>
+                <span class="dim">Leadership / Influence</span>
+                <div class="o">Writes one RFC that is reviewed by ≥1 sibling team; mentor input cited in a junior's growth review.</div>
+                <div class="m">RFC merged or explicitly deferred with reason; mentor citation</div>
+              </div>
+              <div class="crit-card">
+                <div class="tf">Annual</div>
+                <span class="dim">CWB-avoidance</span>
+                <div class="o">No HR incidents; ethical decisions in access/data handling visibly modelled for juniors.</div>
+                <div class="m">Standard org review; H-H trait band continues to hold post-tenure</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 9. EVOLUTION VECTOR -->
+          <section id="sec-9">
+            <div class="sec-head"><span class="sec-num">09</span><h2>Evolution vector</h2></div>
+            <p class="sec-lead">How the role is expected to change over the next 12–18 months. <strong>This is a forecast, not a measurement.</strong> Sourced, confidence-rated, with a forced re-review date. Used to inform development conversations and re-fit signalling — never to grade a person. <span class="sec-cite">SCIENCE-SPEC §5 "Evolution vector"; §6 fit-as-trajectory.</span></p>
+            <div class="evo">
+              <div class="evo-head">
+                <span class="lbl"><svg class="ic ic-sm" style="display:inline;vertical-align:-2px"><use href="#i-compass"/></svg> Forecast — not a measurement</span>
+                <span class="conf">Confidence: <b style="color:var(--ink)">Medium</b> · Horizon: 18 months · Next review due: 22 Nov 2026</span>
+              </div>
+              <p>The role will absorb more open-ended architectural ambiguity as the platform migrates from monolith-with-services to a service-mesh. Influence-through-writing (RFCs) and cross-team coordination will weigh more; pure individual delivery will weigh less. Cognitive complexity ticks up from 4 toward 5; ambiguity-tolerance context factor moves from 4 to ~4.5.</p>
+              <div class="evo-deltas">
+                <div>
+                  <h5>Likely to rise ↑</h5>
+                  <ul>
+                    <li>Tolerance for ambiguity (context demand 4 → 4.5)</li>
+                    <li>RFC / written-influence weight (UCF.3 weight 0.16 → ~0.20)</li>
+                    <li>Cognitive complexity band centre (65 → ~70)</li>
+                  </ul>
+                </div>
+                <div>
+                  <h5 style="color:var(--rust)">Likely to fall ↓</h5>
+                  <ul class="down">
+                    <li class="down">Solo feature ownership weight</li>
+                    <li class="down">Pace &amp; urgency context factor (3 → 2.5; less firefighting)</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="evo-foot">
+                <span><b>Sources:</b> Internal SMEs Maja S. + Kjetil R. · Lightcast trend data · ESCO skill projection · WEF Future of Jobs 2025</span>
+                <span><b>Used by:</b> re-fit conversation framing · development conversations · not used in placement scoring</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- 10. TEAM-GAP -->
+          <section id="sec-10">
+            <div class="sec-head"><span class="sec-num">10</span><h2>Team-gap context</h2></div>
+            <p class="sec-lead">Computed from current team members' <em>own</em> validated profiles. Used to inform hiring (complementary fit) and culture conversation (supplementary fit). <span class="sec-cite">Schneider (1987) ASA framework; Kristof-Brown &amp; Guay (2011); SCIENCE-SPEC §7.</span></p>
+            <div class="tg">
+              <div class="tg-card">
+                <h4><svg class="ic" style="color:var(--role)"><use href="#i-target"/></svg>Complementary gaps to fill</h4>
+                <div class="desc">Capability + trait coverage the team is light on; new hire would expand the team's effective range.</div>
+                <ul>
+                  <li><span class="l">Creating &amp; conceptualising (UCF.5)</span><span class="v">team avg 51 · target 65</span></li>
+                  <li><span class="l">Openness to Experience (Ideas facet)</span><span class="v">team avg 54 · target ≥ 55</span></li>
+                  <li><span class="l">Written influence / RFC authorship</span><span class="v">2 of 6 active authors</span></li>
+                </ul>
+              </div>
+              <div class="tg-card">
+                <h4><svg class="ic" style="color:var(--green)"><use href="#i-heart"/></svg>Supplementary anchors</h4>
+                <div class="desc">Where the team's culture is already strong; a new hire should align (not erode) here.</div>
+                <ul>
+                  <li><span class="l">Honesty-Humility</span><span class="v">team avg 68 · floor 50</span></li>
+                  <li><span class="l">Psychological safety norms (Edmondson)</span><span class="v">survey 4.4/5</span></li>
+                  <li><span class="l">Async-first communication discipline</span><span class="v">established</span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="surv-guard">
+              <span class="lbl"><svg class="ic ic-sm" style="display:inline;vertical-align:-2px"><use href="#i-shield"/></svg>Surveillance guardrail</span>
+              <span>Team-gap is computed from each member's <strong>own</strong> validated, self-administered profile, aggregated against the role — <strong>never</strong> from peers rating each other's personality. Per-individual personality rating by peers is blocked at the schema level (PHASE0-SPEC §2.7; SCIENCE-SPEC §7). Aggregate values shown are anonymized; no individual scores leak from this view.</span>
+            </div>
+          </section>
+
+          <!-- 11. VALIDATION & DEFENSIBILITY -->
+          <section id="sec-11">
+            <div class="sec-head"><span class="sec-num">11</span><h2>Validation &amp; defensibility metadata</h2></div>
+            <p class="sec-lead">Every claim above is backed by methodology, attribution, and a re-review date — and ready to be exported into EU AI Act Annex IV technical documentation, a GDPR Art. 35 DPIA, or a Uniform-Guidelines-style validity dossier on demand. <span class="sec-cite">SCIENCE-SPEC §10, §12.</span></p>
+            <div class="val">
+              <div class="val-grid">
+                <div class="val-row"><span class="k">Validation method(s)</span><span class="v">Content validity (CIT on prior 12 placements) + SME Delphi (n=6, 3 rounds)</span></div>
+                <div class="val-row"><span class="k">Criterion study</span><span class="v"><span class="pill stub">Pre-registered · awaiting first 200 placements</span></span></div>
+                <div class="val-row"><span class="k">Inter-rater agreement</span><span class="v mono">Kendall's W = 0.78 (competencies) · ICC(2,k) = 0.82 (BARS)</span></div>
+                <div class="val-row"><span class="k">Adverse impact log</span><span class="v">Four-fifths inspection-trigger · last run 12 May 2026 · no flags</span></div>
+                <div class="val-row"><span class="k">Differential prediction</span><span class="v">Cleary slope/intercept by group · log empty (n &lt; 30 per group)</span></div>
+                <div class="val-row"><span class="k">Measurement invariance</span><span class="v"><span class="pill stub">Pending · NO/SE/DK norms not yet ≥1,500</span></span></div>
+                <div class="val-row"><span class="k">Last reviewed</span><span class="v">22 May 2026</span></div>
+                <div class="val-row"><span class="k">Next review due</span><span class="v">22 Nov 2026 (6 months)</span></div>
+              </div>
+              <div class="val-foot">
+                <a class="doc-chip" href="#"><svg class="ic ic-sm"><use href="#i-file"/></svg>Export Annex IV technical doc</a>
+                <a class="doc-chip" href="#"><svg class="ic ic-sm"><use href="#i-file"/></svg>Export Art. 35 DPIA</a>
+                <a class="doc-chip" href="#"><svg class="ic ic-sm"><use href="#i-file"/></svg>Export Art. 27 FRIA (deployer)</a>
+                <a class="doc-chip" href="#"><svg class="ic ic-sm"><use href="#i-file"/></svg>Export Uniform-Guidelines validity dossier</a>
+                <a class="doc-chip" href="#"><svg class="ic ic-sm"><use href="#i-clock"/></svg>Audit log (this role)</a>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  // Subnav active-state on scroll
+  const links = document.querySelectorAll('.subnav a');
+  const sections = [...document.querySelectorAll('.body section[id]')];
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const id = e.target.id;
+        links.forEach(a=>a.classList.toggle('active', a.getAttribute('href') === '#'+id));
+      }
+    });
+  }, {rootMargin: "-30% 0px -60% 0px", threshold:0});
+  sections.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>
