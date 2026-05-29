@@ -31,17 +31,32 @@ const TOUR_STOPS = [
   {
     n: 3, label: 'Agency requisitions + candidates',
     detail: 'The agency has an open requisition against this role with 4 candidates at differentiated pipeline stages (sourced / screening / interview / placed).',
-    cta: 'Open the requisition', href: '/requisitions/ee000000-0000-0000-0000-000000000001',
+    cta: 'Open the requisition', href: '/req',
   },
   {
-    n: 4, label: 'Operator-facing admin',
-    detail: 'Switch to the agency admin (Sara Lindqvist) to invite users with rationale, change rbac roles, toggle modules, and explore the audit log with compliance view + export.',
+    n: 4, label: 'Add a candidate + mint a take-token',
+    detail: 'From the requisition row, add a candidate. The mint flow shows the magic /take/<token> link to copy — operator emails it (SMTP wiring is pending).',
+    cta: 'Requisitions list', href: '/req',
+  },
+  {
+    n: 5, label: 'Operator-facing admin',
+    detail: 'Switch to the agency admin (Sara Lindqvist) to invite users with rationale, change rbac roles, toggle modules, explore audit log with compliance view + export, register HRIS integration connectors.',
     cta: 'Workspace admin', href: '/admin',
   },
   {
-    n: 5, label: 'Employer org (cross-org bridge)',
-    detail: 'Sign in as Holst Engineering admin (Ingrid Holst) to see the post-placement side. Part 2 will surface the manager workspace + Maria\'s emerging-misfit case end-to-end.',
-    cta: 'Employer admin', href: '/admin',
+    n: 6, label: 'Manager workspace',
+    detail: 'Switch to the employer side. /team shows team members; clicking opens the existing manager detail surface with developmental framing throughout.',
+    cta: 'Manager team', href: '/team',
+  },
+  {
+    n: 7, label: 'Employee self-view (transparency)',
+    detail: 'Sign in as Maria Lindqvist (or any employee). /me surfaces the same data the manager sees about you, with revoke-by-purpose consent controls + activity-about-me log.',
+    cta: 'My self-view', href: '/me',
+  },
+  {
+    n: 8, label: 'Reference architecture',
+    detail: 'Step back from the operating surfaces — the 4-layer system + the Talent Data Spine + the recruiter-as-wedge land-and-expand motion as one document.',
+    cta: 'architecture.html', href: '/architecture.html',
   },
 ]
 

@@ -5,6 +5,20 @@ import { browserSupabase } from '../lib/browser-supabase.js'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
 import { ValidityChip } from '../components/ui/badges.js'
 
+function BrandStrip({ brand }: { brand: { org_name: string | null; accent_color: string | null; logo_url: string | null } | null }) {
+  if (!brand?.org_name) return null
+  const accent = brand.accent_color ?? '#3a4d3f'
+  return (
+    <div data-test="brand-strip" className="flex items-center gap-3 px-4 py-3 border-b border-line" style={{ borderTop: `3px solid ${accent}` }}>
+      {brand.logo_url && <img src={brand.logo_url} alt="" className="h-8 w-auto" />}
+      <div>
+        <div className="text-[10.5px] uppercase tracking-wider font-bold text-muted">Invited by</div>
+        <div className="text-sm font-semibold" style={{ color: accent }}>{brand.org_name}</div>
+      </div>
+    </div>
+  )
+}
+
 type Item = {
   id: string
   key: string
@@ -31,6 +45,8 @@ type TakeState = {
 
 type Phase = 'loading' | 'error' | 'consent' | 'item' | 'done'
 
+type Brand = { org_id: string | null; org_name: string | null; accent_color: string | null; logo_url: string | null; locale_default: string | null }
+
 export function CandidateTakePage() {
   const { token } = useParams<{ token: string }>()
   const supabase = browserSupabase()
@@ -39,6 +55,13 @@ export function CandidateTakePage() {
   const [phase, setPhase] = useState<Phase>('loading')
   const [submitting, setSubmitting] = useState(false)
   const [consentDashToken, setConsentDashToken] = useState<string | null>(null)
+  const [brand, setBrand] = useState<Brand | null>(null)
+
+  useEffect(() => {
+    if (!token) return
+    void supabase.rpc('assessment_take_brand' as never, { p_token: token } as never)
+      .then(({ data }) => { if (data) setBrand(data as unknown as Brand) })
+  }, [supabase, token])
 
   const load = useCallback(async () => {
     if (!token) {
@@ -166,6 +189,7 @@ export function CandidateTakePage() {
   if (phase === 'consent') {
     return (
       <Shell>
+        <BrandStrip brand={brand} />
         <Card className="max-w-lg mx-auto">
           <CardBody>
             <div className="flex items-center justify-between flex-wrap gap-2">

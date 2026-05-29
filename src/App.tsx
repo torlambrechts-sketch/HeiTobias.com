@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react'
 import { HomePage } from './pages/Home.js'
 import { EnvBoundary } from './components/EnvBoundary.js'
 import { LocaleProvider } from './lib/i18n.js'
+import { ModuleGate } from './components/ModuleGate.js'
 
 // Code-split heavy routes (ITEM 6). HomePage stays eager because it's
 // the landing entry point — everything else loads on navigation.
@@ -59,9 +60,9 @@ export function App() {
               <Route path="/admin/accept-invite/:token" element={<AcceptInvitePage />} />
               <Route path="/roles/:id" element={<RoleProfilePage />} />
               <Route path="/roles/:id/:version" element={<RoleProfilePage />} />
-              <Route path="/team-def" element={<TeamDefinitionListPage />} />
-              <Route path="/team-def/new" element={<TeamDefinitionNewPage />} />
-              <Route path="/team-def/runs/:id" element={<TeamDefinitionRunPage />} />
+              <Route path="/team-def" element={<ModuleGate moduleKey="team_definition"><TeamDefinitionListPage /></ModuleGate>} />
+              <Route path="/team-def/new" element={<ModuleGate moduleKey="team_definition"><TeamDefinitionNewPage /></ModuleGate>} />
+              <Route path="/team-def/runs/:id" element={<ModuleGate moduleKey="team_definition"><TeamDefinitionRunPage /></ModuleGate>} />
               {import.meta.env.DEV && (
                 <Route path="/demo" element={<DemoPage />} />
               )}

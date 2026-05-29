@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, Building2, ChevronDown, ChevronRight, Copy, FileDown, FileText, Filter, Link as LinkIcon, Loader2, LogOut, Settings as SettingsIcon, Shield, UserPlus, Users } from 'lucide-react'
+import { AlertTriangle, Bell, Building2, ChevronDown, ChevronRight, Copy, FileDown, FileText, Filter, Link as LinkIcon, Loader2, LogOut, Plug, Settings as SettingsIcon, Shield, UserPlus, Users } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
 import { Button } from '../components/ui/button.js'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
@@ -43,6 +43,108 @@ function ContrastPreview({ hex }: { hex: string }) {
       </span>
       <span className="text-faint">Soft warning only — choice is yours.</span>
     </div>
+  )
+}
+
+function NotificationsTab({ orgId }: { orgId: string | null }) {
+  const supabase = browserSupabase()
+  type Row = { id: string; recipient_name: string | null; channel: string; subject: string; status: string; attempts: number; last_error: string | null; created_at: string; delivered_at: string | null }
+  const [rows, setRows] = useState<Row[]>([])
+  const [err, setErr] = useState<string | null>(null)
+  useEffect(() => {
+    if (!orgId) return
+    void supabase.rpc('notifications_list_for_org' as never, { p_org_id: orgId, p_limit: 100, p_offset: 0 } as never)
+      .then(({ data, error }) => { if (error) setErr(error.message); else setRows(((data ?? []) as unknown as Row[])) })
+  }, [supabase, orgId])
+  return (
+    <Card data-test="notifications-tab">
+      <CardEyebrow><Bell size={12} /> Notification outbox</CardEyebrow>
+      <CardTitle>Pending + delivered</CardTitle>
+      <CardBody>
+        <div className="rounded border border-amber/40 bg-internal-bg/40 px-3 py-2 text-xs text-internal-fg mb-3 flex items-start gap-2">
+          <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" />
+          <span><strong>Operator wiring pending.</strong> The outbox table works; real SMTP / Slack / Teams / calendar dispatch
+          requires per-org credentials + a transport worker — not engineering scope. <code className="font-mono">in_app</code>
+          channel is the only one rendered to recipients today; others sit at <code className="font-mono">status='pending'</code> until an operator worker picks them up.</span>
+        </div>
+        {err && <div className="rounded border border-rust/40 bg-reject-bg p-3 text-sm text-rust mb-3">{err}</div>}
+        {rows.length === 0 && <p className="text-faint text-sm">No notifications yet.</p>}
+        {rows.length > 0 && (
+          <table className="w-full text-xs">
+            <thead className="text-faint uppercase tracking-wider"><tr><th className="text-left py-1">At</th><th className="text-left">Recipient</th><th className="text-left">Channel</th><th className="text-left">Subject</th><th className="text-left">Status</th></tr></thead>
+            <tbody>{rows.map(r => (
+              <tr key={r.id} className="border-t border-line">
+                <td className="py-1">{new Date(r.created_at).toLocaleString()}</td>
+                <td className="py-1">{r.recipient_name}</td>
+                <td className="py-1 font-mono">{r.channel}</td>
+                <td className="py-1">{r.subject}</td>
+                <td className="py-1"><Pill tone={r.status === 'delivered' ? 'open' : r.status === 'failed' ? 'reject' : 'draft'}>{r.status}</Pill></td>
+              </tr>
+            ))}</tbody>
+          </table>
+        )}
+      </CardBody>
+    </Card>
+  )
+}
+
+function IntegrationsTab({ orgId }: { orgId: string | null }) {
+  const supabase = browserSupabase()
+  type Connector = { id: string; kind: string; status: string; display_name: string; last_sync_at: string | null; last_error: string | null }
+  const [rows, setRows] = useState<Connector[]>([])
+  const [err, setErr] = useState<string | null>(null)
+  const load = useCallback(async () => {
+    if (!orgId) return
+    const { data, error } = await supabase.rpc('integration_connectors_for_org' as never, { p_org_id: orgId } as never)
+    if (error) setErr(error.message); else setRows(((data ?? []) as unknown as Connector[]))
+  }, [supabase, orgId])
+  useEffect(() => { void load() }, [load])
+  const register = useCallback(async (kind: string, displayName: string) => {
+    if (!orgId) return
+    const rationale = window.prompt(`Rationale for registering the ${kind} connector (≥20 chars):`)
+    if (!rationale || rationale.length < 20) return
+    const { error } = await supabase.rpc('integration_connector_upsert' as never,
+      { p_org_id: orgId, p_kind: kind, p_display_name: displayName, p_status: 'not_configured', p_config: {}, p_rationale: rationale } as never)
+    if (error) setErr(error.message); else await load()
+  }, [supabase, orgId, load])
+  const KINDS = [
+    { k: 'hibob',            n: 'HiBob (HRIS)' },
+    { k: 'personio',         n: 'Personio (HRIS)' },
+    { k: 'workday',          n: 'Workday (HRIS)' },
+    { k: 'slack',            n: 'Slack' },
+    { k: 'teams',            n: 'Microsoft Teams' },
+    { k: 'google_calendar',  n: 'Google Calendar' },
+    { k: 'outlook_calendar', n: 'Outlook Calendar' },
+    { k: 'generic_webhook',  n: 'Generic webhook' },
+  ]
+  return (
+    <Card data-test="integrations-tab">
+      <CardEyebrow><Plug size={12} /> Integrations</CardEyebrow>
+      <CardTitle>HRIS, calendar, chat — connector registry</CardTitle>
+      <CardBody>
+        <div className="rounded border border-amber/40 bg-internal-bg/40 px-3 py-2 text-xs text-internal-fg mb-3 flex items-start gap-2">
+          <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" />
+          <span><strong>Registry-only today.</strong> Registering a connector creates a row + audit + admin_decision so the org's
+          intention is recorded. Actual API calls (HiBob, Personio, Workday) require operator-side credentials +
+          per-vendor SDKs — out-of-scope here.</span>
+        </div>
+        {err && <div className="rounded border border-rust/40 bg-reject-bg p-3 text-sm text-rust mb-3">{err}</div>}
+        <table className="w-full text-sm">
+          <thead className="text-faint text-xs uppercase tracking-wider"><tr><th className="text-left py-1">Connector</th><th className="text-left">Status</th><th className="text-left">Last sync</th><th></th></tr></thead>
+          <tbody>{KINDS.map(({ k, n }) => {
+            const existing = rows.find(r => r.kind === k)
+            return (
+              <tr key={k} className="border-t border-line">
+                <td className="py-2"><div className="font-semibold">{n}</div><div className="text-xs font-mono text-faint">{k}</div></td>
+                <td className="py-2"><Pill tone={existing?.status === 'active' ? 'open' : existing ? 'draft' : 'reject'}>{existing?.status ?? 'unregistered'}</Pill></td>
+                <td className="py-2 text-xs text-faint">{existing?.last_sync_at ? new Date(existing.last_sync_at).toLocaleDateString() : '—'}</td>
+                <td className="py-2"><Button variant="ghost" onClick={() => register(k, n)} className="text-xs">{existing ? 'Re-register' : 'Register'}…</Button></td>
+              </tr>
+            )
+          })}</tbody>
+        </table>
+      </CardBody>
+    </Card>
   )
 }
 
@@ -136,7 +238,7 @@ export function WorkspaceAdminPage() {
   const supabase = browserSupabase()
   const [signedIn, setSignedIn] = useState<string | null>(null)
   const [authBusy, setAuthBusy] = useState(false)
-  const [tab, setTab] = useState<'org' | 'users' | 'me' | 'compliance' | 'modules'>('org')
+  const [tab, setTab] = useState<'org' | 'users' | 'me' | 'compliance' | 'modules' | 'notifications' | 'integrations'>('org')
   const [overview, setOverview] = useState<Overview | null>(null)
   const [orgs, setOrgs] = useState<OrgRow[]>([])
   const [orgId, setOrgId] = useState<string | null>(null)
@@ -451,6 +553,8 @@ export function WorkspaceAdminPage() {
           <Tab active={tab === 'me'} onClick={() => setTab('me')}><SettingsIcon size={14} /> My profile</Tab>
           <Tab active={tab === 'compliance'} onClick={() => setTab('compliance')}><Shield size={14} /> Compliance & data</Tab>
           <Tab active={tab === 'modules'} onClick={() => setTab('modules')}><FileText size={14} /> Modules</Tab>
+          <Tab active={tab === 'notifications'} onClick={() => setTab('notifications')}><Bell size={14} /> Notifications</Tab>
+          <Tab active={tab === 'integrations'} onClick={() => setTab('integrations')}><Plug size={14} /> Integrations</Tab>
         </TabBand>
 
         {loading && <div className="text-faint text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Loading…</div>}
@@ -698,6 +802,9 @@ export function WorkspaceAdminPage() {
             </Card>
           </div>
         )}
+
+        {tab === 'notifications' && <NotificationsTab orgId={orgId} />}
+        {tab === 'integrations' && <IntegrationsTab orgId={orgId} />}
 
         {tab === 'modules' && (
           <Card data-test="modules-tab">

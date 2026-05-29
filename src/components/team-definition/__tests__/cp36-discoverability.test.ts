@@ -22,12 +22,12 @@ describe('CP3.6 — Team-Based Role Definition discoverability', () => {
     expect(shell).not.toMatch(/<NavSub\s+to="#"\s*>\s*Team-based definition/)
   })
 
-  // ============ T47 — All three team-def routes wired ============
-  it('[T47] App.tsx wires /team-def, /team-def/new, /team-def/runs/:id', () => {
+  // ============ T47 — All three team-def routes wired (now ModuleGate-wrapped) ============
+  it('[T47] App.tsx wires /team-def, /team-def/new, /team-def/runs/:id (gated by ModuleGate)', () => {
     const app = readFileSync(join(SRC, 'App.tsx'), 'utf8')
-    expect(app).toMatch(/path="\/team-def"\s+element=\{<TeamDefinitionListPage/)
-    expect(app).toMatch(/path="\/team-def\/new"\s+element=\{<TeamDefinitionNewPage/)
-    expect(app).toMatch(/path="\/team-def\/runs\/:id"\s+element=\{<TeamDefinitionRunPage/)
+    expect(app).toMatch(/path="\/team-def"\s+element=\{<ModuleGate[^>]*><TeamDefinitionListPage/)
+    expect(app).toMatch(/path="\/team-def\/new"\s+element=\{<ModuleGate[^>]*><TeamDefinitionNewPage/)
+    expect(app).toMatch(/path="\/team-def\/runs\/:id"\s+element=\{<ModuleGate[^>]*><TeamDefinitionRunPage/)
   })
 
   // ============ T48 — RoleProfile PageHeader exposes the CTA ============

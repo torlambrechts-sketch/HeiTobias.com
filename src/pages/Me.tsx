@@ -29,6 +29,13 @@ export function MePage() {
     if (error) setErr(error.message); else setData(data as unknown as SelfView)
   }, [supabase])
 
+  const revoke = useCallback(async (purpose: string, grantedToOrg: string) => {
+    if (!window.confirm(`Revoke ${purpose} consent for the granted org? The org loses visibility immediately. Previously generated artefacts remain in the audit log per AI Act Art. 12 but become non-displayable.`)) return
+    const { error } = await supabase.rpc('consent_revoke_by_purpose' as never,
+      { p_purpose: purpose, p_granted_to_org_id: grantedToOrg } as never)
+    if (error) setErr(error.message); else await load()
+  }, [supabase, load])
+
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => setSignedIn(data.session?.user?.email ?? null))
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSignedIn(s?.user?.email ?? null))
@@ -106,7 +113,7 @@ export function MePage() {
                       <Pill tone={c.active ? 'open' : 'reject'}>{c.purpose}</Pill>
                       <span className="flex-1 text-xs text-muted font-mono">org {c.granted_to_org_id?.slice(0,8) ?? '—'}</span>
                       {c.active && (
-                        <a href={`/me`} className="text-xs text-rust hover:underline" title="Revoke flow lives in CandidateConsentsPage (/me/<consent_token>) until a lookup-by-purpose helper lands">Revoke…</a>
+                        <Button variant="ghost" onClick={() => revoke(c.purpose, c.granted_to_org_id)} className="text-xs text-rust">Revoke…</Button>
                       )}
                     </li>
                   ))}
