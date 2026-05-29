@@ -1,10 +1,12 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
 import { HomePage } from './pages/Home.js'
 import { EnvBoundary } from './components/EnvBoundary.js'
 import { LocaleProvider } from './lib/i18n.js'
 import { ModuleGate } from './components/ModuleGate.js'
+import { ToastProvider } from './components/ui/Toast.js'
+import { ErrorBoundary } from './components/ErrorBoundary.js'
 
 // Code-split heavy routes (ITEM 6). HomePage stays eager because it's
 // the landing entry point — everything else loads on navigation.
@@ -44,9 +46,11 @@ export function App() {
   return (
     <EnvBoundary>
       <LocaleProvider>
-        <BrowserRouter>
-          <Suspense fallback={<PageFallback />}>
-            <Routes>
+        <ToastProvider>
+          <ErrorBoundary>
+            <BrowserRouter>
+              <Suspense fallback={<PageFallback />}>
+                <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/people" element={<PeoplePage />} />
               <Route path="/take/:token" element={<CandidateTakePage />} />
@@ -69,11 +73,32 @@ export function App() {
               <Route path="/req" element={<RequisitionsListPage />} />
               <Route path="/team" element={<TeamPage />} />
               <Route path="/me" element={<MePage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
+              <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </ErrorBoundary>
+        </ToastProvider>
       </LocaleProvider>
     </EnvBoundary>
+  )
+}
+
+// Designed 404 page. Replaces the previous catch-all redirect to "/"
+// (which silently swallowed typos and made link rot invisible).
+function NotFoundPage() {
+  return (
+    <main className="min-h-screen flex items-center justify-center px-4 bg-canvas">
+      <div className="max-w-md text-center">
+        <p className="text-[10.5px] uppercase tracking-wider font-bold text-muted mb-2">404</p>
+        <h1 className="font-display text-3xl font-bold text-ink mb-3">Page not found</h1>
+        <p className="text-sm text-muted leading-relaxed">
+          The URL you visited does not match a route in this app. If you followed a link
+          from inside the platform, something has rotted — please report it. Otherwise,
+          double-check the URL.
+        </p>
+        <a href="/" className="inline-block mt-6 text-sm text-role hover:underline">← Back to home</a>
+      </div>
+    </main>
   )
 }

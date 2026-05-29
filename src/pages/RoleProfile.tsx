@@ -186,7 +186,7 @@ function TeamDefinitionTab({ row }: { row: RoleProfileRow }) {
       <ul className="flex flex-col gap-2">
         {runs.map(r => (
           <li key={r.id}>
-            <Link to={`/team-def/${r.id}`}
+            <Link to={`/team-def/runs/${r.id}`}
                   className="flex items-center justify-between gap-3 border border-line rounded p-3 hover:bg-canvas-2 transition-colors">
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-mono">run #{r.id.slice(0, 8)}</div>
@@ -243,7 +243,7 @@ function VersionsTab({ row }: { row: RoleProfileRow }) {
               </div>
               {isCurrent && <Pill tone="open">viewing</Pill>}
               {!isCurrent && (
-                <Link to={`/role/${v.id}`} className="text-xs text-role hover:underline">View →</Link>
+                <Link to={`/roles/${v.id}`} className="text-xs text-role hover:underline">View →</Link>
               )}
             </li>
           )
@@ -304,7 +304,7 @@ function DefensibilityTab({ row }: { row: RoleProfileRow }) {
           <dt className="text-xs text-muted">Run</dt>
           <dd>
             {runId ? (
-              <Link to={`/team-def/${runId}`} className="font-mono text-xs text-role hover:underline">
+              <Link to={`/team-def/runs/${runId}`} className="font-mono text-xs text-role hover:underline">
                 {runId.slice(0, 8)} →
               </Link>
             ) : '—'}

@@ -6,6 +6,7 @@ import { Shell } from '../components/Shell.js'
 import { Button } from '../components/ui/button.js'
 import { Card, CardBody } from '../components/ui/card.js'
 import { Pill } from '../components/ui/badges.js'
+import { EmptyState } from '../components/ui/EmptyState.js'
 
 // /team — manager workspace minimum. Lists members of the signed-in
 // user's orgs (proxy for direct reports until reporting_relationships
@@ -76,9 +77,14 @@ export function TeamPage() {
         {loading && <div className="text-faint text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Loading…</div>}
 
         {!loading && team.length === 0 && (
-          <Card><CardBody className="text-center py-8">
-            <Users size={28} className="text-faint mx-auto mb-3" />
-            <p className="text-faint text-sm">No team members visible at your scope.</p>
+          <Card><CardBody>
+            <EmptyState
+              icon={Users}
+              title="No team members in scope"
+              body={<>You don't have any direct reports or scoped team members visible at
+                your current role. If this looks wrong, your org admin can review your
+                membership and reporting lines in <code>Workspace admin → Users</code>.</>}
+            />
           </CardBody></Card>
         )}
 

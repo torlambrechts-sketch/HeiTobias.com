@@ -107,7 +107,7 @@ export function CommandPalette() {
         results.push({
           kind: 'role', id: r.id,
           label: r.title, sub: `v${r.version}${r.family ? ` · ${r.family}` : ''}`,
-          href: `/role/${r.id}`,
+          href: `/roles/${r.id}`,
         })
       }
       for (const rq of (qq.data ?? []) as Array<{ id: string; status: string; role: { title: string; family: string | null } | null }>) {

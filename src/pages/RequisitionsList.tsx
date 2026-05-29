@@ -1,12 +1,14 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Briefcase, ChevronRight, Loader2, LogOut, Plus, Copy, X } from 'lucide-react'
+import { Briefcase, ChevronRight, Loader2, LogOut, Plus, Copy, X, Users } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
 import { useCurrentOrgId } from '../lib/currentOrg.js'
 import { Shell } from '../components/Shell.js'
 import { Button } from '../components/ui/button.js'
 import { Card, CardBody } from '../components/ui/card.js'
 import { Pill } from '../components/ui/badges.js'
+import { EmptyState } from '../components/ui/EmptyState.js'
+import { useToast } from '../components/ui/Toast.js'
 
 // /req — requisitions list (operator-side). Filters: stage. Add-candidate
 // flow calls rpc_req_add_candidate which mints a take-token (operator
@@ -119,7 +121,22 @@ export function RequisitionsListPage() {
 
         <div className="grid lg:grid-cols-[1fr_2fr] gap-4">
           <div className="flex flex-col gap-2">
-            {reqs.length === 0 && <div className="text-faint text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Loading…</div>}
+            {reqs.length === 0 && (
+              <Card>
+                <CardBody>
+                  <EmptyState
+                    icon={Briefcase}
+                    title="No requisitions yet"
+                    body={<>This list shows hiring intents anchored on signed-off role versions.
+                      Create your first one to start adding candidates and minting
+                      take-tokens.</>}
+                    action={<Button onClick={() => setShowCreate(true)} disabled={!orgId}>
+                      <Plus size={14} /> Create requisition
+                    </Button>}
+                  />
+                </CardBody>
+              </Card>
+            )}
             {reqs.map(r => (
               <button key={r.id} onClick={() => loadCands(r.id)}
                 className={'text-left border rounded p-3 transition-colors ' +
@@ -147,7 +164,14 @@ export function RequisitionsListPage() {
                     <Link to={`/requisitions/${pick}`} className="text-xs text-role hover:underline">Full requisition page →</Link>
                   </div>
 
-                  {cands.length === 0 && <p className="text-faint text-sm italic">No candidates yet.</p>}
+                  {cands.length === 0 && (
+                    <EmptyState
+                      icon={Users}
+                      title="No candidates in this requisition"
+                      body={<>Add a candidate via the form below. We'll mint a take-token + email
+                        the magic link (once SMTP is wired) or surface it here for you to copy.</>}
+                    />
+                  )}
                   <ul className="flex flex-col gap-2 text-sm">
                     {cands.map(c => {
                       const sum = summaries[c.id]
@@ -250,6 +274,7 @@ function CreateRequisitionDialog({
   onCreated: () => void | Promise<void>
 }) {
   const supabase = browserSupabase()
+  const toast = useToast()
   const [roles, setRoles] = useState<Array<{ id: string; title: string; version: number; family: string | null }>>([])
   const [collabOrgs, setCollabOrgs] = useState<Array<{ id: string; name: string; type: string }>>([])
   const [roleId, setRoleId] = useState<string>('')
@@ -311,8 +336,9 @@ function CreateRequisitionDialog({
       rationale,
     } as never).then(() => undefined, () => undefined)
     setSubmitting(false)
+    toast.success('Requisition created.')
     await onCreated()
-  }, [supabase, orgId, roleId, collabOrgId, rationale, onCreated])
+  }, [supabase, toast, orgId, roleId, collabOrgId, rationale, onCreated])
 
   return (
     <div className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>

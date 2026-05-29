@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Loader2, LogOut, ShieldAlert } from 'lucide-react'
+import { Activity, Loader2, LogOut, Shield, ShieldAlert } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
 import { Shell } from '../components/Shell.js'
 import { Button } from '../components/ui/button.js'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
 import { Pill } from '../components/ui/badges.js'
+import { EmptyState } from '../components/ui/EmptyState.js'
 
 // /me — employee self-view (Phase 3 transparency requirement).
 // Shows the same data the user's manager sees about them: profile,
@@ -106,7 +107,16 @@ export function MePage() {
               <CardEyebrow>Active consents</CardEyebrow>
               <CardTitle>What I've granted, per purpose</CardTitle>
               <CardBody>
-                {data.consents.length === 0 && <p className="text-faint text-sm">No active consent grants.</p>}
+                {data.consents.length === 0 && (
+                  <EmptyState
+                    icon={Shield}
+                    title="No active consents"
+                    body={<>You haven't granted anyone access to your data yet. Recruiters and
+                      employers request consent at specific points (assessment, placement,
+                      ongoing management); when you accept, the grant appears here and you can
+                      revoke it from here at any time.</>}
+                  />
+                )}
                 <ul className="flex flex-col gap-1.5 text-sm">
                   {data.consents.map((c, i) => (
                     <li key={i} className="flex items-center gap-3 border-b border-line pb-2">
@@ -130,7 +140,15 @@ export function MePage() {
               <CardEyebrow>Recent activity about me</CardEyebrow>
               <CardTitle>Who's looked at / changed my data</CardTitle>
               <CardBody>
-                {data.recent_activity.length === 0 && <p className="text-faint text-sm">No recent activity.</p>}
+                {data.recent_activity.length === 0 && (
+                  <EmptyState
+                    icon={Activity}
+                    title="No activity logged about you"
+                    body={<>Every consequential read or write of your data lands in the audit log.
+                      You'll see who looked, what changed, and when — both your own
+                      consent revocations and any access by recruiters / managers in scope.</>}
+                  />
+                )}
                 <table className="w-full text-xs">
                   <thead className="text-faint uppercase tracking-wider"><tr><th className="text-left py-1">At</th><th className="text-left">Action</th><th className="text-left">Actor</th></tr></thead>
                   <tbody>
