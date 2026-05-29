@@ -12,16 +12,51 @@
 -- Fixed UUIDs make it possible to reference fixtures by name from test SQL.
 
 -- ============================== auth.users ===============================
-insert into auth.users (id, email) values
-  ('b1000000-0000-0000-0000-000000000001', 'astrid.berg@nordic-recruit.test'),
-  ('b1000000-0000-0000-0000-000000000002', 'magnus.holm@nordic-recruit.test'),
-  ('b1000000-0000-0000-0000-000000000003', 'linnea.strand@fjordtech.test'),
-  ('b1000000-0000-0000-0000-000000000004', 'erik.lund@fjordtech.test'),
-  ('b1000000-0000-0000-0000-000000000005', 'sara.vik@fjordtech.test'),
-  ('b1000000-0000-0000-0000-000000000006', 'jonas.dahl@fjordtech.test'),
-  ('b1000000-0000-0000-0000-000000000007', 'petra.nilsson@candidate.test'),
-  ('b1000000-0000-0000-0000-000000000008', 'henrik.ek@candidate.test')
+-- Rows must be sign-in-ready: GoTrue scans many columns into non-nullable Go
+-- types, so leaving them NULL ("insert (id, email)") makes the smoke UI fail
+-- with "Database error querying schema". Each user gets password 'demo', a
+-- confirmed email, authenticated aud/role, empty (not NULL) token columns, and
+-- a matching auth.identities row. `npm run setup:demo-passwords` is therefore
+-- optional — it only resets the same 'demo' password via the admin API.
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, created_at, updated_at,
+  confirmation_token, recovery_token, email_change_token_new, email_change,
+  phone_change, phone_change_token, email_change_token_current, reauthentication_token,
+  raw_app_meta_data, raw_user_meta_data
+)
+select
+  '00000000-0000-0000-0000-000000000000', u.id, 'authenticated', 'authenticated', u.email,
+  extensions.crypt('demo', extensions.gen_salt('bf')),
+  now(), now(), now(),
+  '', '', '', '', '', '', '', '',
+  '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb
+from (values
+  ('b1000000-0000-0000-0000-000000000001'::uuid, 'astrid.berg@nordic-recruit.test'),
+  ('b1000000-0000-0000-0000-000000000002'::uuid, 'magnus.holm@nordic-recruit.test'),
+  ('b1000000-0000-0000-0000-000000000003'::uuid, 'linnea.strand@fjordtech.test'),
+  ('b1000000-0000-0000-0000-000000000004'::uuid, 'erik.lund@fjordtech.test'),
+  ('b1000000-0000-0000-0000-000000000005'::uuid, 'sara.vik@fjordtech.test'),
+  ('b1000000-0000-0000-0000-000000000006'::uuid, 'jonas.dahl@fjordtech.test'),
+  ('b1000000-0000-0000-0000-000000000007'::uuid, 'petra.nilsson@candidate.test'),
+  ('b1000000-0000-0000-0000-000000000008'::uuid, 'henrik.ek@candidate.test')
+) as u(id, email)
 on conflict (id) do nothing;
+
+-- Email-provider identities — newer GoTrue requires one per user for password
+-- sign-in. provider_id = the user id (the 'sub' for the email provider).
+insert into auth.identities (id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at)
+select gen_random_uuid(), u.id, u.id::text, 'email',
+       jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true, 'phone_verified', false),
+       now(), now(), now()
+from auth.users u
+where u.id in (
+  'b1000000-0000-0000-0000-000000000001','b1000000-0000-0000-0000-000000000002',
+  'b1000000-0000-0000-0000-000000000003','b1000000-0000-0000-0000-000000000004',
+  'b1000000-0000-0000-0000-000000000005','b1000000-0000-0000-0000-000000000006',
+  'b1000000-0000-0000-0000-000000000007','b1000000-0000-0000-0000-000000000008'
+)
+on conflict (provider, provider_id) do nothing;
 
 -- ============================ organizations ==============================
 insert into public.organizations (id, name, type, country, locale_default, data_region)
@@ -45,13 +80,21 @@ values
 on conflict (id) do nothing;
 
 -- ============================ memberships ================================
+-- Staff get 'active' memberships. Agency-sourced candidates get an 'invited'
+-- membership in the sourcing org — that's what lets recruiters see their
+-- identity (people_select keys off a membership in an org where the viewer has
+-- person.read). Sigrid follows the same pattern further down. Without this,
+-- the recruiter desk can't render candidates it's actively managing.
 insert into public.memberships (id, org_id, person_id, status, joined_at) values
   ('c1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000001', 'active', now()),
   ('c1000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000002', 'active', now()),
   ('c1000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000003', 'active', now()),
   ('c1000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000004', 'active', now()),
   ('c1000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000005', 'active', now()),
-  ('c1000000-0000-0000-0000-000000000006', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000006', 'active', now())
+  ('c1000000-0000-0000-0000-000000000006', 'a1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000006', 'active', now()),
+  -- Petra & Henrik: candidates sourced by Nordic Recruit on the seeded requisition.
+  ('c1000000-0000-0000-0000-000000000007', 'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000007', 'invited', now()),
+  ('c1000000-0000-0000-0000-000000000008', 'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000008', 'invited', now())
 on conflict (id) do nothing;
 
 -- ====================== membership_roles (RBAC) ==========================
@@ -192,9 +235,27 @@ on conflict (id) do nothing;
 -- Petra remains in her shortlisting state so the recruiter desk has an
 -- interactive candidate to walk through end-to-end.
 
-insert into auth.users (id, email) values
-  ('b1000000-0000-0000-0000-000000000009', 'sigrid.lund@candidate.test')
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, created_at, updated_at,
+  confirmation_token, recovery_token, email_change_token_new, email_change,
+  phone_change, phone_change_token, email_change_token_current, reauthentication_token,
+  raw_app_meta_data, raw_user_meta_data
+)
+values (
+  '00000000-0000-0000-0000-000000000000', 'b1000000-0000-0000-0000-000000000009',
+  'authenticated', 'authenticated', 'sigrid.lund@candidate.test',
+  extensions.crypt('demo', extensions.gen_salt('bf')), now(), now(), now(),
+  '', '', '', '', '', '', '', '',
+  '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb
+)
 on conflict (id) do nothing;
+
+insert into auth.identities (id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at)
+select gen_random_uuid(), 'b1000000-0000-0000-0000-000000000009', 'b1000000-0000-0000-0000-000000000009', 'email',
+       jsonb_build_object('sub', 'b1000000-0000-0000-0000-000000000009', 'email', 'sigrid.lund@candidate.test', 'email_verified', true, 'phone_verified', false),
+       now(), now(), now()
+on conflict (provider, provider_id) do nothing;
 
 insert into public.people (id, full_name, primary_email, auth_user_id)
 values ('b1100000-0000-0000-0000-000000000009', 'Sigrid Lund',

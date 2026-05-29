@@ -43,7 +43,9 @@ type Candidate = {
   stage: string
   decision: string
   fit_score_json: Record<string, unknown>
-  person: { full_name: string; primary_email: string }
+  // null when RLS hides the person row (e.g. a candidate the viewer has no
+  // scope to see). The UI must degrade gracefully rather than crash.
+  person: { full_name: string; primary_email: string } | null
 }
 type Invite = {
   id: string
@@ -472,9 +474,11 @@ function CandidateRow({
       <div className="flex items-start gap-4 flex-wrap">
         <div className="flex-1 min-w-[200px]">
           <p className="font-semibold text-ink text-[15px] underline decoration-line-2 underline-offset-[3px]">
-            {c.person.full_name}
+            {c.person?.full_name ?? 'Restricted'}
           </p>
-          <p className="text-xs text-muted mt-0.5">{c.person.primary_email}</p>
+          <p className="text-xs text-muted mt-0.5">
+            {c.person?.primary_email ?? `Person ${c.person_id.slice(0, 8)}… · not in your scope`}
+          </p>
           <div className="flex flex-wrap gap-1.5 mt-2.5">
             <Pill tone={stageTone}>{c.stage}</Pill>
             {c.latest_decision && <Pill tone={decisionTone}>{c.latest_decision.decision}</Pill>}
