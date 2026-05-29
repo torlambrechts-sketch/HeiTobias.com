@@ -150,6 +150,9 @@ values (
 on conflict (id) do nothing;
 
 -- ============================ requisition ================================
+-- Agency-side demo requisition. The employer-side one is added later
+-- in the Phase 3 block (after the Platform Team row is created with a
+-- non-deterministic team_id).
 insert into public.requisitions (id, org_id, role_id, status, created_by)
 values (
   'a3000000-0000-0000-0000-000000000001',
@@ -313,4 +316,18 @@ begin
   perform public.refit_compute(sigrid, employer_a);
   v_g_id := public.guidance_compose(sigrid, employer_a, 'one_on_one_prep'::public.guidance_kind, '{"demo":true}'::jsonb);
   perform public.guidance_record_action(v_g_id, 'acted_on'::public.guidance_action, 'Discussed in this week''s 1:1');
+
+  -- ITEM 4 (use-for-requisition picker) needs a requisition on the
+  -- employer side too — without it, the FjordTech personas see an
+  -- empty list and the /requisitions resolver finds nothing.
+  insert into public.requisitions (id, org_id, role_id, team_id, status, created_by)
+  values (
+    'a3000000-0000-0000-0000-000000000002',
+    employer_a,
+    'd1000000-0000-0000-0000-000000000004',  -- Software Engineer
+    v_team,                                    -- Platform Team
+    'open',
+    linnea_uid
+  )
+  on conflict (id) do nothing;
 end$seed_phase3$;

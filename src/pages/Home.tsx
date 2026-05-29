@@ -42,7 +42,7 @@ export function HomePage() {
         )}
 
         <div className="grid sm:grid-cols-2 gap-5">
-          <Link to="/requisitions/a3000000-0000-0000-0000-000000000001" className="block group">
+          <Link to="/requisitions" className="block group">
             <Card className="h-full group-hover:shadow-soft transition-shadow">
               <CardBody>
                 <div className="flex items-center gap-3 mb-2">

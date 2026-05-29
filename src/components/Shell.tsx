@@ -47,7 +47,7 @@ export function Shell({
 function IconRail() {
   const items = [
     { icon: Home, to: '/' },
-    { icon: Briefcase, to: '/requisitions/a3000000-0000-0000-0000-000000000001' },
+    { icon: Briefcase, to: '/requisitions' },
     { icon: Users, to: '/people' },
     { icon: TrendingUp, to: '/growth' },
     { icon: LayoutGrid, to: '/insights' },
@@ -101,7 +101,7 @@ function SectionNav() {
       <nav className="px-3.5 pb-5 flex flex-col gap-4">
         <NavGroup icon={Home} title="Dashboard" />
         <NavGroup icon={Briefcase} title="Hiring" defaultOpen>
-          <NavSub to="/requisitions/a3000000-0000-0000-0000-000000000001">Requisitions</NavSub>
+          <NavSub to="/requisitions">Requisitions</NavSub>
           <NavSub to="#">Role library</NavSub>
           <NavSub to="/team-def">Team-based definition</NavSub>
         </NavGroup>

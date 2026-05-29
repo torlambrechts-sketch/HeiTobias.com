@@ -16,6 +16,7 @@ const PeoplePage                = lazy(() => import('./pages/People.js').then(m 
 const CandidateTakePage         = lazy(() => import('./pages/CandidateTake.js').then(m => ({ default: m.CandidateTakePage })))
 const CandidateConsentsPage     = lazy(() => import('./pages/CandidateConsents.js').then(m => ({ default: m.CandidateConsentsPage })))
 const RecruiterRequisitionPage  = lazy(() => import('./pages/RecruiterRequisition.js').then(m => ({ default: m.RecruiterRequisitionPage })))
+const RequisitionsIndexPage     = lazy(() => import('./pages/RequisitionsIndex.js').then(m => ({ default: m.RequisitionsIndexPage })))
 const EmployerActivationsPage   = lazy(() => import('./pages/EmployerActivations.js').then(m => ({ default: m.EmployerActivationsPage })))
 const ManagerEmployeeDetailPage = lazy(() => import('./pages/ManagerEmployeeDetail.js').then(m => ({ default: m.ManagerEmployeeDetailPage })))
 const ModelingAdminPage         = lazy(() => import('./pages/ModelingAdmin.js').then(m => ({ default: m.ModelingAdminPage })))
@@ -45,6 +46,7 @@ export function App() {
               <Route path="/people" element={<PeoplePage />} />
               <Route path="/take/:token" element={<CandidateTakePage />} />
               <Route path="/me/:token" element={<CandidateConsentsPage />} />
+              <Route path="/requisitions" element={<RequisitionsIndexPage />} />
               <Route path="/requisitions/:id" element={<RecruiterRequisitionPage />} />
               <Route path="/activations" element={<EmployerActivationsPage />} />
               <Route path="/employees/:id" element={<ManagerEmployeeDetailPage />} />
