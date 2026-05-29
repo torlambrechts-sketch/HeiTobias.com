@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Loader2, LogOut, Users } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
+import { usePageTitle } from '../lib/usePageTitle.js'
 import { Shell } from '../components/Shell.js'
 import { Button } from '../components/ui/button.js'
 import { Card, CardBody } from '../components/ui/card.js'
@@ -19,6 +20,7 @@ import { EmptyState } from '../components/ui/EmptyState.js'
 type TeamMember = { person_id: string; full_name: string | null; primary_email: string | null; org_id: string; org_name: string }
 
 export function TeamPage() {
+  usePageTitle('My team')
   const supabase = browserSupabase()
   const [signedIn, setSignedIn] = useState<string | null>(null)
   const [team, setTeam] = useState<TeamMember[]>([])

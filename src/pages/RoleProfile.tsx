@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ChevronRight, Loader2, LogOut, ShieldCheck, Users } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
 import { fetchRoleProfile, fetchRoleVersionHistory } from '../lib/roleProfile.js'
+import { usePageTitle } from '../lib/usePageTitle.js'
 import type { RoleProfileRow } from '../types/roleProfile.js'
 import { Shell } from '../components/Shell.js'
 import { Button } from '../components/ui/button.js'
@@ -26,6 +27,7 @@ export function RoleProfilePage() {
   const [row, setRow] = useState<RoleProfileRow | null | undefined>(undefined)
   const [err, setErr] = useState<string | null>(null)
   const [tab, setTab] = useState<'profile' | 'team_definition' | 'versions' | 'defensibility' | 'manage'>('profile')
+  usePageTitle(row?.title ? `Role · ${row.title}` : 'Role profile')
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => setSignedIn(data.session?.user?.email ?? null))

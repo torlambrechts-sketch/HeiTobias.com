@@ -36,6 +36,15 @@ export function Shell({
 }) {
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Skip-to-main-content for keyboard users. Visually hidden until
+          focused; the target id is on the inner <div> that wraps the
+          page's actual content (everything below the app bar). */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-forest focus:text-white focus:px-3 focus:py-2 focus:rounded"
+      >
+        Skip to main content
+      </a>
       <DemoBanner />
       <CommandPalette />
       <div className="grid grid-cols-[60px_1fr] lg:grid-cols-[60px_220px_1fr] flex-1">
@@ -43,7 +52,7 @@ export function Shell({
         <SectionNav />
         <main className="flex flex-col min-w-0">
           <AppBar breadcrumb={breadcrumb} orgLabel={orgLabel} signedInLabel={signedInLabel} />
-          <div className="px-8 py-8 max-w-[1280px] w-full">{children}</div>
+          <div id="main-content" tabIndex={-1} className="px-8 py-8 max-w-[1280px] w-full">{children}</div>
         </main>
       </div>
     </div>

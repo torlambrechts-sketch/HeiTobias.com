@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Activity, Loader2, LogOut, Shield, ShieldAlert } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
+import { usePageTitle } from '../lib/usePageTitle.js'
 import { Shell } from '../components/Shell.js'
 import { Button } from '../components/ui/button.js'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
@@ -20,6 +21,7 @@ type SelfView = {
 }
 
 export function MePage() {
+  usePageTitle('My profile')
   const supabase = browserSupabase()
   const [signedIn, setSignedIn] = useState<string | null>(null)
   const [data, setData]   = useState<SelfView | null>(null)

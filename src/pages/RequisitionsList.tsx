@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Briefcase, ChevronRight, Loader2, LogOut, Plus, Copy, X, Users } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
 import { useCurrentOrgId } from '../lib/currentOrg.js'
+import { usePageTitle } from '../lib/usePageTitle.js'
 import { Shell } from '../components/Shell.js'
 import { Button } from '../components/ui/button.js'
 import { Card, CardBody } from '../components/ui/card.js'
@@ -26,6 +27,7 @@ type SessionSummary = {
 }
 
 export function RequisitionsListPage() {
+  usePageTitle('Requisitions')
   const supabase = browserSupabase()
   const orgState = useCurrentOrgId()
   const orgId = orgState.state === 'ready' ? orgState.orgId : null
