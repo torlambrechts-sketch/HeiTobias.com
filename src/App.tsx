@@ -27,6 +27,9 @@ const TeamDefinitionListPage    = lazy(() => import('./pages/TeamDefinitionList.
 const TeamDefinitionNewPage     = lazy(() => import('./pages/TeamDefinitionNew.js').then(m => ({ default: m.TeamDefinitionNewPage })))
 const TeamDefinitionRunPage     = lazy(() => import('./pages/TeamDefinitionRun.js').then(m => ({ default: m.TeamDefinitionRunPage })))
 const DemoPage                  = lazy(() => import('./pages/Demo.js').then(m => ({ default: m.DemoPage })))
+const RequisitionsListPage      = lazy(() => import('./pages/RequisitionsList.js').then(m => ({ default: m.RequisitionsListPage })))
+const TeamPage                  = lazy(() => import('./pages/Team.js').then(m => ({ default: m.TeamPage })))
+const MePage                    = lazy(() => import('./pages/Me.js').then(m => ({ default: m.MePage })))
 
 function PageFallback() {
   return (
@@ -62,6 +65,9 @@ export function App() {
               {import.meta.env.DEV && (
                 <Route path="/demo" element={<DemoPage />} />
               )}
+              <Route path="/req" element={<RequisitionsListPage />} />
+              <Route path="/team" element={<TeamPage />} />
+              <Route path="/me" element={<MePage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

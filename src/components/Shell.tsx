@@ -105,14 +105,14 @@ function SectionNav() {
       <nav className="px-3.5 pb-5 flex flex-col gap-4">
         <NavGroup icon={Home} title="Dashboard" />
         <NavGroup icon={Briefcase} title="Hiring" defaultOpen>
-          <NavSub to="/requisitions">Requisitions</NavSub>
+          <NavSub to="/req">Requisitions</NavSub>
           <NavSub to="#">Role library</NavSub>
           <NavSub to="/team-def">Team-based definition</NavSub>
         </NavGroup>
         <NavGroup icon={Users} title="People" defaultOpen>
           <NavSub to="/people">All people</NavSub>
-          <NavSub to="#">My team</NavSub>
-          <NavSub to="#">Candidates</NavSub>
+          <NavSub to="/team">My team</NavSub>
+          <NavSub to="/me">My profile (self-view)</NavSub>
         </NavGroup>
         <NavGroup icon={TrendingUp} title="Growth">
           <NavSub to="#">Re-fit & growth</NavSub>
