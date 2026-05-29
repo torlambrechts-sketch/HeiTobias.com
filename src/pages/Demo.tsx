@@ -39,6 +39,11 @@ const TOUR_STOPS = [
     cta: 'Requisitions list', href: '/req',
   },
   {
+    n: 4.5, label: 'Walk the unified candidate session (demo mode)',
+    detail: 'Open a take-token URL with ?demo=true in incognito. The candidate walks consent + personality + cognitive + values + structured-interview prep in ~15 min. Production length is honestly 45–75 min; the demo banner is unmissable. Back in the recruiter view, the candidate row shows ⚠ DEMO MODE so no recruiter mistakes it for production.',
+    cta: 'Open requisition (demo flag on take URL)', href: '/req',
+  },
+  {
     n: 5, label: 'Operator-facing admin',
     detail: 'Switch to the agency admin (Sara Lindqvist) to invite users with rationale, change rbac roles, toggle modules, explore audit log with compliance view + export, register HRIS integration connectors.',
     cta: 'Workspace admin', href: '/admin',

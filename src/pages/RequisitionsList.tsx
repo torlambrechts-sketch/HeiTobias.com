@@ -12,6 +12,15 @@ import { Pill } from '../components/ui/badges.js'
 // copies the magic link until SMTP lands).
 type Req = { id: string; status: string; role_id: string; org_id: string; created_at: string }
 type Cand = { id: string; person_id: string; full_name: string | null; primary_email: string | null; stage: string }
+type SessionSummary = {
+  requisition_candidate_id: string
+  session_present: boolean
+  demo_mode?: boolean
+  status?: string
+  sections?: Record<string, { complete: boolean; total_items?: number; answered_items?: number }>
+  structured_prep_responses?: number
+  dev_stub_label?: string
+}
 
 export function RequisitionsListPage() {
   const supabase = browserSupabase()
@@ -19,6 +28,7 @@ export function RequisitionsListPage() {
   const [reqs, setReqs]   = useState<Req[]>([])
   const [pick, setPick]   = useState<string | null>(null)
   const [cands, setCands] = useState<Cand[]>([])
+  const [summaries, setSummaries] = useState<Record<string, SessionSummary>>({})
   const [newCand, setNewCand] = useState({ email: '', name: '', rationale: '' })
   const [recentToken, setRecentToken] = useState<{ token: string; email: string } | null>(null)
   const [err, setErr]     = useState<string | null>(null)
@@ -39,9 +49,18 @@ export function RequisitionsListPage() {
   }, [supabase, signedIn])
 
   const loadCands = useCallback(async (id: string) => {
-    setPick(id); setCands([])
+    setPick(id); setCands([]); setSummaries({})
     const { data, error } = await supabase.rpc('rpc_req_candidates' as never, { p_requisition_id: id } as never)
-    if (error) setErr(error.message); else setCands(((data ?? []) as unknown as Cand[]))
+    if (error) { setErr(error.message); return }
+    const rows = (data ?? []) as unknown as Cand[]
+    setCands(rows)
+    // Fan-out session summaries (cheap RPC; small N)
+    const map: Record<string, SessionSummary> = {}
+    await Promise.all(rows.map(async c => {
+      const { data: s } = await supabase.rpc('rpc_candidate_session_summary' as never, { p_rc_id: c.id } as never)
+      if (s) map[c.id] = s as unknown as SessionSummary
+    }))
+    setSummaries(map)
   }, [supabase])
 
   const addCand = useCallback(async () => {
@@ -121,12 +140,32 @@ export function RequisitionsListPage() {
 
                   {cands.length === 0 && <p className="text-faint text-sm italic">No candidates yet.</p>}
                   <ul className="flex flex-col gap-2 text-sm">
-                    {cands.map(c => (
-                      <li key={c.id} className="flex items-center gap-3 border-b border-line pb-2">
-                        <div className="flex-1 min-w-0"><strong>{c.full_name}</strong> <span className="text-xs text-faint">{c.primary_email}</span></div>
-                        <Pill tone={c.stage === 'placed' ? 'open' : c.stage === 'rejected' ? 'reject' : 'draft'}>{c.stage}</Pill>
-                      </li>
-                    ))}
+                    {cands.map(c => {
+                      const sum = summaries[c.id]
+                      return (
+                        <li key={c.id} className="flex flex-col gap-1.5 border-b border-line pb-2">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1 min-w-0">
+                              <strong>{c.full_name}</strong> <span className="text-xs text-faint">{c.primary_email}</span>
+                            </div>
+                            <Pill tone={c.stage === 'placed' ? 'open' : c.stage === 'rejected' ? 'reject' : 'draft'}>{c.stage}</Pill>
+                          </div>
+                          {sum?.session_present && (
+                            <div data-test="session-summary" className="flex items-center gap-2 flex-wrap pl-1">
+                              {sum.demo_mode && <Pill tone="reject" data-test="demo-flag">⚠ DEMO MODE</Pill>}
+                              <Pill tone={sum.status === 'completed' ? 'open' : 'internal'}>{sum.status}</Pill>
+                              {sum.sections && Object.entries(sum.sections).map(([k, s]) => (
+                                <span key={k} className="text-[11px] font-mono text-muted">
+                                  {k.replace('structured_prep','prep').replace('personality','pers')}{' '}
+                                  <span className={s.complete ? 'text-green' : 'text-faint'}>{s.answered_items ?? 0}/{s.total_items ?? '?'}</span>
+                                </span>
+                              ))}
+                              <Pill tone="reject">dev_stub</Pill>
+                            </div>
+                          )}
+                        </li>
+                      )
+                    })}
                   </ul>
 
                   <div className="border-t border-line pt-3">
