@@ -5,6 +5,7 @@ import { browserSupabase } from '../lib/browser-supabase.js'
 import { Button } from '../components/ui/button.js'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
 import { Pill } from '../components/ui/badges.js'
+import { LOCALES, useLocale, type Locale } from '../lib/i18n.js'
 
 type InviteState = {
   invited_email: string
@@ -24,6 +25,8 @@ export function AcceptInvitePage() {
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [accepted, setAccepted] = useState(false)
+  const [displayName, setDisplayName] = useState('')
+  const { locale, setLocale } = useLocale()
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => setSignedInEmail(data.session?.user?.email ?? null))
@@ -43,12 +46,16 @@ export function AcceptInvitePage() {
   const accept = useCallback(async () => {
     if (!token) return
     setBusy(true); setErr(null)
-    const { error } = await supabase.rpc('org_invite_accept' as never, { p_token: token } as never)
+    const { error } = await supabase.rpc('org_invite_accept_v2' as never, {
+      p_token: token,
+      p_display_name: displayName.trim() || null,
+      p_locale: locale,
+    } as never)
     setBusy(false)
     if (error) { setErr(error.message); return }
     setAccepted(true)
     setTimeout(() => navigate('/admin'), 1500)
-  }, [supabase, token, navigate])
+  }, [supabase, token, displayName, locale, navigate])
 
   const matchesSignIn = state && signedInEmail && state.invited_email.toLowerCase() === signedInEmail.toLowerCase()
 
@@ -90,10 +97,31 @@ export function AcceptInvitePage() {
                   </div>
                 )}
                 {signedInEmail && matchesSignIn && (
-                  <div>
-                    <Button onClick={accept} disabled={busy}>
-                      {busy ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />} Accept invitation
-                    </Button>
+                  <div className="flex flex-col gap-3">
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[10.5px] uppercase tracking-wider font-bold text-muted">Display name</span>
+                      <input
+                        value={displayName}
+                        onChange={e => setDisplayName(e.target.value)}
+                        placeholder="How others should see your name"
+                        className="border border-line rounded px-3 py-2 text-sm bg-surface"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[10.5px] uppercase tracking-wider font-bold text-muted">Language</span>
+                      <select
+                        value={locale}
+                        onChange={e => setLocale(e.target.value as Locale)}
+                        className="border border-line rounded px-3 py-2 text-sm bg-surface"
+                      >
+                        {LOCALES.map(l => <option key={l.code} value={l.code}>{l.nativeLabel}</option>)}
+                      </select>
+                    </label>
+                    <div>
+                      <Button onClick={accept} disabled={busy}>
+                        {busy ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />} Accept invitation
+                      </Button>
+                    </div>
                   </div>
                 )}
                 <div className="flex items-center gap-2 pt-2 border-t border-line">

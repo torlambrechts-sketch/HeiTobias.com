@@ -74,6 +74,9 @@ export function WorkspaceAdminPage() {
   const [audit, setAudit] = useState<AuditQuery | null>(null)
   const [auditLoading, setAuditLoading] = useState(false)
 
+  // Pending invites
+  const [pendingInvites, setPendingInvites] = useState<InviteTokenRow[]>([])
+
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => setSignedIn(data.session?.user?.email ?? null))
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSignedIn(s?.user?.email ?? null))
@@ -170,12 +173,62 @@ export function WorkspaceAdminPage() {
   }, [supabase, load])
 
   const deactivate = useCallback(async (membershipId: string) => {
+    const rationale = window.prompt('Rationale for deactivating this user (≥20 chars):')
+    if (!rationale || rationale.length < 20) return
     setBusy(membershipId); setTopErr(null)
-    const { error } = await supabase.rpc('org_deactivate_user' as never, { p_membership_id: membershipId } as never)
+    const { error } = await supabase.rpc('org_deactivate_user' as never, { p_membership_id: membershipId, p_rationale: rationale } as never)
     setBusy(null)
     if (error) setTopErr(error.message)
     await load()
   }, [supabase, load])
+
+  const reactivate = useCallback(async (membershipId: string) => {
+    const rationale = window.prompt('Rationale for reactivating this user (≥20 chars):')
+    if (!rationale || rationale.length < 20) return
+    setBusy(membershipId); setTopErr(null)
+    const { error } = await supabase.rpc('org_reactivate_user' as never, { p_membership_id: membershipId, p_rationale: rationale } as never)
+    setBusy(null)
+    if (error) setTopErr(error.message)
+    await load()
+  }, [supabase, load])
+
+  const changePrimaryRole = useCallback(async (membershipId: string) => {
+    const role = window.prompt('New primary RBAC role key (employee/manager/hiring_manager/recruiter/people_ops_admin/org_admin):')
+    if (!role) return
+    const rationale = window.prompt('Rationale for the role change (≥20 chars):')
+    if (!rationale || rationale.length < 20) return
+    setBusy(membershipId); setTopErr(null)
+    const { error } = await supabase.rpc('org_change_role' as never, { p_membership_id: membershipId, p_new_rbac_role_key: role, p_rationale: rationale } as never)
+    setBusy(null)
+    if (error) setTopErr(error.message)
+    await load()
+  }, [supabase, load])
+
+  const loadPending = useCallback(async () => {
+    if (!orgId) return
+    const { data, error } = await supabase.rpc('org_pending_invites' as never, { p_org_id: orgId } as never)
+    if (error) { setTopErr(error.message); return }
+    setPendingInvites((data ?? []) as unknown as InviteTokenRow[])
+  }, [supabase, orgId])
+
+  const resendInvite = useCallback(async (tokenId: string) => {
+    setBusy(tokenId); setTopErr(null)
+    const { error } = await supabase.rpc('org_invite_resend' as never, { p_token_id: tokenId, p_extend_days: 14 } as never)
+    setBusy(null)
+    if (error) setTopErr(error.message)
+    await loadPending()
+  }, [supabase, loadPending])
+
+  const cancelInvite = useCallback(async (tokenId: string) => {
+    if (!window.confirm('Revoke this invite? The link will no longer work.')) return
+    setBusy(tokenId); setTopErr(null)
+    const { error } = await supabase.rpc('org_invite_revoke' as never, { p_token_id: tokenId } as never)
+    setBusy(null)
+    if (error) setTopErr(error.message)
+    await loadPending()
+  }, [supabase, loadPending])
+
+  useEffect(() => { if (tab === 'users') void loadPending() }, [tab, loadPending])
 
   const requestExport = useCallback(async () => {
     if (!orgId) return
@@ -330,7 +383,14 @@ export function WorkspaceAdminPage() {
                             })}
                           </div>
                         </td>
-                        <td className="py-2"><Button variant="ghost" disabled={busy === m.membership_id || m.status === 'suspended'} onClick={() => deactivate(m.membership_id)}>Deactivate</Button></td>
+                        <td className="py-2">
+                          <div className="flex gap-1.5">
+                            <Button variant="ghost" disabled={busy === m.membership_id} onClick={() => changePrimaryRole(m.membership_id)} className="text-xs">Change role…</Button>
+                            {m.status === 'suspended'
+                              ? <Button variant="ghost" disabled={busy === m.membership_id} onClick={() => reactivate(m.membership_id)} className="text-xs text-green">Reactivate</Button>
+                              : <Button variant="ghost" disabled={busy === m.membership_id} onClick={() => deactivate(m.membership_id)} className="text-xs text-rust">Deactivate</Button>}
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -340,6 +400,34 @@ export function WorkspaceAdminPage() {
                   <span>{memberOffset + 1}–{Math.min(memberOffset + PAGE_SIZE, overview.members_total)} of {overview.members_total}</span>
                   <Button variant="ghost" disabled={memberOffset + PAGE_SIZE >= overview.members_total} onClick={() => setMemberOffset(memberOffset + PAGE_SIZE)}>Next →</Button>
                 </div>
+              </CardBody>
+            </Card>
+
+            {/* Pending invites */}
+            <Card data-test="pending-invites">
+              <CardEyebrow><LinkIcon size={12} /> Pending invites</CardEyebrow>
+              <CardTitle>Outstanding magic links</CardTitle>
+              <CardBody>
+                <div className="rounded border border-amber/40 bg-internal-bg/40 px-3 py-2 text-xs text-internal-fg mb-3 flex items-start gap-2">
+                  <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" />
+                  <span>Email infrastructure pending operator action. Copy the link below into your own email client until SMTP is wired (per the closure-report operator list).</span>
+                </div>
+                {pendingInvites.filter(i => !i.accepted_at && !i.revoked_at).length === 0 && (
+                  <p className="text-faint text-sm">No outstanding invites.</p>
+                )}
+                <ul className="flex flex-col gap-2 text-sm">
+                  {pendingInvites.filter(i => !i.accepted_at && !i.revoked_at).map(i => (
+                    <li key={i.id} className="flex items-center gap-3 border-b border-line pb-2">
+                      <span className="flex-1 min-w-0">
+                        <strong>{i.invited_email}</strong>
+                        <span className="text-xs text-faint ml-2">expires {new Date(i.expires_at).toLocaleDateString()}</span>
+                      </span>
+                      <Button variant="ghost" disabled={busy === i.id} onClick={() => copyInviteLink(i.token)} className="text-xs"><Copy size={12} /> Copy link</Button>
+                      <Button variant="ghost" disabled={busy === i.id} onClick={() => resendInvite(i.id)} className="text-xs">Resend (+14d)</Button>
+                      <Button variant="ghost" disabled={busy === i.id} onClick={() => cancelInvite(i.id)} className="text-xs text-rust">Cancel</Button>
+                    </li>
+                  ))}
+                </ul>
               </CardBody>
             </Card>
           </div>
