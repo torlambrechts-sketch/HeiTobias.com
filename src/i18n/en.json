@@ -1,0 +1,21 @@
+{
+  "_meta.locale": "en",
+  "_meta.coverage": "load-bearing-only",
+
+  "guardrail.label": "Guardrail",
+  "guardrail.body_html": "You are rating <strong>the role</strong> — its tasks, competency weights, trait targets for the role context, and context factors. <strong>You are not rating each other.</strong> Peer rating of any named person's personality is blocked at the schema level (<span class=\"font-mono text-xs\">SCIENCE-SPEC §7; PHASE0-SPEC §2.7</span>). Team composition signals are derived only from each member's own validated profile, never from anyone else's opinion about them.",
+
+  "stub_banner.label": "Sample template",
+  "stub_banner.body_html": "This is a research-derived SAMPLE Role Profile shipped for the demo. Trait bands, competency weights, BARS anchors, and cognitive complexity must be validated per-organization by the engaged I/O psychologist before any live decision. <code class=\"font-mono text-xs bg-white/60 px-1 rounded\">validity_status</code> remains <code class=\"font-mono text-xs bg-white/60 px-1 rounded mx-1\">dev_stub</code> on each affected row; a row cannot transition to <code class=\"font-mono text-xs bg-white/60 px-1 rounded mx-1\">validated</code> until a signed-off methodology produces real values.",
+  "stub_banner.cite": "Per SCIENCE-SPEC §2, §5; CLAUDE.md Pillar 5.",
+  "stub_banner.stubbed_prefix": "Stubbed sections:",
+
+  "hitl.label": "Human in the loop",
+  "hitl.body": "Fit scores INFORM a human hiring decision and never auto-decide. Every consequential action is logged with attribution per GDPR Art. 22 + EU AI Act Art. 14.",
+
+  "seal.label_prefix": "Sealed at",
+  "seal.body_clean_html": "All <strong>{count}</strong> evaluators submitted independently before Stage 2 closed. No pre-reveal reads were attempted — the audit log is clean. Submissions are now immutable. Per Linstone & Turoff (1975) Delphi method.",
+  "seal.body_unclean_html": "All <strong>{count}</strong> evaluators submitted independently before Stage 2 closed. <strong class=\"text-rust\">{attempts}</strong> read-during-seal attempt(s) logged (<code class=\"font-mono text-xs\">audit_log.action='team_def.read_during_seal'</code>) — review before sign-off. Submissions are now immutable. Per Linstone & Turoff (1975) Delphi method.",
+
+  "locale_switcher.label": "Language"
+}

@@ -14,6 +14,7 @@ import {
   Users,
 } from 'lucide-react'
 import { cn } from '../lib/cn.js'
+import { useLocale, useT, LOCALES, type Locale } from '../lib/i18n.js'
 
 /**
  * The three-tier canonical app shell (DESIGN.md §2):
@@ -184,6 +185,7 @@ function AppBar({
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
           <Building2 size={15} className="text-forest" /> {orgLabel}
         </div>
+        <LocaleSwitcher />
         <Check size={18} className="text-muted" />
         <Bell size={18} className="text-muted" />
         <div className="w-9 h-9 rounded-full bg-forest text-white flex items-center justify-center font-bold text-[13px]">
@@ -191,5 +193,26 @@ function AppBar({
         </div>
       </div>
     </div>
+  )
+}
+
+function LocaleSwitcher() {
+  const { locale, setLocale } = useLocale()
+  const t = useT()
+  return (
+    <label className="flex items-center gap-2 text-xs">
+      <span className="sr-only">{t('locale_switcher.label')}</span>
+      <select
+        data-test="locale-switcher"
+        value={locale}
+        onChange={e => setLocale(e.target.value as Locale)}
+        className="border border-line rounded px-2 py-1 bg-surface text-xs font-medium"
+        aria-label={t('locale_switcher.label')}
+      >
+        {LOCALES.map(l => (
+          <option key={l.code} value={l.code}>{l.nativeLabel}</option>
+        ))}
+      </select>
+    </label>
   )
 }

@@ -3,6 +3,8 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, it, expect } from 'vitest'
 
+// __filename used in T24 below to resolve the i18n dir.
+
 const __filename = fileURLToPath(import.meta.url)
 const here = dirname(__filename)
 const ROOT = join(here, '..')
@@ -94,13 +96,17 @@ describe('CP3.3 — Team-Based Role Definition divergence UI', () => {
     expect(roster).toMatch(/['"]Anonymous['"]/)
   })
 
-  // ============ T24 — DivergencePanel surfaces the read-during-seal count in the SealCallout ============
-  it('[T24] DivergencePanel wires attemptedReadCount through to SealCallout (so a non-zero count is visible)', () => {
+  // ============ T24 — read-during-seal count is wired AND surfaced via i18n ============
+  it('[T24] DivergencePanel wires attemptedReadCount through to SealCallout AND en.json surfaces it', () => {
     const panel = corpus.find(c => c.path.endsWith('DivergencePanel.tsx'))!.code
     expect(panel).toMatch(/<SealCallout\b[^>]*attemptedReadCount=\{attemptedReadCount\}/)
     const seal = corpus.find(c => c.path.endsWith('SealCallout.tsx'))!.code
     expect(seal).toMatch(/attemptedReadCount/)
-    expect(seal).toMatch(/team_def\.read_during_seal/)
+    // The 'team_def.read_during_seal' audit action label now lives in
+    // i18n (en.json seal.body_unclean_html) — that's where the user-facing
+    // surface comes from, so the test pivots to the dictionary.
+    const en = JSON.parse(readFileSync(join(__filename.replace('cp33-divergence-ui.test.ts',''), '..', '..', '..', 'i18n', 'en.json'), 'utf8')) as Record<string, string>
+    expect(en['seal.body_unclean_html']).toMatch(/team_def\.read_during_seal/)
   })
 
   // ============ T25 — RunHeader still doesn't drift on the surveillance framing ============

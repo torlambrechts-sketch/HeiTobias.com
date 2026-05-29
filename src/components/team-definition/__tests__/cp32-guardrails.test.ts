@@ -34,17 +34,27 @@ const corpus  = sources.map(p => ({ path: p, src: readFileSync(p, 'utf8'), code:
 const joined  = corpus.map(c => c.src).join('\n')
 
 describe('CP3.2 — Team-Based Role Definition UI guardrails', () => {
-  // ============ T7 — UI contains the surveillance guardrail copy ============
-  it('[T7] SurveillanceGuardrail renders the load-bearing body copy ("rating the role", "not rating each other")', () => {
+  // ============ T7 — guardrail body copy lives in i18n + is load-bearing ============
+  // After ITEM 5 the load-bearing copy moved into en.json behind the
+  // guardrail.body_html key. T7 now asserts:
+  //   (a) the component pulls the body from i18n (no inline regression)
+  //   (b) en.json's guardrail.body_html carries the load-bearing phrases
+  //   (c) the body is rendered (not a tooltip)
+  it('[T7] SurveillanceGuardrail renders the load-bearing body copy from i18n ("rating the role", "not rating each other")', () => {
     const guardrail = corpus.find(c => c.path.endsWith('SurveillanceGuardrail.tsx'))
     expect(guardrail, 'SurveillanceGuardrail.tsx must exist').toBeTruthy()
-    const s = guardrail!.src
-    expect(s).toMatch(/rating\s*<strong>the role<\/strong>/i)
-    expect(s).toMatch(/not rating each other/i)
-    expect(s).toMatch(/SCIENCE-SPEC §7/)
-    // Must be body copy, not a tooltip — no title= attribute carrying it,
-    // no display:none style. Naively check it's rendered text.
+    const s = guardrail!.code
+    // (a) Component pulls body from i18n
+    expect(s).toMatch(/useT\(\)/)
+    expect(s).toMatch(/t\('guardrail\.body_html'\)/)
     expect(s).not.toMatch(/title=["'][^"']*not rating/i)
+
+    // (b) en.json carries the load-bearing phrases for the key
+    const en = JSON.parse(readFileSync(join(ROOT, '..', '..', 'i18n', 'en.json'), 'utf8')) as Record<string, string>
+    const body = en['guardrail.body_html'] ?? ''
+    expect(body).toMatch(/rating\s*<strong>the role<\/strong>/i)
+    expect(body).toMatch(/not rating each other/i)
+    expect(body).toMatch(/SCIENCE-SPEC §7/)
   })
 
   // ============ T8 — Stage 2 RatingForm renders the guardrail before any input ============
@@ -93,14 +103,18 @@ describe('CP3.2 — Team-Based Role Definition UI guardrails', () => {
     expect(runPageRaw).toMatch(/CP3\.3|divergence|read during seal/i)
   })
 
-  // ============ T12 — SurveillanceGuardrail aggregated count: at least one copy of the key phrase ============
-  it('[T12] The whole team-definition module contains exactly one definition of the guardrail copy (no drift)', () => {
-    // Count occurrences of the load-bearing phrase. Should be exactly one
-    // in source code (SurveillanceGuardrail.tsx). The test file also uses
-    // the phrase in assertions, but it's excluded from the corpus by path.
+  // ============ T12 — guardrail key defined once in en.json, no .tsx leaks ============
+  // After ITEM 5 the source of truth is en.json (one definition). The
+  // .tsx corpus must NOT carry the literal body — if any later component
+  // re-inlines it, drift returns.
+  it('[T12] Guardrail copy defined exactly once in en.json, never inlined in a .tsx', () => {
     const phrase = /You are rating\s*<strong>the role<\/strong>/g
-    const occurrences = joined.match(phrase) ?? []
-    expect(occurrences.length).toBe(1)
+    const occurrencesInTsx = joined.match(phrase) ?? []
+    expect(occurrencesInTsx.length).toBe(0)
+    // And the en.json key exists exactly once.
+    const enText = readFileSync(join(ROOT, '..', '..', 'i18n', 'en.json'), 'utf8')
+    const enMatches = enText.match(/"guardrail\.body_html"\s*:/g) ?? []
+    expect(enMatches.length).toBe(1)
   })
 
   // ============ T13 — StageStepper renders the four canonical stages ============

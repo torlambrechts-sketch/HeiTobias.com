@@ -14,11 +14,13 @@ import { TeamDefinitionListPage } from './pages/TeamDefinitionList.js'
 import { TeamDefinitionNewPage } from './pages/TeamDefinitionNew.js'
 import { TeamDefinitionRunPage } from './pages/TeamDefinitionRun.js'
 import { EnvBoundary } from './components/EnvBoundary.js'
+import { LocaleProvider } from './lib/i18n.js'
 
 export function App() {
   return (
     <EnvBoundary>
-      <BrowserRouter>
+      <LocaleProvider>
+        <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/people" element={<PeoplePage />} />
@@ -37,7 +39,8 @@ export function App() {
           <Route path="/team-def/runs/:id" element={<TeamDefinitionRunPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </BrowserRouter>
+        </BrowserRouter>
+      </LocaleProvider>
     </EnvBoundary>
   )
 }
