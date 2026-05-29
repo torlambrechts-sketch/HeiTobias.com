@@ -1,7 +1,6 @@
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { type ReactNode } from 'react'
 import {
-  Bell,
   Briefcase,
   Building2,
   Check,
@@ -16,6 +15,8 @@ import {
 import { cn } from '../lib/cn.js'
 import { useLocale, useT, LOCALES, type Locale } from '../lib/i18n.js'
 import { DemoBanner } from './DemoBanner.js'
+import { NotificationBell } from './NotificationBell.js'
+import { CommandPalette } from './CommandPalette.js'
 
 /**
  * The three-tier canonical app shell (DESIGN.md §2):
@@ -36,6 +37,7 @@ export function Shell({
   return (
     <div className="flex flex-col min-h-screen">
       <DemoBanner />
+      <CommandPalette />
       <div className="grid grid-cols-[60px_1fr] lg:grid-cols-[60px_220px_1fr] flex-1">
         <IconRail />
         <SectionNav />
@@ -186,17 +188,39 @@ function AppBar({
     <div className="flex items-center gap-3.5 px-8 py-4 border-b border-line">
       <div className="text-sm text-muted flex items-center gap-2">{breadcrumb}</div>
       <div className="ml-auto flex items-center gap-4">
+        <CommandHint />
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
           <Building2 size={15} className="text-forest" /> {orgLabel}
         </div>
         <LocaleSwitcher />
         <Check size={18} className="text-muted" />
-        <Bell size={18} className="text-muted" />
+        <NotificationBell />
         <div className="w-9 h-9 rounded-full bg-forest text-white flex items-center justify-center font-bold text-[13px]">
           {signedInLabel ? signedInLabel.slice(0, 2).toUpperCase() : 'SH'}
         </div>
       </div>
     </div>
+  )
+}
+
+function CommandHint() {
+  // Detect mac for the right keycap. We render server-side / first
+  // paint with the generic "⌘K" — the keystroke handler works for both
+  // platforms regardless, so the hint cosmetic only.
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPod|iPad/i.test(navigator.platform)
+  const label = isMac ? '⌘K' : 'Ctrl+K'
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        // Synthesize the same keystroke the global handler listens for.
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: isMac, ctrlKey: !isMac }))
+      }}
+      className="hidden md:inline-flex items-center gap-1 text-xs text-muted hover:text-ink border border-line rounded px-2 py-1"
+      aria-label="Open search"
+    >
+      Search <kbd className="font-mono text-[10.5px] text-faint">{label}</kbd>
+    </button>
   )
 }
 

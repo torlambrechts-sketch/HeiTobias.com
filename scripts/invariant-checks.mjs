@@ -127,10 +127,14 @@ if (distExists) {
     if (!p.endsWith('.js') && !p.endsWith('.css') && !p.endsWith('.html')) continue
     const content = read(p)
     if (!content) continue
-    if (/password:\s*['"]demo['"]/.test(content) && /linnea\.strand@fjordtech\.test/.test(content)) {
-      // Hardcoded credentials made it into the production bundle.
-      errors.push(`INVARIANT-4 fail: production bundle ${p.replace(ROOT, '')} contains demo sign-in credentials. ` +
-                  `These must be gated behind import.meta.env.DEV so Vite tree-shakes them out.`)
+    // Catch any hardcoded `password: 'demo'` (or "demo") regardless of
+    // which test email it's paired with. The earlier version only
+    // flagged the Linnea email, which let the Astrid/Magnus/Sara
+    // personas slip through. Demo creds belong in the dev tree only.
+    if (/password\s*:\s*['"]demo['"]/.test(content) && /@[\w-]+\.test\b/.test(content)) {
+      errors.push(`INVARIANT-4 fail: production bundle ${p.replace(ROOT, '')} contains demo sign-in credentials ` +
+                  `(\`password: 'demo'\` next to a \`*.test\` email). These must be gated behind ` +
+                  `import.meta.env.DEV so Vite tree-shakes them out.`)
     }
   }
 }
