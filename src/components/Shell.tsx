@@ -106,7 +106,7 @@ function SectionNav() {
         <NavGroup icon={Home} title="Dashboard" />
         <NavGroup icon={Briefcase} title="Hiring" defaultOpen>
           <NavSub to="/req">Requisitions</NavSub>
-          <NavSub to="#">Role library</NavSub>
+          <NavSub to="/roles/dd000000-0000-0000-0000-000000000001">Role library</NavSub>
           <NavSub to="/team-def">Team-based definition</NavSub>
         </NavGroup>
         <NavGroup icon={Users} title="People" defaultOpen>
@@ -115,16 +115,16 @@ function SectionNav() {
           <NavSub to="/me">My profile (self-view)</NavSub>
         </NavGroup>
         <NavGroup icon={TrendingUp} title="Growth">
-          <NavSub to="#">Re-fit & growth</NavSub>
-          <NavSub to="#">Team composition</NavSub>
-          <NavSub to="#">1:1 prep</NavSub>
+          <NavSub to="/team">Re-fit &amp; growth</NavSub>
+          <NavSub to="/team">Team composition</NavSub>
+          <NavSub to="/team">1:1 prep</NavSub>
         </NavGroup>
         <NavGroup icon={LayoutGrid} title="Insights">
-          <NavSub to="#">Fit trends</NavSub>
-          <NavSub to="#">Retention signals</NavSub>
+          <NavSub to="/admin">Fit trends</NavSub>
+          <NavSub to="/admin">Retention signals</NavSub>
         </NavGroup>
         <NavGroup icon={Building2} title="Company">
-          <NavSub to="#">Settings</NavSub>
+          <NavSub to="/admin">Settings</NavSub>
         </NavGroup>
       </nav>
     </aside>

@@ -10,7 +10,7 @@ function BrandStrip({ brand }: { brand: { org_name: string | null; accent_color:
   const accent = brand.accent_color ?? '#3a4d3f'
   return (
     <div data-test="brand-strip" className="flex items-center gap-3 px-4 py-3 border-b border-line" style={{ borderTop: `3px solid ${accent}` }}>
-      {brand.logo_url && <img src={brand.logo_url} alt="" className="h-8 w-auto" />}
+      {brand.logo_url && <img src={brand.logo_url} alt={`${brand.org_name ?? 'Inviting org'} logo`} className="h-8 w-auto" />}
       <div>
         <div className="text-[10.5px] uppercase tracking-wider font-bold text-muted">Invited by</div>
         <div className="text-sm font-semibold" style={{ color: accent }}>{brand.org_name}</div>
