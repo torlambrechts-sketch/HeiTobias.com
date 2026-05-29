@@ -1,0 +1,68 @@
+name: Production deploy
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/pr.yml
+
+  approval:
+    needs: ci
+    runs-on: ubuntu-latest
+    environment: production-approval
+    steps:
+      - run: echo "Awaiting manual approval — review the diff before continuing."
+
+  deploy:
+    needs: approval
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Verify SEED_DEMO_DATA is NOT enabled in production
+        run: |
+          if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
+            echo "::error::SEED_DEMO_DATA=true is set in production environment. REFUSING TO DEPLOY."
+            exit 1
+          fi
+
+      - name: Apply DB migrations to production
+        run: |
+          npx supabase db push --linked
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.PROD_SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.PROD_SUPABASE_DB_PASSWORD }}
+
+      - name: Deploy to Vercel (production)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+      - name: Post-deploy health check
+        run: |
+          for i in 1 2 3 4 5; do
+            if curl -sf https://app.heitobias.com/api/health > /dev/null; then
+              echo "Health check passed."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::Health check failed after 5 attempts. Investigate immediately."
+          exit 1

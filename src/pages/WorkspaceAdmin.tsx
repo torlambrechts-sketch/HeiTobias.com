@@ -372,6 +372,10 @@ export function WorkspaceAdminPage() {
   useEffect(() => { if (tab === 'compliance') { void loadAudit(); void loadAuditActors() } }, [tab, loadAudit, loadAuditActors])
 
   const signIn = useCallback(async () => {
+    if (!import.meta.env.DEV) {
+      setTopErr('Dev-only sign-in helper is disabled in production. Use the proper auth flow.')
+      return
+    }
     setAuthBusy(true); setTopErr(null)
     const { error } = await supabase.auth.signInWithPassword({ email: 'linnea.strand@fjordtech.test', password: 'demo' })
     setAuthBusy(false)

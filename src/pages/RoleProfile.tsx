@@ -49,7 +49,7 @@ export function RoleProfilePage() {
         <Card><CardBody>
           <p>You must sign in to view a role profile.</p>
           <Button onClick={async () => {
-            await supabase.auth.signInWithPassword({ email: 'linnea.strand@fjordtech.test', password: 'demo' })
+            import.meta.env.DEV && (await supabase.auth.signInWithPassword({ email: 'linnea.strand@fjordtech.test', password: 'demo' }))
           }}>Sign in as Linnea (demo)</Button>
         </CardBody></Card>
       </Shell>

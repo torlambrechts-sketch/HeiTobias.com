@@ -8,9 +8,12 @@ import { TabBand, Tab } from '../components/ui/tabband.js'
 import { Shell } from '../components/Shell.js'
 import { HitlNotice } from '../components/HitlNotice.js'
 
-const DEMO_USERS = [
-  { email: 'linnea.strand@fjordtech.test', label: 'Linnea Strand — FjordTech people_ops_admin' },
-] as const
+// Demo personas — dev/staging only. See EmployerActivations for rationale.
+const DEMO_USERS = import.meta.env.DEV
+  ? [
+      { email: 'linnea.strand@fjordtech.test', label: 'Linnea Strand — FjordTech people_ops_admin' },
+    ] as const
+  : ([] as ReadonlyArray<{ email: string; label: string }>)
 
 const FJORDTECH_ID = 'a1000000-0000-0000-0000-000000000002'
 
@@ -81,8 +84,14 @@ export function ModelingAdminPage() {
   useEffect(() => { void load() }, [load])
 
   const signIn = useCallback(async () => {
+    if (!import.meta.env.DEV) {
+      setTopErr('Dev-only sign-in helper is disabled in production.')
+      return
+    }
+    const demo = DEMO_USERS[0]
+    if (!demo) return
     setAuthBusy(true); setTopErr(null)
-    const { error } = await supabase.auth.signInWithPassword({ email: DEMO_USERS[0].email, password: 'demo' })
+    const { error } = await supabase.auth.signInWithPassword({ email: demo.email, password: 'demo' })
     setAuthBusy(false)
     if (error) setTopErr(`Sign-in failed: ${error.message}`)
   }, [supabase])

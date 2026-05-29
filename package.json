@@ -14,6 +14,8 @@
     "db:types": "supabase gen types typescript --linked --schema public > src/types/database.ts",
     "db:seed": "supabase db reset",
     "setup:demo-passwords": "node scripts/setup-demo-passwords.mjs",
+    "seed:demo": "node scripts/seed-demo.mjs",
+    "seed:demo:wipe": "node scripts/seed-demo-wipe.mjs",
     "test:sql": "node scripts/run-sql-tests.mjs",
     "test": "vitest run",
     "test:watch": "vitest",

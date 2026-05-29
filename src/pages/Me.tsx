@@ -47,7 +47,7 @@ export function MePage() {
     return (
       <Shell breadcrumb={<span>My profile</span>}>
         <Card><CardBody><p>You must sign in to view your own profile.</p>
-          <Button onClick={async () => await supabase.auth.signInWithPassword({ email: 'linnea.strand@fjordtech.test', password: 'demo' })}>Sign in (demo)</Button>
+          <Button onClick={async () => import.meta.env.DEV && (await supabase.auth.signInWithPassword({ email: 'linnea.strand@fjordtech.test', password: 'demo' }))}>Sign in (demo)</Button>
         </CardBody></Card>
       </Shell>
     )

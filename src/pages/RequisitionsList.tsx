@@ -87,7 +87,7 @@ export function RequisitionsListPage() {
     return (
       <Shell breadcrumb={<span>Requisitions</span>}>
         <Card><CardBody><p>You must sign in to view requisitions.</p>
-          <Button onClick={async () => await supabase.auth.signInWithPassword({ email: 'linnea.strand@fjordtech.test', password: 'demo' })}>Sign in (demo)</Button>
+          <Button onClick={async () => import.meta.env.DEV && (await supabase.auth.signInWithPassword({ email: 'linnea.strand@fjordtech.test', password: 'demo' }))}>Sign in (demo)</Button>
         </CardBody></Card>
       </Shell>
     )

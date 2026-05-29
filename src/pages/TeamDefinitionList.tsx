@@ -54,7 +54,7 @@ export function TeamDefinitionListPage() {
         <Card><CardBody>
           <p>You must sign in to view team-based definition runs.</p>
           <Button onClick={async () => {
-            await supabase.auth.signInWithPassword({ email: 'linnea.strand@fjordtech.test', password: 'demo' })
+            import.meta.env.DEV && (await supabase.auth.signInWithPassword({ email: 'linnea.strand@fjordtech.test', password: 'demo' }))
           }}>Sign in as Linnea (demo)</Button>
         </CardBody></Card>
       </Shell>

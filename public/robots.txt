@@ -1,0 +1,27 @@
+# HeiTobias — robots.txt
+#
+# Production posture: do not index the app surfaces. The platform is
+# operator-facing, not marketing. Only the architecture reference doc
+# is intentionally crawlable.
+
+User-agent: *
+Disallow: /admin
+Disallow: /api/
+Disallow: /take/
+Disallow: /me
+Disallow: /me/
+Disallow: /team
+Disallow: /team-def
+Disallow: /requisitions
+Disallow: /req
+Disallow: /demo
+Disallow: /roles
+Disallow: /employees
+Disallow: /people
+Disallow: /modeling
+Disallow: /activations
+
+# Reference doc is intentionally public.
+Allow: /architecture.html
+
+# No sitemap — marketing site lives elsewhere when needed.

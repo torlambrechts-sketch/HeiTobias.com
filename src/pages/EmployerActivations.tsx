@@ -9,10 +9,16 @@ import { TabBand, Tab } from '../components/ui/tabband.js'
 import { Shell } from '../components/Shell.js'
 import { HitlNotice } from '../components/HitlNotice.js'
 
-const DEMO_USERS = [
-  { email: 'linnea.strand@fjordtech.test', label: 'Linnea Strand — FjordTech people_ops_admin' },
-  { email: 'erik.lund@fjordtech.test',     label: 'Erik Lund — FjordTech hiring_manager' },
-] as const
+// Demo personas — only present in dev/staging builds. `import.meta.env.DEV`
+// is a Vite-time constant; in `npm run build` it becomes `false` and the
+// ternary collapses to `[]`, taking the email literals with it (verified
+// by INVARIANT-4 against the dist bundle).
+const DEMO_USERS = import.meta.env.DEV
+  ? [
+      { email: 'linnea.strand@fjordtech.test', label: 'Linnea Strand — FjordTech people_ops_admin' },
+      { email: 'erik.lund@fjordtech.test',     label: 'Erik Lund — FjordTech hiring_manager' },
+    ] as const
+  : ([] as ReadonlyArray<{ email: string; label: string }>)
 
 const FJORDTECH_ID = 'a1000000-0000-0000-0000-000000000002'
 
@@ -32,7 +38,7 @@ type PlacementRow = {
 export function EmployerActivationsPage() {
   const supabase = browserSupabase()
   const [signedIn, setSignedIn] = useState<string | null>(null)
-  const [selectedDemo, setSelectedDemo] = useState<string>(DEMO_USERS[0].email)
+  const [selectedDemo, setSelectedDemo] = useState<string>(DEMO_USERS[0]?.email ?? '')
   const [authBusy, setAuthBusy] = useState(false)
   const [rows, setRows] = useState<PlacementRow[]>([])
   const [loading, setLoading] = useState(false)
@@ -50,6 +56,10 @@ export function EmployerActivationsPage() {
   }, [supabase])
 
   const signIn = useCallback(async () => {
+    if (!import.meta.env.DEV) {
+      setTopErr('Dev-only sign-in helper is disabled in production.')
+      return
+    }
     setAuthBusy(true)
     setTopErr(null)
     const { error } = await supabase.auth.signInWithPassword({ email: selectedDemo, password: 'demo' })
