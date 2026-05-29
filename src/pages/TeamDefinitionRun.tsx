@@ -9,25 +9,30 @@ import { Card, CardBody } from '../components/ui/card.js'
 import { StageStepper } from '../components/team-definition/StageStepper.js'
 import { RunHeader } from '../components/team-definition/RunHeader.js'
 import { RatingForm } from '../components/team-definition/RatingForm.js'
+import { DivergencePanel } from '../components/team-definition/DivergencePanel.js'
+import { type EvaluatorWithPerson } from '../components/team-definition/EvaluatorRoster.js'
 
 // Main run page. Renders the stepper + header, then either:
 //   * Stage 1 (setup): forward to /team-def/new for first creation
-//   * Stage 2 (rating): show the RatingForm if the caller is an invited
-//     evaluator; otherwise show a "you're not on this run" notice
-//   * Stage 3/4: placeholders shipped in CP3.3 / CP3.4
+//   * Stage 2 (rating): RatingForm if the caller is an invited evaluator
+//   * Stage 3 (divergence): DivergencePanel (CP3.3)
+//   * Stage 4 (reconciliation / signed_off): placeholder, lands CP3.4
 //
-// CRITICAL: we never fetch other evaluators' rows on this page. The
-// owner reveal flow is reserved for the dedicated Stage 3 view (CP3.3),
-// which will call rpc_team_definition_evaluations_for_owner and accept
-// the audit-log consequence.
+// The Stage 2 view DELIBERATELY never reads other evaluators' rows —
+// the schema RLS already blocks them, but the page also doesn't try.
+// The audited owner-reveal path lives in DivergencePanel via
+// rpc_compute_divergence (which internally walks the just-sealed rows
+// as the SECDEF function owner).
 export function TeamDefinitionRunPage() {
   const { id } = useParams<{ id: string }>()
   const supabase = browserSupabase()
-  const [signedIn, setSignedIn]   = useState<string | null>(null)
-  const [personId, setPersonId]   = useState<string | null>(null)
-  const [run, setRun]             = useState<RunRow | null | undefined>(undefined)
-  const [me, setMe]               = useState<EvaluatorRow | null>(null)
-  const [err, setErr]             = useState<string | null>(null)
+  const [signedIn, setSignedIn]               = useState<string | null>(null)
+  const [personId, setPersonId]               = useState<string | null>(null)
+  const [run, setRun]                         = useState<RunRow | null | undefined>(undefined)
+  const [me, setMe]                           = useState<EvaluatorRow | null>(null)
+  const [evaluators, setEvaluators]           = useState<EvaluatorWithPerson[]>([])
+  const [attemptedReadCount, setAttemptedReadCount] = useState<number>(0)
+  const [err, setErr]                         = useState<string | null>(null)
 
   useEffect(() => {
     void supabase.auth.getSession().then(async ({ data }) => {
@@ -49,10 +54,33 @@ export function TeamDefinitionRunPage() {
     fetchRun(supabase, id)
       .then(async r => {
         setRun(r)
-        if (r) {
-          const evs = await fetchEvaluators(supabase, r.id)
-          setMe(evs.find(e => e.user_id === personId) ?? null)
-        }
+        if (!r) return
+        const evs = await fetchEvaluators(supabase, r.id)
+        setMe(evs.find(e => e.user_id === personId) ?? null)
+
+        // Hydrate person names for the roster.
+        const personIds = Array.from(new Set(evs.map(e => e.user_id)))
+        const { data: people } = await supabase
+          .from('people')
+          .select('id, full_name, primary_email')
+          .in('id', personIds)
+        const byId = new Map<string, { full_name: string; primary_email: string }>(
+          (people as { id: string; full_name: string; primary_email: string }[] | null ?? []).map(p => [p.id, p]),
+        )
+        const enriched: EvaluatorWithPerson[] = evs.map(e => ({
+          ...e,
+          full_name:     byId.get(e.user_id)?.full_name ?? null,
+          primary_email: byId.get(e.user_id)?.primary_email ?? null,
+        }))
+        setEvaluators(enriched)
+
+        // Count read-during-seal attempts for the SealCallout.
+        const { count } = await supabase
+          .from('audit_log')
+          .select('*', { count: 'exact', head: true })
+          .eq('entity_id', r.id)
+          .eq('action', 'team_def.read_during_seal')
+        setAttemptedReadCount(count ?? 0)
       })
       .catch(e => { setErr(e instanceof Error ? e.message : 'Failed to load run'); setRun(null) })
   }, [supabase, id, personId])
@@ -121,12 +149,16 @@ export function TeamDefinitionRunPage() {
             )}
 
             {(run.stage === 'divergence' || run.stage === 'reconciliation' || run.stage === 'signed_off') && (
-              <Card><CardBody>
-                <p className="text-faint text-sm">
-                  Stage 3 (divergence) + Stage 4 (reconciliation + sign-off) UI lands in CP3.3 / CP3.4.
-                  For now, the run is in <code className="font-mono">{run.stage}</code> — query via SQL or wait.
-                </p>
-              </CardBody></Card>
+              <DivergencePanel
+                run={run}
+                evaluators={evaluators}
+                attemptedReadCount={attemptedReadCount}
+                onReadyForReconciliation={() => {
+                  // Stage 4 reconciliation UI lands in CP3.4. For now,
+                  // surface where to go.
+                  alert('Stage 4 reconciliation UI lands in CP3.4. Low-consensus items are persisted; reconciliation can be recorded via rpc_record_reconciliation today.')
+                }}
+              />
             )}
           </>
         )}

@@ -116,6 +116,41 @@ export async function fetchEvaluationsForOwner(
   return data as unknown as { rows: unknown[]; stage: TeamDefinitionStage; attempted_read_during_seal: boolean }
 }
 
+export type ConsensusCategory = 'high' | 'moderate' | 'low'
+
+export type DivergenceCriterion = {
+  criterion_key: string
+  spread_metric_type: 'sd' | 'range' | 'percent_disagree' | 'kendalls_w'
+  spread_value: number
+  consensus_category: ConsensusCategory
+  flagged_for_reconciliation: boolean
+  mean: number
+  min: number
+  max: number
+  values: { evaluator_id: string; value: number }[]
+}
+
+export type DivergenceResult = {
+  criteria: DivergenceCriterion[]
+  summary: {
+    high: number
+    moderate: number
+    low: number
+    total_criteria: number
+    cutoff: number
+    min_evaluators_for_valid_run: number
+  }
+}
+
+export async function computeDivergence(
+  supabase: SupabaseClient<Database>,
+  runId: string,
+): Promise<DivergenceResult> {
+  const { data, error } = await supabase.rpc('rpc_compute_divergence' as never, { p_run_id: runId } as never)
+  if (error) throw error
+  return data as unknown as DivergenceResult
+}
+
 export function formatStage(stage: TeamDefinitionStage): { num: 1 | 2 | 3 | 4; label: string } {
   switch (stage) {
     case 'setup':          return { num: 1, label: 'Setup' }
