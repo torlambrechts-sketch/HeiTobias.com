@@ -10,6 +10,7 @@ import { StageStepper } from '../components/team-definition/StageStepper.js'
 import { RunHeader } from '../components/team-definition/RunHeader.js'
 import { RatingForm } from '../components/team-definition/RatingForm.js'
 import { DivergencePanel } from '../components/team-definition/DivergencePanel.js'
+import { ReconciliationPanel } from '../components/team-definition/ReconciliationPanel.js'
 import { type EvaluatorWithPerson } from '../components/team-definition/EvaluatorRoster.js'
 
 // Main run page. Renders the stepper + header, then either:
@@ -32,6 +33,7 @@ export function TeamDefinitionRunPage() {
   const [me, setMe]                           = useState<EvaluatorRow | null>(null)
   const [evaluators, setEvaluators]           = useState<EvaluatorWithPerson[]>([])
   const [attemptedReadCount, setAttemptedReadCount] = useState<number>(0)
+  const [forceStage4, setForceStage4]         = useState(false)
   const [err, setErr]                         = useState<string | null>(null)
 
   useEffect(() => {
@@ -148,16 +150,19 @@ export function TeamDefinitionRunPage() {
               </CardBody></Card>
             )}
 
-            {(run.stage === 'divergence' || run.stage === 'reconciliation' || run.stage === 'signed_off') && (
+            {run.stage === 'divergence' && (
               <DivergencePanel
                 run={run}
                 evaluators={evaluators}
                 attemptedReadCount={attemptedReadCount}
-                onReadyForReconciliation={() => {
-                  // Stage 4 reconciliation UI lands in CP3.4. For now,
-                  // surface where to go.
-                  alert('Stage 4 reconciliation UI lands in CP3.4. Low-consensus items are persisted; reconciliation can be recorded via rpc_record_reconciliation today.')
-                }}
+                onReadyForReconciliation={() => setForceStage4(true)}
+              />
+            )}
+            {(run.stage === 'reconciliation' || run.stage === 'signed_off' || (run.stage === 'divergence' && forceStage4)) && (
+              <ReconciliationPanel
+                run={run}
+                evaluatorCount={evaluators.length}
+                evaluatorOrder={evaluatorOrderForReconciliation(evaluators)}
               />
             )}
           </>
@@ -169,4 +174,10 @@ export function TeamDefinitionRunPage() {
       </div>
     </Shell>
   )
+}
+
+function evaluatorOrderForReconciliation(evs: EvaluatorWithPerson[]): string[] {
+  return [...evs]
+    .sort((a, b) => (a.submitted_at ?? '').localeCompare(b.submitted_at ?? '') || a.id.localeCompare(b.id))
+    .map(e => e.id)
 }

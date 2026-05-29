@@ -151,6 +151,54 @@ export async function computeDivergence(
   return data as unknown as DivergenceResult
 }
 
+export type ReconciliationRow = {
+  id: string
+  run_id: string
+  criterion_key: string
+  reconciler_user_id: string
+  discussion_notes_text: string | null
+  final_value_json: Record<string, unknown>
+  attribution_json: Record<string, unknown>
+  decided_at: string
+  created_at: string
+}
+
+export async function fetchReconciliations(
+  supabase: SupabaseClient<Database>,
+  runId: string,
+): Promise<ReconciliationRow[]> {
+  const { data, error } = await supabase
+    .from('team_definition_reconciliations' as never)
+    .select('*')
+    .eq('run_id', runId)
+  if (error) throw error
+  return (data ?? []) as unknown as ReconciliationRow[]
+}
+
+export async function recordReconciliation(
+  supabase: SupabaseClient<Database>,
+  args: {
+    p_run_id: string
+    p_criterion_key: string
+    p_discussion_notes: string
+    p_final_value_json: Record<string, unknown>
+    p_attribution_json?: Record<string, unknown>
+  },
+): Promise<string> {
+  const { data, error } = await supabase.rpc('rpc_record_reconciliation' as never, args as never)
+  if (error) throw error
+  return data as unknown as string
+}
+
+export async function signoffRoleVersion(
+  supabase: SupabaseClient<Database>,
+  args: { p_run_id: string; p_rationale: string },
+): Promise<string> {
+  const { data, error } = await supabase.rpc('rpc_signoff_role_version' as never, args as never)
+  if (error) throw error
+  return data as unknown as string
+}
+
 export function formatStage(stage: TeamDefinitionStage): { num: 1 | 2 | 3 | 4; label: string } {
   switch (stage) {
     case 'setup':          return { num: 1, label: 'Setup' }
