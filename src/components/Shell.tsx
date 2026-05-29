@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { cn } from '../lib/cn.js'
 import { useLocale, useT, LOCALES, type Locale } from '../lib/i18n.js'
+import { DemoBanner } from './DemoBanner.js'
 
 /**
  * The three-tier canonical app shell (DESIGN.md §2):
@@ -33,13 +34,16 @@ export function Shell({
   orgLabel?: string
 }) {
   return (
-    <div className="grid grid-cols-[60px_1fr] lg:grid-cols-[60px_220px_1fr] min-h-screen">
-      <IconRail />
-      <SectionNav />
-      <main className="flex flex-col min-w-0">
-        <AppBar breadcrumb={breadcrumb} orgLabel={orgLabel} signedInLabel={signedInLabel} />
-        <div className="px-8 py-8 max-w-[1280px] w-full">{children}</div>
-      </main>
+    <div className="flex flex-col min-h-screen">
+      <DemoBanner />
+      <div className="grid grid-cols-[60px_1fr] lg:grid-cols-[60px_220px_1fr] flex-1">
+        <IconRail />
+        <SectionNav />
+        <main className="flex flex-col min-w-0">
+          <AppBar breadcrumb={breadcrumb} orgLabel={orgLabel} signedInLabel={signedInLabel} />
+          <div className="px-8 py-8 max-w-[1280px] w-full">{children}</div>
+        </main>
+      </div>
     </div>
   )
 }

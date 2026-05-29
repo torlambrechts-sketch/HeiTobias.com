@@ -9,6 +9,88 @@ import { Shell } from '../components/Shell.js'
 import { HitlNotice } from '../components/HitlNotice.js'
 import { LOCALES, useLocale, type Locale } from '../lib/i18n.js'
 
+// WCAG 2.x relative-luminance contrast — soft warning, never blocking.
+function relLuminance(hex: string): number {
+  const m = hex.replace('#','').match(/^([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i)
+  if (!m) return 0
+  const toLin = (s: string) => {
+    const c = parseInt(s, 16) / 255
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  }
+  const [r, g, b] = [toLin(m[1]!), toLin(m[2]!), toLin(m[3]!)]
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+function contrastRatio(a: string, b: string): number {
+  const la = relLuminance(a), lb = relLuminance(b)
+  const [hi, lo] = la > lb ? [la, lb] : [lb, la]
+  return (hi + 0.05) / (lo + 0.05)
+}
+
+function ContrastPreview({ hex }: { hex: string }) {
+  const cCanvas  = contrastRatio(hex, '#f3f1e8')
+  const cSurface = contrastRatio(hex, '#ffffff')
+  const okCanvas = cCanvas >= 4.5
+  const okSurface = cSurface >= 4.5
+  return (
+    <div data-test="contrast-preview" className="mt-3 border border-line rounded p-3 bg-canvas-2 text-xs flex items-center gap-4 flex-wrap">
+      <span className="font-semibold uppercase tracking-wider text-muted">WCAG AA contrast</span>
+      <span className="flex items-center gap-1.5">
+        <span className="inline-block w-4 h-4 rounded" style={{ backgroundColor: hex, border: '1px solid var(--line-2)' }} />
+        vs canvas <code className={'font-mono ' + (okCanvas ? 'text-green' : 'text-amber')}>{cCanvas.toFixed(2)}:1</code> {okCanvas ? '✓' : '⚠ below 4.5'}
+      </span>
+      <span className="flex items-center gap-1.5">
+        vs surface <code className={'font-mono ' + (okSurface ? 'text-green' : 'text-amber')}>{cSurface.toFixed(2)}:1</code> {okSurface ? '✓' : '⚠ below 4.5'}
+      </span>
+      <span className="text-faint">Soft warning only — choice is yours.</span>
+    </div>
+  )
+}
+
+function toCsv(rows: AuditEvent[]): string {
+  if (rows.length === 0) return 'at,action,entity_type,entity_id,actor_name,before_json,after_json\n'
+  const esc = (v: unknown) => {
+    if (v === null || v === undefined) return ''
+    const s = typeof v === 'string' ? v : JSON.stringify(v)
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  }
+  const header = 'at,action,entity_type,entity_id,actor_name,before_json,after_json'
+  const body = rows.map(r => [
+    r.at, r.action, r.entity_type, r.entity_id ?? '',
+    r.actor_name ?? '', esc(r.before_json), esc(r.after_json)
+  ].map(esc).join(','))
+  return [header, ...body].join('\n')
+}
+
+function RetentionPreferencesView({ settings }: { settings: Record<string, unknown> | null }) {
+  const rp = (settings?.retention_preferences ?? null) as Record<string, { validity_status: string; note: string }> | null
+  return (
+    <div data-test="retention-preferences" className="mt-4 border border-dashed border-amber/40 bg-internal-bg/40 rounded p-4">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-[10.5px] uppercase tracking-wider font-bold text-internal-fg">Retention preferences</span>
+        <Pill>read-only · operator decision</Pill>
+      </div>
+      <p className="text-xs text-muted mb-3">
+        Retention policy is an <strong>operator item</strong> — set out-of-band per CLAUDE-CODE-CLOSURE-PROMPT.
+        Surfaced here for admin visibility, not editable client-side.
+      </p>
+      <ul className="text-sm flex flex-col gap-1.5">
+        {(rp ? Object.entries(rp) : [
+          ['hiring_records',  { validity_status: 'dev_stub', note: 'Requires policy decision' }],
+          ['pulse_data',      { validity_status: 'dev_stub', note: 'Requires policy decision' }],
+          ['audit_log',       { validity_status: 'dev_stub', note: 'Requires policy decision' }],
+          ['consent_records', { validity_status: 'dev_stub', note: 'Requires policy decision' }],
+        ] as [string, { validity_status: string; note: string }][]).map(([k, v]) => (
+          <li key={k} className="flex items-center gap-2">
+            <code className="font-mono text-xs flex-shrink-0">{k}</code>
+            <Pill tone="reject">{v.validity_status}</Pill>
+            <span className="text-xs text-faint">{v.note}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 type OrgRow = { org_id: string; name: string; type: string; is_admin: boolean }
 type OrgInfo = { id: string; name: string; type: string; country: string; locale_default: string; data_region: string; status: string; settings_json: Record<string, unknown> }
 type Member = { membership_id: string; person_id: string; name: string; email: string; status: string; roles: string[] | null }
@@ -24,6 +106,14 @@ type AuditEvent = {
   after_json?:  Record<string, unknown> | null
 }
 type ModuleToggle = { key: string; enabled: boolean; config: Record<string, unknown> }
+type ModuleState = {
+  module_key: string
+  module_name: string
+  availability: 'available' | 'requires_part2' | 'requires_expert_signoff'
+  availability_note: string | null
+  enabled: boolean
+  last_toggled_at: string | null
+}
 type DataExport = { id: string; requested_at: string; status: string }
 type Overview = {
   organization: OrgInfo
@@ -61,6 +151,7 @@ export function WorkspaceAdminPage() {
   const [accentColor, setAccentColor] = useState('#3a4d3f')
   const [logoUrl, setLogoUrl] = useState('')
   const [dpaUrl, setDpaUrl] = useState('')
+  const [localeDefault, setLocaleDefault] = useState<string>('en')
 
   // Invite form
   const [inviteEmail, setInviteEmail] = useState('')
@@ -69,13 +160,17 @@ export function WorkspaceAdminPage() {
   const [recentToken, setRecentToken] = useState<InviteTokenRow | null>(null)
 
   // Audit query
-  const [auditFilter, setAuditFilter] = useState({ actionLike: '', entityType: '' })
+  const [auditFilter, setAuditFilter] = useState({ actionLike: '', entityType: '', actorId: '', since: '', until: '', complianceOnly: false })
   const [auditPage, setAuditPage] = useState(0)
   const [audit, setAudit] = useState<AuditQuery | null>(null)
   const [auditLoading, setAuditLoading] = useState(false)
+  const [auditActors, setAuditActors] = useState<{ person_id: string; full_name: string; primary_email: string }[]>([])
 
   // Pending invites
   const [pendingInvites, setPendingInvites] = useState<InviteTokenRow[]>([])
+
+  // Module states
+  const [moduleStates, setModuleStates] = useState<ModuleState[]>([])
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => setSignedIn(data.session?.user?.email ?? null))
@@ -106,25 +201,73 @@ export function WorkspaceAdminPage() {
     setAccentColor(s.accent_color ?? '#3a4d3f')
     setLogoUrl(s.logo_url ?? '')
     setDpaUrl(s.dpa_url ?? '')
+    setLocaleDefault(ov.organization.locale_default ?? 'en')
   }, [signedIn, supabase, orgId, memberOffset])
 
   const loadAudit = useCallback(async () => {
     if (!orgId) return
     setAuditLoading(true)
-    const { data, error } = await supabase.rpc('admin_audit_log_query' as never, {
+    if (auditFilter.complianceOnly) {
+      const { data, error } = await supabase.rpc('admin_audit_compliance_view' as never, {
+        p_org_id: orgId,
+        p_since: auditFilter.since ? new Date(auditFilter.since).toISOString() : null,
+        p_until: auditFilter.until ? new Date(auditFilter.until).toISOString() : null,
+        p_limit: PAGE_SIZE, p_offset: auditPage * PAGE_SIZE,
+      } as never)
+      setAuditLoading(false)
+      if (error) { setTopErr(error.message); return }
+      const rows = (data ?? []) as unknown as AuditEvent[]
+      setAudit({ rows, total: rows.length, limit: PAGE_SIZE, offset: auditPage * PAGE_SIZE })
+    } else {
+      const { data, error } = await supabase.rpc('admin_audit_log_query' as never, {
+        p_org_id: orgId,
+        p_action_like: auditFilter.actionLike ? `${auditFilter.actionLike}%` : null,
+        p_actor_id: auditFilter.actorId || null,
+        p_entity_type: auditFilter.entityType || null,
+        p_since: auditFilter.since ? new Date(auditFilter.since).toISOString() : null,
+        p_until: auditFilter.until ? new Date(auditFilter.until).toISOString() : null,
+        p_limit: PAGE_SIZE, p_offset: auditPage * PAGE_SIZE,
+      } as never)
+      setAuditLoading(false)
+      if (error) { setTopErr(error.message); return }
+      setAudit(data as unknown as AuditQuery)
+    }
+  }, [supabase, orgId, auditFilter, auditPage])
+
+  const loadAuditActors = useCallback(async () => {
+    if (!orgId) return
+    const { data, error } = await supabase.rpc('admin_audit_actors' as never, { p_org_id: orgId } as never)
+    if (!error) setAuditActors((data ?? []) as unknown as { person_id: string; full_name: string; primary_email: string }[])
+  }, [supabase, orgId])
+
+  const exportAudit = useCallback(async (format: 'json' | 'csv') => {
+    if (!orgId) return
+    setBusy('export_audit'); setTopErr(null)
+    const { data, error } = await supabase.rpc('admin_audit_log_export' as never, {
       p_org_id: orgId,
       p_action_like: auditFilter.actionLike ? `${auditFilter.actionLike}%` : null,
+      p_actor_id: auditFilter.actorId || null,
       p_entity_type: auditFilter.entityType || null,
-      p_limit: PAGE_SIZE, p_offset: auditPage * PAGE_SIZE,
+      p_since: auditFilter.since ? new Date(auditFilter.since).toISOString() : null,
+      p_until: auditFilter.until ? new Date(auditFilter.until).toISOString() : null,
+      p_format: format, p_limit: 5000,
     } as never)
-    setAuditLoading(false)
+    setBusy(null)
     if (error) { setTopErr(error.message); return }
-    setAudit(data as unknown as AuditQuery)
-  }, [supabase, orgId, auditFilter, auditPage])
+    const result = data as unknown as { rows: AuditEvent[]; count: number }
+    const blob = format === 'csv'
+      ? new Blob([toCsv(result.rows)], { type: 'text/csv' })
+      : new Blob([JSON.stringify(result.rows, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `audit_log_${new Date().toISOString().slice(0,10)}.${format}`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [supabase, orgId, auditFilter])
 
   useEffect(() => { void loadOrgs() }, [loadOrgs])
   useEffect(() => { void load() }, [load])
-  useEffect(() => { if (tab === 'compliance') void loadAudit() }, [tab, loadAudit])
+  useEffect(() => { if (tab === 'compliance') { void loadAudit(); void loadAuditActors() } }, [tab, loadAudit, loadAuditActors])
 
   const signIn = useCallback(async () => {
     setAuthBusy(true); setTopErr(null)
@@ -136,15 +279,18 @@ export function WorkspaceAdminPage() {
 
   const saveOrg = useCallback(async () => {
     if (!orgId) return
+    const rationale = window.prompt('Rationale for this org-settings change (≥20 chars):')
+    if (!rationale || rationale.length < 20) return
     setBusy('org'); setTopErr(null)
-    const { error } = await supabase.rpc('org_settings_update' as never, {
+    const { error } = await supabase.rpc('org_settings_update_v2' as never, {
       p_org_id: orgId, p_display_name: displayName || null, p_legal_name: legalName || null,
       p_accent_color: accentColor || null, p_logo_url: logoUrl || null, p_dpa_url: dpaUrl || null,
+      p_locale_default: localeDefault || null, p_rationale: rationale,
     } as never)
     setBusy(null)
     if (error) setTopErr(error.message)
     await load()
-  }, [supabase, orgId, displayName, legalName, accentColor, logoUrl, dpaUrl, load])
+  }, [supabase, orgId, displayName, legalName, accentColor, logoUrl, dpaUrl, localeDefault, load])
 
   const invite = useCallback(async () => {
     if (!orgId) return
@@ -229,6 +375,25 @@ export function WorkspaceAdminPage() {
   }, [supabase, loadPending])
 
   useEffect(() => { if (tab === 'users') void loadPending() }, [tab, loadPending])
+
+  const loadModules = useCallback(async () => {
+    if (!orgId) return
+    const { data, error } = await supabase.rpc('org_modules_state' as never, { p_org_id: orgId } as never)
+    if (error) { setTopErr(error.message); return }
+    setModuleStates((data ?? []) as unknown as ModuleState[])
+  }, [supabase, orgId])
+  useEffect(() => { if (tab === 'modules') void loadModules() }, [tab, loadModules])
+
+  const toggleModule = useCallback(async (key: string, enable: boolean) => {
+    const rationale = window.prompt(`Rationale for ${enable ? 'enabling' : 'disabling'} the ${key} module (≥20 chars):`)
+    if (!rationale || rationale.length < 20) return
+    setBusy(key); setTopErr(null)
+    const { error } = await supabase.rpc('org_module_set_enabled' as never,
+      { p_org_id: orgId, p_module_key: key, p_enabled: enable, p_rationale: rationale } as never)
+    setBusy(null)
+    if (error) setTopErr(error.message)
+    await loadModules()
+  }, [supabase, orgId, loadModules])
 
   const requestExport = useCallback(async () => {
     if (!orgId) return
@@ -316,16 +481,25 @@ export function WorkspaceAdminPage() {
                   <span className="text-xs font-semibold uppercase tracking-wider text-muted">Logo URL (https://)</span>
                   <input className="border border-line rounded px-3 py-2 text-sm" value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://…" />
                 </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted">Default language</span>
+                  <select className="border border-line rounded px-3 py-2 text-sm bg-surface" value={localeDefault} onChange={e => setLocaleDefault(e.target.value)}>
+                    {LOCALES.map(l => <option key={l.code} value={l.code}>{l.nativeLabel} ({l.code})</option>)}
+                  </select>
+                </label>
                 <label className="flex flex-col gap-1 lg:col-span-2">
                   <span className="text-xs font-semibold uppercase tracking-wider text-muted">DPA / privacy posture URL (https://)</span>
                   <input className="border border-line rounded px-3 py-2 text-sm" value={dpaUrl} onChange={e => setDpaUrl(e.target.value)} placeholder="https://…" />
                 </label>
               </div>
+              <ContrastPreview hex={accentColor} />
               <div className="mt-4 flex items-center gap-2">
-                <Button onClick={saveOrg} disabled={busy === 'org'}>{busy === 'org' ? <Loader2 size={14} className="animate-spin" /> : null} Save</Button>
+                <Button onClick={saveOrg} disabled={busy === 'org'}>{busy === 'org' ? <Loader2 size={14} className="animate-spin" /> : null} Save (rationale required)</Button>
                 <Pill>data_region: {overview.organization.data_region}</Pill>
                 <Pill>country: {overview.organization.country}</Pill>
+                <Pill>type: {overview.organization.type}</Pill>
               </div>
+              <RetentionPreferencesView settings={overview.organization.settings_json} />
             </CardBody>
           </Card>
         )}
@@ -455,7 +629,7 @@ export function WorkspaceAdminPage() {
               <CardEyebrow><FileText size={12} /> Audit log</CardEyebrow>
               <CardTitle>Filter, paginate, inspect</CardTitle>
               <CardBody>
-                <div className="grid lg:grid-cols-3 gap-2 items-end mb-3">
+                <div className="grid lg:grid-cols-3 gap-2 items-end mb-3" data-test="audit-filters">
                   <label className="flex flex-col gap-1">
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted"><Filter size={11} className="inline mr-1" />Action prefix</span>
                     <input className="border border-line rounded px-3 py-2 text-sm" placeholder="org. / consent. / placement. / …" value={auditFilter.actionLike} onChange={e => { setAuditFilter({ ...auditFilter, actionLike: e.target.value }); setAuditPage(0) }} />
@@ -464,7 +638,31 @@ export function WorkspaceAdminPage() {
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted">Entity type</span>
                     <input className="border border-line rounded px-3 py-2 text-sm" placeholder="memberships / consent_grants / …" value={auditFilter.entityType} onChange={e => { setAuditFilter({ ...auditFilter, entityType: e.target.value }); setAuditPage(0) }} />
                   </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted">Actor</span>
+                    <select data-test="audit-actor-filter" className="border border-line rounded px-3 py-2 text-sm bg-surface" value={auditFilter.actorId} onChange={e => { setAuditFilter({ ...auditFilter, actorId: e.target.value }); setAuditPage(0) }}>
+                      <option value="">— any actor —</option>
+                      {auditActors.map(a => <option key={a.person_id} value={a.person_id}>{a.full_name}</option>)}
+                    </select>
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted">Since</span>
+                    <input type="date" className="border border-line rounded px-3 py-2 text-sm" value={auditFilter.since} onChange={e => { setAuditFilter({ ...auditFilter, since: e.target.value }); setAuditPage(0) }} />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted">Until</span>
+                    <input type="date" className="border border-line rounded px-3 py-2 text-sm" value={auditFilter.until} onChange={e => { setAuditFilter({ ...auditFilter, until: e.target.value }); setAuditPage(0) }} />
+                  </label>
+                  <label className="flex items-center gap-2 text-xs font-semibold text-ink mt-5">
+                    <input data-test="compliance-toggle" type="checkbox" checked={auditFilter.complianceOnly} onChange={e => { setAuditFilter({ ...auditFilter, complianceOnly: e.target.checked }); setAuditPage(0) }} />
+                    Compliance view (AI Act Art. 12 + GDPR Art. 30 only)
+                  </label>
+                </div>
+                <div className="flex items-center gap-2 mb-3">
                   <Button variant="ghost" onClick={() => loadAudit()}>Refresh</Button>
+                  <Button variant="ghost" disabled={busy === 'export_audit'} onClick={() => exportAudit('json')} className="text-xs"><FileDown size={12} /> Export JSON</Button>
+                  <Button variant="ghost" disabled={busy === 'export_audit'} onClick={() => exportAudit('csv')} className="text-xs"><FileDown size={12} /> Export CSV</Button>
+                  <span className="text-[11px] text-faint ml-2">Export writes its own <code className="font-mono">audit_log_exported_by</code> row.</span>
                 </div>
                 {auditLoading && <div className="text-faint text-xs flex items-center gap-2 py-2"><Loader2 size={12} className="animate-spin" /> Searching…</div>}
                 {!auditLoading && audit && audit.rows.length === 0 && (
@@ -501,23 +699,53 @@ export function WorkspaceAdminPage() {
           </div>
         )}
 
-        {tab === 'modules' && overview && (
-          <Card>
+        {tab === 'modules' && (
+          <Card data-test="modules-tab">
             <CardEyebrow><FileText size={12} /> Modules</CardEyebrow>
             <CardTitle>Capabilities enabled for this org</CardTitle>
             <CardBody>
-              <p className="text-faint text-xs mb-2">Read-only — toggles only activate modules already implemented.</p>
+              <p className="text-muted text-xs mb-4 max-w-2xl">
+                Toggle enables / disables a module for this org. Disabled modules hide from the
+                sidebar and any direct route shows a "module disabled" message.{' '}
+                <strong>requires_part2</strong> + <strong>requires_expert_signoff</strong> are
+                locked off at the DB layer — no admin (including yourself) can flip them on until
+                the gating work lands.
+              </p>
               <table className="w-full text-sm">
                 <thead className="text-faint text-xs uppercase tracking-wider">
-                  <tr><th className="text-left py-1">Module</th><th className="text-left">State</th></tr>
+                  <tr>
+                    <th className="text-left py-1">Module</th>
+                    <th className="text-left">Availability</th>
+                    <th className="text-left">State</th>
+                    <th className="text-left">Last toggled</th>
+                    <th></th>
+                  </tr>
                 </thead>
                 <tbody>
-                  {overview.module_toggles.map(m => (
-                    <tr key={m.key} className="border-t border-line">
-                      <td className="py-1">{m.key}</td>
-                      <td className="py-1"><Pill>{m.enabled ? 'enabled' : 'disabled'}</Pill></td>
-                    </tr>
-                  ))}
+                  {moduleStates.map(m => {
+                    const locked = m.availability !== 'available'
+                    return (
+                      <tr key={m.module_key} className="border-t border-line align-top">
+                        <td className="py-2">
+                          <div className="font-semibold">{m.module_name}</div>
+                          <div className="text-xs text-faint font-mono">{m.module_key}</div>
+                          {m.availability_note && <div className="text-xs text-muted mt-1 max-w-md">{m.availability_note}</div>}
+                        </td>
+                        <td className="py-2">
+                          <Pill tone={m.availability === 'available' ? 'open' : 'reject'}>{m.availability}</Pill>
+                        </td>
+                        <td className="py-2"><Pill tone={m.enabled ? 'open' : 'draft'}>{m.enabled ? 'enabled' : 'disabled'}</Pill></td>
+                        <td className="py-2 text-xs text-faint">{m.last_toggled_at ? new Date(m.last_toggled_at).toLocaleDateString() : '—'}</td>
+                        <td className="py-2">
+                          {locked
+                            ? <span className="text-xs text-faint italic">Locked</span>
+                            : <Button variant="ghost" disabled={busy === m.module_key} onClick={() => toggleModule(m.module_key, !m.enabled)} className="text-xs">
+                                {m.enabled ? 'Disable' : 'Enable'}…
+                              </Button>}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </CardBody>
@@ -602,37 +830,108 @@ function AuditLogTable({ rows }: { rows: AuditEvent[] }) {
 // preference shipped to date). When more self-service fields land
 // (display name correction, email aliases, etc.), they slot in here.
 function MyProfileTab({ signedIn }: { signedIn: string | null }) {
+  const supabase = browserSupabase()
   const { locale, setLocale } = useLocale()
+  type MyMembership = { membership_id: string; org_id: string; org_name: string; status: string; roles: string[] }
+  const [mems, setMems] = useState<MyMembership[]>([])
+  const [myAudit, setMyAudit] = useState<AuditEvent[]>([])
+  const [err, setErr] = useState<string | null>(null)
+
+  const refresh = useCallback(async () => {
+    const [{ data: m }, { data: a }] = await Promise.all([
+      supabase.rpc('me_memberships' as never),
+      supabase.rpc('me_audit_log' as never, { p_limit: 25, p_offset: 0 } as never),
+    ])
+    setMems((m ?? []) as unknown as MyMembership[])
+    setMyAudit((a ?? []) as unknown as AuditEvent[])
+  }, [supabase])
+  useEffect(() => { void refresh() }, [refresh])
+
+  const leave = useCallback(async (membershipId: string) => {
+    const rationale = window.prompt('Rationale for leaving this org (≥20 chars). You will enter a 7-day grace period and can cancel.')
+    if (!rationale || rationale.length < 20) return
+    const { error } = await supabase.rpc('me_leave_request' as never, { p_membership_id: membershipId, p_rationale: rationale } as never)
+    if (error) setErr(error.message); else await refresh()
+  }, [supabase, refresh])
+  const cancelLeave = useCallback(async (membershipId: string) => {
+    const rationale = window.prompt('Rationale for cancelling this leave (≥20 chars):')
+    if (!rationale || rationale.length < 20) return
+    const { error } = await supabase.rpc('me_leave_cancel' as never, { p_membership_id: membershipId, p_rationale: rationale } as never)
+    if (error) setErr(error.message); else await refresh()
+  }, [supabase, refresh])
+
   return (
-    <Card>
-      <CardEyebrow><SettingsIcon size={12} /> My profile</CardEyebrow>
-      <CardTitle>Account &amp; preferences</CardTitle>
-      <CardBody className="flex flex-col gap-4">
-        <div className="grid lg:grid-cols-2 gap-4">
-          <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">Signed in as</span>
-            <input className="border border-line rounded px-3 py-2 text-sm bg-canvas" value={signedIn ?? ''} readOnly />
-            <span className="text-xs text-faint">Email and display name are governed by your IdP; corrections go through your org admin.</span>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">Language</span>
-            <select
-              data-test="my-profile-locale"
-              value={locale}
-              onChange={e => setLocale(e.target.value as Locale)}
-              className="border border-line rounded px-3 py-2 text-sm bg-surface"
-            >
-              {LOCALES.map(l => <option key={l.code} value={l.code}>{l.nativeLabel} ({l.code})</option>)}
-            </select>
-            <span className="text-xs text-faint">Stored locally in this browser. Per-user server-side persistence lands when the user_preferences table is added.</span>
-          </label>
-        </div>
-        <p className="text-xs text-faint border-t border-line pt-3">
-          Self-profile editing for org-managed fields (name, email aliases) requires the org admin
-          flow under <code className="font-mono">Users</code>. This screen surfaces only the fields
-          you can change yourself.
-        </p>
-      </CardBody>
-    </Card>
+    <div className="flex flex-col gap-4">
+      {err && <div className="rounded border border-rust/40 bg-reject-bg p-3 text-sm text-rust">{err}</div>}
+      <Card>
+        <CardEyebrow><SettingsIcon size={12} /> My profile</CardEyebrow>
+        <CardTitle>Account &amp; preferences</CardTitle>
+        <CardBody className="flex flex-col gap-4">
+          <div className="grid lg:grid-cols-2 gap-4">
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted">Signed in as</span>
+              <input className="border border-line rounded px-3 py-2 text-sm bg-canvas" value={signedIn ?? ''} readOnly />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted">Language</span>
+              <select data-test="my-profile-locale" value={locale} onChange={e => setLocale(e.target.value as Locale)}
+                className="border border-line rounded px-3 py-2 text-sm bg-surface">
+                {LOCALES.map(l => <option key={l.code} value={l.code}>{l.nativeLabel} ({l.code})</option>)}
+              </select>
+              <span className="text-xs text-faint">Stored locally; server-side persistence lands with the user_preferences table.</span>
+            </label>
+          </div>
+        </CardBody>
+      </Card>
+
+      <Card data-test="my-memberships">
+        <CardEyebrow>My memberships</CardEyebrow>
+        <CardTitle>Orgs &amp; roles</CardTitle>
+        <CardBody>
+          {mems.length === 0 && <p className="text-faint text-sm">You have no active memberships.</p>}
+          <ul className="flex flex-col gap-2">
+            {mems.map(m => (
+              <li key={m.membership_id} className="flex items-center gap-3 border-b border-line pb-2 text-sm">
+                <span className="flex-1">
+                  <strong>{m.org_name}</strong>
+                  <span className="text-xs text-faint ml-2">{m.roles.join(', ') || 'no roles'}</span>
+                </span>
+                <Pill tone={m.status === 'active' ? 'open' : m.status === 'leaving' ? 'reject' : 'draft'}>{m.status}</Pill>
+                {m.status === 'active' && (
+                  <Button variant="ghost" onClick={() => leave(m.membership_id)} className="text-xs text-rust">Leave org…</Button>
+                )}
+                {m.status === 'leaving' && (
+                  <Button variant="ghost" onClick={() => cancelLeave(m.membership_id)} className="text-xs text-green">Cancel leave</Button>
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-faint mt-3">
+            Leave-org enters a 7-day grace window; admin is notified. Auto-finalisation to
+            <code className="font-mono"> inactive</code> at grace expiry is an operator scheduler item.
+          </p>
+        </CardBody>
+      </Card>
+
+      <Card data-test="my-audit">
+        <CardEyebrow>Recent activity</CardEyebrow>
+        <CardTitle>Actions you took (last 25)</CardTitle>
+        <CardBody>
+          {myAudit.length === 0 && <p className="text-faint text-sm">No recorded actions.</p>}
+          <table className="w-full text-xs">
+            <thead className="text-faint uppercase tracking-wider"><tr><th className="text-left py-1">At</th><th className="text-left">Action</th><th className="text-left">Entity</th></tr></thead>
+            <tbody>
+              {myAudit.map(e => (
+                <tr key={e.id} className="border-t border-line">
+                  <td className="py-1">{new Date(e.at).toLocaleString()}</td>
+                  <td className="py-1 font-mono">{e.action}</td>
+                  <td className="py-1 text-faint">{e.entity_type}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </CardBody>
+      </Card>
+    </div>
   )
 }
