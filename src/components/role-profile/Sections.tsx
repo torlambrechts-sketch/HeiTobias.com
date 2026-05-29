@@ -13,14 +13,14 @@ export function SectionAnchor({ id, children }: { id: string; children: React.Re
   return <section id={id} className="scroll-mt-20">{children}</section>
 }
 
-// ============ 1. Identity & governance ============
+// ============ 01 · Identity & governance ============
 export function IdentityGovernanceSection({ row }: { row: RoleProfileRow }) {
   const ig = row.definition_json.identity_and_governance
   const codes = ig?.external_codes
   return (
     <SectionAnchor id="identity">
       <Card>
-        <CardEyebrow><ShieldCheck size={12} /> 1. Identity & governance</CardEyebrow>
+        <CardEyebrow><ShieldCheck size={12} /> 01 · Identity & governance</CardEyebrow>
         <CardTitle>Versioning, sign-off, external codes</CardTitle>
         <CardBody>
           <div className="grid lg:grid-cols-2 gap-3 text-sm">
@@ -52,13 +52,13 @@ export function IdentityGovernanceSection({ row }: { row: RoleProfileRow }) {
   )
 }
 
-// ============ 2. Tasks & outcomes ============
+// ============ 02 · Tasks & outcomes ============
 export function TasksSection({ row }: { row: RoleProfileRow }) {
   const tasks = row.definition_json.task_layer ?? []
   return (
     <SectionAnchor id="tasks">
       <Card>
-        <CardEyebrow><Briefcase size={12} /> 2. Tasks & outcomes</CardEyebrow>
+        <CardEyebrow><Briefcase size={12} /> 02 · Tasks & outcomes</CardEyebrow>
         <CardTitle>Work activities anchoring this role</CardTitle>
         <CardBody>
           {tasks.length === 0 && <p className="text-faint text-sm"><em>No task layer recorded yet.</em></p>}
@@ -84,14 +84,14 @@ export function TasksSection({ row }: { row: RoleProfileRow }) {
   )
 }
 
-// ============ 3. Weighted competencies ============
+// ============ 03 · Weighted competencies ============
 export function CompetenciesSection({ row }: { row: RoleProfileRow }) {
   const comps = row.definition_json.competencies ?? []
   const cw = criticalWeightSum(row)
   return (
     <SectionAnchor id="competencies">
       <Card>
-        <CardEyebrow><BarChart3 size={12} /> 3. Weighted competencies</CardEyebrow>
+        <CardEyebrow><BarChart3 size={12} /> 03 · Weighted competencies</CardEyebrow>
         <CardTitle>What is being assessed against</CardTitle>
         <CardBody>
           {comps.length === 0 && <p className="text-faint text-sm"><em>No competencies recorded yet.</em></p>}
@@ -138,13 +138,13 @@ export function CompetenciesSection({ row }: { row: RoleProfileRow }) {
   )
 }
 
-// ============ 4. Trait target bands ============
+// ============ 04 · Trait target bands ============
 export function TraitTargetsSection({ row }: { row: RoleProfileRow }) {
   const targets = row.definition_json.trait_targets ?? []
   return (
     <SectionAnchor id="trait_targets">
       <Card>
-        <CardEyebrow><Compass size={12} /> 4. Trait target bands</CardEyebrow>
+        <CardEyebrow><Compass size={12} /> 04 · Trait target bands</CardEyebrow>
         <CardTitle>Personality bands — RANGES, not maxima (SCIENCE-SPEC §2)</CardTitle>
         <CardBody>
           {targets.length === 0 && <p className="text-faint text-sm"><em>No trait targets recorded yet.</em></p>}
@@ -163,13 +163,13 @@ export function TraitTargetsSection({ row }: { row: RoleProfileRow }) {
   )
 }
 
-// ============ 5. Cognitive demand (CP4 placeholder; full in CP4) ============
+// ============ 05 · Cognitive demand (CP4 placeholder; full in CP4) ============
 export function CognitiveDemandSection({ row }: { row: RoleProfileRow }) {
   const c = row.definition_json.cognitive_demand
   return (
     <SectionAnchor id="cognitive">
       <Card>
-        <CardEyebrow><Layers size={12} /> 5. Cognitive demand</CardEyebrow>
+        <CardEyebrow><Layers size={12} /> 05 · Cognitive demand</CardEyebrow>
         <CardTitle>Complexity-conditioned, range-with-caveat</CardTitle>
         <CardBody>
           {!c && <p className="text-faint text-sm"><em>No cognitive demand recorded yet.</em></p>}
@@ -208,7 +208,7 @@ export function CognitiveDemandSection({ row }: { row: RoleProfileRow }) {
   )
 }
 
-// ============ 6. Context factors (Trait Activation) ============
+// ============ 06 · Context factors (Trait Activation) ============
 const CTX_KEYS: { k: keyof NonNullable<RoleProfileRow['definition_json']['context_factors']>; label: string }[] = [
   { k: 'autonomy', label: 'Autonomy' },
   { k: 'ambiguity_tolerance_required', label: 'Ambiguity tolerance' },
@@ -226,7 +226,7 @@ export function ContextFactorsSection({ row }: { row: RoleProfileRow }) {
   return (
     <SectionAnchor id="context">
       <Card>
-        <CardEyebrow><Compass size={12} /> 6. Context factors</CardEyebrow>
+        <CardEyebrow><Compass size={12} /> 06 · Context factors</CardEyebrow>
         <CardTitle>Trait Activation context (Tett & Burnett 2003)</CardTitle>
         <CardBody>
           {!ctx && <p className="text-faint text-sm"><em>No context factors recorded yet.</em></p>}
@@ -268,7 +268,7 @@ export function ContextFactorsSection({ row }: { row: RoleProfileRow }) {
   )
 }
 
-// ============ 7. Values & motivation ============
+// ============ 07 · Values & motivation ============
 export function ValuesSection({ row }: { row: RoleProfileRow }) {
   const v = row.definition_json.values_and_motivation as
     | { schwartz_values?: Record<string, string>; sdt_needs_supply?: Record<string, string>; _dev_stub?: boolean }
@@ -276,7 +276,7 @@ export function ValuesSection({ row }: { row: RoleProfileRow }) {
   return (
     <SectionAnchor id="values">
       <Card>
-        <CardEyebrow><FileText size={12} /> 7. Values & motivation</CardEyebrow>
+        <CardEyebrow><FileText size={12} /> 07 · Values & motivation</CardEyebrow>
         <CardTitle>Schwartz values + SDT needs-supply</CardTitle>
         <CardBody>
           {!v && <p className="text-faint text-sm"><em>No values/motivation recorded yet.</em></p>}
@@ -311,7 +311,7 @@ export function ValuesSection({ row }: { row: RoleProfileRow }) {
   )
 }
 
-// ============ 8. Success criteria ============
+// ============ 08 · Success criteria ============
 export function SuccessCriteriaSection({ row }: { row: RoleProfileRow }) {
   const all = row.definition_json.success_criteria ?? []
   const horizons: { h: '90_day' | 'six_month' | 'annual'; label: string }[] = [
@@ -322,7 +322,7 @@ export function SuccessCriteriaSection({ row }: { row: RoleProfileRow }) {
   return (
     <SectionAnchor id="success">
       <Card>
-        <CardEyebrow><ScrollText size={12} /> 8. Success criteria</CardEyebrow>
+        <CardEyebrow><ScrollText size={12} /> 08 · Success criteria</CardEyebrow>
         <CardTitle>Multi-dimensional, time-bounded (Campbell 1990; Pulakos 2000)</CardTitle>
         <CardBody>
           {all.length === 0 && <p className="text-faint text-sm"><em>No success criteria recorded yet.</em></p>}
@@ -360,7 +360,7 @@ export function SuccessCriteriaSection({ row }: { row: RoleProfileRow }) {
   )
 }
 
-// ============ 9. Evolution vector (FORECAST panel) ============
+// ============ 09 · Evolution vector (FORECAST panel) ============
 export function EvolutionVectorSection({ row }: { row: RoleProfileRow }) {
   const ev = row.definition_json.evolution_vector
   return (
@@ -422,13 +422,13 @@ export function EvolutionVectorSection({ row }: { row: RoleProfileRow }) {
   )
 }
 
-// ============ 10. Team-gap context (surveillance guardrail visible) ============
+// ============ 10 · Team-gap context (surveillance guardrail visible) ============
 export function TeamGapSection({ row }: { row: RoleProfileRow }) {
   const tg = row.definition_json.team_gap_context
   return (
     <SectionAnchor id="team_gap">
       <Card>
-        <CardEyebrow><Users size={12} /> 10. Team-gap context</CardEyebrow>
+        <CardEyebrow><Users size={12} /> 10 · Team-gap context</CardEyebrow>
         <CardTitle>Complementary + supplementary pull traits</CardTitle>
         <CardBody>
           {/* Visible body-copy surveillance guardrail per the prompt §E. */}

@@ -8,7 +8,7 @@ import { Button } from '../ui/button.js'
 import { StubPill } from './StubBanner.js'
 import { SectionAnchor } from './Sections.js'
 
-// 11. Validation & defensibility metadata + document-export chips.
+// 11 · Validation & defensibility metadata + document-export chips.
 // Each chip calls rpc_role_export_assemble which wraps
 // compliance_artifact_assemble — the system NEVER self-attests; the
 // resulting artifact carries sign_off_status='draft' + payload
@@ -44,7 +44,7 @@ export function ValidationCard({ row }: { row: RoleProfileRow }) {
   return (
     <SectionAnchor id="validation">
       <Card>
-        <CardEyebrow><ShieldCheck size={12} /> 11. Validation & defensibility</CardEyebrow>
+        <CardEyebrow><ShieldCheck size={12} /> 11 · Validation & defensibility</CardEyebrow>
         <CardTitle>Validity status, audit trail, exports</CardTitle>
         <CardBody>
           {meta ? (

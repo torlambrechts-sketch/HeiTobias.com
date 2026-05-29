@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react'
 
-const ANCHORS: { id: string; label: string }[] = [
-  { id: 'identity',      label: '1. Identity & governance' },
-  { id: 'tasks',         label: '2. Tasks & outcomes' },
-  { id: 'competencies',  label: '3. Weighted competencies' },
-  { id: 'trait_targets', label: '4. Trait target bands' },
-  { id: 'cognitive',     label: '5. Cognitive demand' },
-  { id: 'context',       label: '6. Context factors' },
-  { id: 'values',        label: '7. Values & motivation' },
-  { id: 'success',       label: '8. Success criteria' },
-  { id: 'evolution',     label: '9. Evolution vector' },
-  { id: 'team_gap',      label: '10. Team-gap context' },
-  { id: 'validation',    label: '11. Validation & defensibility' },
+const ANCHORS: { id: string; num: string; label: string }[] = [
+  { id: 'identity',      num: '01', label: 'Identity & governance' },
+  { id: 'tasks',         num: '02', label: 'Tasks & outcomes' },
+  { id: 'competencies',  num: '03', label: 'Weighted competencies' },
+  { id: 'trait_targets', num: '04', label: 'Trait target bands' },
+  { id: 'cognitive',     num: '05', label: 'Cognitive demand' },
+  { id: 'context',       num: '06', label: 'Context factors' },
+  { id: 'values',        num: '07', label: 'Values & motivation' },
+  { id: 'success',       num: '08', label: 'Success criteria' },
+  { id: 'evolution',     num: '09', label: 'Evolution vector' },
+  { id: 'team_gap',      num: '10', label: 'Team-gap context' },
+  { id: 'validation',    num: '11', label: 'Validation & defensibility' },
 ]
 
 // Sticky left subnav with scrollspy using IntersectionObserver.
@@ -34,19 +34,24 @@ export function SubNav() {
 
   return (
     <>
-      {/* Desktop: 220px sticky subnav */}
+      {/* Desktop: 220px sticky subnav. Matches role-profile-detail.html: a Playfair-numbered
+          prefix (01–11) sits left of each label; active item highlights the number in role-blue
+          + the label in ink. */}
       <nav className="hidden lg:block sticky top-20 self-start w-[220px] flex-shrink-0">
-        <ul className="flex flex-col gap-1 text-sm">
+        <ul className="flex flex-col gap-0.5 text-sm">
           {ANCHORS.map(a => (
             <li key={a.id}>
               <a
                 href={`#${a.id}`}
                 className={
-                  'block px-3 py-1.5 rounded text-faint hover:text-ink hover:bg-canvas-2 ' +
-                  (active === a.id ? 'text-ink bg-canvas-2 font-semibold border-l-2 border-forest -ml-0.5 pl-[10px]' : '')
+                  'flex items-center gap-2.5 px-3 py-2 rounded text-faint hover:text-ink hover:bg-canvas-2 leading-snug ' +
+                  (active === a.id ? 'text-ink bg-canvas-2 font-bold' : '')
                 }
               >
-                {a.label}
+                <span className={'font-display text-xs w-[18px] flex-shrink-0 ' + (active === a.id ? 'text-role' : 'text-faint')}>
+                  {a.num}
+                </span>
+                <span>{a.label}</span>
               </a>
             </li>
           ))}
@@ -60,7 +65,7 @@ export function SubNav() {
             href={`#${a.id}`}
             className={'px-2 py-1 rounded border ' + (active === a.id ? 'bg-forest text-white border-forest' : 'border-line text-faint')}
           >
-            {a.label.replace(/^\d+\.\s+/, '')}
+            <span className="font-display mr-1">{a.num}</span>{a.label}
           </a>
         ))}
       </nav>

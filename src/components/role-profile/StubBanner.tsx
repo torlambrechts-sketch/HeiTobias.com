@@ -10,15 +10,18 @@ export function StubBanner({ row }: { row: RoleProfileRow }) {
   if (!s.anyStubbed) return null
   const stubbed = Object.entries(s.perSection).filter(([, v]) => v).map(([k]) => k)
   return (
-    <div className="rounded-lg border border-internal-fg/30 bg-internal-bg/60 p-4 flex items-start gap-3">
-      <AlertCircle size={18} className="text-internal-fg flex-shrink-0 mt-0.5" />
-      <div className="text-sm">
-        <p className="font-semibold text-internal-fg mb-1">SAMPLE / DEV STUB role profile — not yet validated</p>
-        <p className="text-ink/80">
-          The fields below are placeholder content awaiting I/O-psychologist + legal-advisor sign-off. Stubbed sections:{' '}
-          <span className="font-mono">{stubbed.join(', ')}</span>.
-          The "Promote to validated" actions remain disabled until an expert has signed off.
-        </p>
+    <div className="rounded-lg border border-dashed border-internal-fg/60 bg-internal-bg/60 p-4 flex items-start gap-3">
+      <span className="text-[10.5px] uppercase tracking-wider font-bold px-2 py-1 rounded bg-white text-internal-fg border border-internal-fg/30 flex-shrink-0 inline-flex items-center gap-1.5">
+        <AlertCircle size={12} /> Sample template
+      </span>
+      <div className="text-sm text-ink/90 leading-relaxed">
+        This is a research-derived SAMPLE Role Profile shipped for the demo. Trait bands, competency
+        weights, BARS anchors, and cognitive complexity must be validated per-organization by the
+        engaged I/O psychologist before any live decision. <code className="font-mono text-xs bg-white/60 px-1 rounded">validity_status</code> remains
+        <code className="font-mono text-xs bg-white/60 px-1 rounded mx-1">dev_stub</code> on each affected row; a row cannot transition to
+        <code className="font-mono text-xs bg-white/60 px-1 rounded mx-1">validated</code> until a signed-off methodology produces real values.
+        Stubbed sections: <span className="font-mono text-xs">{stubbed.join(' · ')}</span>.
+        Per <span className="font-mono text-xs">SCIENCE-SPEC §2, §5</span>; CLAUDE.md Pillar 5.
       </div>
     </div>
   )
