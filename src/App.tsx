@@ -7,6 +7,7 @@ import { RecruiterRequisitionPage } from './pages/RecruiterRequisition.js'
 import { EmployerActivationsPage } from './pages/EmployerActivations.js'
 import { ManagerEmployeeDetailPage } from './pages/ManagerEmployeeDetail.js'
 import { ModelingAdminPage } from './pages/ModelingAdmin.js'
+import { WorkspaceAdminPage } from './pages/WorkspaceAdmin.js'
 import { EnvBoundary } from './components/EnvBoundary.js'
 
 export function App() {
@@ -22,6 +23,7 @@ export function App() {
           <Route path="/activations" element={<EmployerActivationsPage />} />
           <Route path="/employees/:id" element={<ManagerEmployeeDetailPage />} />
           <Route path="/modeling" element={<ModelingAdminPage />} />
+          <Route path="/admin" element={<WorkspaceAdminPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
