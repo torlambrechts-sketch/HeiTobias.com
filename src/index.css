@@ -10,6 +10,8 @@
   --canvas:   #f3f1e8;
   --canvas-2: #eceadf;
   --surface:  #ffffff;
+  --paper:    #ffffff;       /* high-contrast text on ink — aliased to surface */
+  --accent:   #3f7d5a;       /* per-tenant brand accent — defaults to green */
 
   /* green chrome */
   --rail:     #2c3b30;

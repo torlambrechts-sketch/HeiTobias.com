@@ -8,6 +8,8 @@ export default {
         canvas:    'var(--canvas)',
         'canvas-2':'var(--canvas-2)',
         surface:   'var(--surface)',
+        paper:     'var(--paper)',
+        accent:    'var(--accent)',
 
         rail:      'var(--rail)',
         forest:    'var(--forest)',
@@ -46,6 +48,7 @@ export default {
       },
       boxShadow: {
         soft: '0 1px 2px rgba(58,77,63,.05), 0 6px 18px rgba(58,77,63,.05)',
+        hard: '3px 3px 0 var(--ink)',
       },
     },
   },
