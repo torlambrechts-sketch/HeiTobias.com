@@ -176,6 +176,21 @@ export function DemoPage() {
           </CardBody>
         </Card>
 
+        <Card data-test="architecture-link">
+          <CardEyebrow>Reference architecture</CardEyebrow>
+          <CardTitle>The 4-layer system + the Talent Data Spine</CardTitle>
+          <CardBody>
+            <p className="text-sm text-muted leading-relaxed mb-3">
+              Client surfaces · Application &amp; domain logic · Intelligence &amp; science · Data &amp;
+              platform foundation — with the Role Profile + Person Profile as co-equal entities
+              and the recruiter-channel land-and-expand motion built into the schema.
+            </p>
+            <a href="/architecture.html" target="_blank" rel="noopener" className="text-role hover:underline font-semibold text-sm">
+              Open architecture.html → (full-screen reference)
+            </a>
+          </CardBody>
+        </Card>
+
         <p className="text-xs text-faint mt-2">
           <Briefcase size={11} className="inline mr-1" />
           The demo is the unlock for design-partner conversations. Operator (EU
