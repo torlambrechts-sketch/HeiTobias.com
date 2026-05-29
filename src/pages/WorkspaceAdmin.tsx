@@ -61,6 +61,7 @@ export function WorkspaceAdminPage() {
   const [auditFilter, setAuditFilter] = useState({ actionLike: '', entityType: '' })
   const [auditPage, setAuditPage] = useState(0)
   const [audit, setAudit] = useState<AuditQuery | null>(null)
+  const [auditLoading, setAuditLoading] = useState(false)
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => setSignedIn(data.session?.user?.email ?? null))
@@ -95,12 +96,14 @@ export function WorkspaceAdminPage() {
 
   const loadAudit = useCallback(async () => {
     if (!orgId) return
+    setAuditLoading(true)
     const { data, error } = await supabase.rpc('admin_audit_log_query' as never, {
       p_org_id: orgId,
       p_action_like: auditFilter.actionLike ? `${auditFilter.actionLike}%` : null,
       p_entity_type: auditFilter.entityType || null,
       p_limit: PAGE_SIZE, p_offset: auditPage * PAGE_SIZE,
     } as never)
+    setAuditLoading(false)
     if (error) { setTopErr(error.message); return }
     setAudit(data as unknown as AuditQuery)
   }, [supabase, orgId, auditFilter, auditPage])
@@ -370,21 +373,29 @@ export function WorkspaceAdminPage() {
                   </label>
                   <Button variant="ghost" onClick={() => loadAudit()}>Refresh</Button>
                 </div>
-                <table className="w-full text-xs">
-                  <thead className="text-faint uppercase tracking-wider">
-                    <tr><th className="text-left py-1">At</th><th className="text-left">Action</th><th className="text-left">Entity</th><th className="text-left">Actor</th></tr>
-                  </thead>
-                  <tbody>
-                    {(audit?.rows ?? []).map((e, i) => (
-                      <tr key={e.id ?? i} className="border-t border-line">
-                        <td className="py-1">{new Date(e.at).toLocaleString()}</td>
-                        <td className="py-1 font-mono">{e.action}</td>
-                        <td className="py-1 text-faint">{e.entity_type}</td>
-                        <td className="py-1">{e.actor_name ?? <em className="text-faint">system</em>}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                {auditLoading && <div className="text-faint text-xs flex items-center gap-2 py-2"><Loader2 size={12} className="animate-spin" /> Searching…</div>}
+                {!auditLoading && audit && audit.rows.length === 0 && (
+                  <div className="text-faint text-xs py-6 text-center border border-dashed border-line rounded">
+                    No events match your filter.
+                  </div>
+                )}
+                {!auditLoading && audit && audit.rows.length > 0 && (
+                  <table className="w-full text-xs">
+                    <thead className="text-faint uppercase tracking-wider">
+                      <tr><th className="text-left py-1">At</th><th className="text-left">Action</th><th className="text-left">Entity</th><th className="text-left">Actor</th></tr>
+                    </thead>
+                    <tbody>
+                      {audit.rows.map((e, i) => (
+                        <tr key={e.id ?? i} className="border-t border-line">
+                          <td className="py-1">{new Date(e.at).toLocaleString()}</td>
+                          <td className="py-1 font-mono">{e.action}</td>
+                          <td className="py-1 text-faint">{e.entity_type}</td>
+                          <td className="py-1">{e.actor_name ?? <em className="text-faint">system</em>}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
                 {audit && (
                   <div className="mt-3 flex items-center gap-2 text-xs text-faint">
                     <Button variant="ghost" disabled={auditPage === 0} onClick={() => setAuditPage(Math.max(0, auditPage - 1))}>← Previous</Button>
