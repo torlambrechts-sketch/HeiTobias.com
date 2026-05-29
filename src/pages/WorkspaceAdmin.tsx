@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, Building2, Copy, FileDown, FileText, Filter, Link as LinkIcon, Loader2, LogOut, Settings as SettingsIcon, Shield, UserPlus, Users } from 'lucide-react'
+import { AlertTriangle, Building2, ChevronDown, ChevronRight, Copy, FileDown, FileText, Filter, Link as LinkIcon, Loader2, LogOut, Settings as SettingsIcon, Shield, UserPlus, Users } from 'lucide-react'
 import { browserSupabase } from '../lib/browser-supabase.js'
 import { Button } from '../components/ui/button.js'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
@@ -7,11 +7,22 @@ import { Pill } from '../components/ui/badges.js'
 import { TabBand, Tab } from '../components/ui/tabband.js'
 import { Shell } from '../components/Shell.js'
 import { HitlNotice } from '../components/HitlNotice.js'
+import { LOCALES, useLocale, type Locale } from '../lib/i18n.js'
 
 type OrgRow = { org_id: string; name: string; type: string; is_admin: boolean }
 type OrgInfo = { id: string; name: string; type: string; country: string; locale_default: string; data_region: string; status: string; settings_json: Record<string, unknown> }
 type Member = { membership_id: string; person_id: string; name: string; email: string; status: string; roles: string[] | null }
-type AuditEvent = { id?: string; action: string; entity_type: string; at: string; actor_person_id: string | null; actor_name?: string | null }
+type AuditEvent = {
+  id?: string
+  action: string
+  entity_type: string
+  entity_id?: string | null
+  at: string
+  actor_person_id: string | null
+  actor_name?: string | null
+  before_json?: Record<string, unknown> | null
+  after_json?:  Record<string, unknown> | null
+}
 type ModuleToggle = { key: string; enabled: boolean; config: Record<string, unknown> }
 type DataExport = { id: string; requested_at: string; status: string }
 type Overview = {
@@ -335,13 +346,7 @@ export function WorkspaceAdminPage() {
         )}
 
         {tab === 'me' && (
-          <Card>
-            <CardEyebrow><SettingsIcon size={12} /> My profile</CardEyebrow>
-            <CardTitle>Display name, email, language</CardTitle>
-            <CardBody>
-              <p className="text-sm text-faint">Self-profile editing scaffolded; backend wiring is outside this hardening pass.</p>
-            </CardBody>
-          </Card>
+          <MyProfileTab signedIn={signedIn} />
         )}
 
         {tab === 'compliance' && overview && (
@@ -380,21 +385,7 @@ export function WorkspaceAdminPage() {
                   </div>
                 )}
                 {!auditLoading && audit && audit.rows.length > 0 && (
-                  <table className="w-full text-xs">
-                    <thead className="text-faint uppercase tracking-wider">
-                      <tr><th className="text-left py-1">At</th><th className="text-left">Action</th><th className="text-left">Entity</th><th className="text-left">Actor</th></tr>
-                    </thead>
-                    <tbody>
-                      {audit.rows.map((e, i) => (
-                        <tr key={e.id ?? i} className="border-t border-line">
-                          <td className="py-1">{new Date(e.at).toLocaleString()}</td>
-                          <td className="py-1 font-mono">{e.action}</td>
-                          <td className="py-1 text-faint">{e.entity_type}</td>
-                          <td className="py-1">{e.actor_name ?? <em className="text-faint">system</em>}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <AuditLogTable rows={audit.rows} />
                 )}
                 {audit && (
                   <div className="mt-3 flex items-center gap-2 text-xs text-faint">
@@ -446,5 +437,114 @@ export function WorkspaceAdminPage() {
         )}
       </div>
     </Shell>
+  )
+}
+
+// Audit log table with per-row expansion to show before/after JSON.
+// The audit_log columns are immutable + insert-only per CLAUDE.md;
+// surfacing before/after is the compliance reviewer's primary need.
+function AuditLogTable({ rows }: { rows: AuditEvent[] }) {
+  const [openIdx, setOpenIdx] = useState<number | null>(null)
+  return (
+    <table className="w-full text-xs" data-test="audit-log-table">
+      <thead className="text-faint uppercase tracking-wider">
+        <tr>
+          <th className="text-left py-1 w-6"></th>
+          <th className="text-left py-1">At</th>
+          <th className="text-left">Action</th>
+          <th className="text-left">Entity</th>
+          <th className="text-left">Actor</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((e, i) => {
+          const expandable = !!(e.before_json || e.after_json || e.entity_id)
+          const isOpen = openIdx === i
+          return (
+            <>
+              <tr
+                key={(e.id ?? i) + '-row'}
+                className={'border-t border-line ' + (expandable ? 'cursor-pointer hover:bg-canvas' : '')}
+                onClick={() => expandable && setOpenIdx(isOpen ? null : i)}
+              >
+                <td className="py-1 text-faint">
+                  {expandable ? (isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />) : null}
+                </td>
+                <td className="py-1">{new Date(e.at).toLocaleString()}</td>
+                <td className="py-1 font-mono">{e.action}</td>
+                <td className="py-1 text-faint">{e.entity_type}</td>
+                <td className="py-1">{e.actor_name ?? <em className="text-faint">system</em>}</td>
+              </tr>
+              {isOpen && expandable && (
+                <tr key={(e.id ?? i) + '-detail'} data-test="audit-log-detail">
+                  <td></td>
+                  <td colSpan={4} className="py-2 pb-3">
+                    <div className="bg-canvas border border-line rounded p-3 grid lg:grid-cols-2 gap-3 text-[11px]">
+                      {e.entity_id && (
+                        <div className="lg:col-span-2 flex items-center gap-2">
+                          <span className="text-[10.5px] uppercase tracking-wider font-bold text-muted">entity_id</span>
+                          <code className="font-mono text-ink">{e.entity_id}</code>
+                        </div>
+                      )}
+                      <div>
+                        <div className="text-[10.5px] uppercase tracking-wider font-bold text-muted mb-1">before</div>
+                        <pre className="bg-surface border border-line rounded p-2 overflow-auto max-h-48 whitespace-pre-wrap break-words">
+                          {e.before_json ? JSON.stringify(e.before_json, null, 2) : <span className="text-faint italic">null (insert)</span>}
+                        </pre>
+                      </div>
+                      <div>
+                        <div className="text-[10.5px] uppercase tracking-wider font-bold text-muted mb-1">after</div>
+                        <pre className="bg-surface border border-line rounded p-2 overflow-auto max-h-48 whitespace-pre-wrap break-words">
+                          {e.after_json ? JSON.stringify(e.after_json, null, 2) : <span className="text-faint italic">null (delete)</span>}
+                        </pre>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </>
+          )
+        })}
+      </tbody>
+    </table>
+  )
+}
+
+// "My profile" tab — wires to the i18n locale (the only self-managed
+// preference shipped to date). When more self-service fields land
+// (display name correction, email aliases, etc.), they slot in here.
+function MyProfileTab({ signedIn }: { signedIn: string | null }) {
+  const { locale, setLocale } = useLocale()
+  return (
+    <Card>
+      <CardEyebrow><SettingsIcon size={12} /> My profile</CardEyebrow>
+      <CardTitle>Account &amp; preferences</CardTitle>
+      <CardBody className="flex flex-col gap-4">
+        <div className="grid lg:grid-cols-2 gap-4">
+          <label className="flex flex-col gap-1">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">Signed in as</span>
+            <input className="border border-line rounded px-3 py-2 text-sm bg-canvas" value={signedIn ?? ''} readOnly />
+            <span className="text-xs text-faint">Email and display name are governed by your IdP; corrections go through your org admin.</span>
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">Language</span>
+            <select
+              data-test="my-profile-locale"
+              value={locale}
+              onChange={e => setLocale(e.target.value as Locale)}
+              className="border border-line rounded px-3 py-2 text-sm bg-surface"
+            >
+              {LOCALES.map(l => <option key={l.code} value={l.code}>{l.nativeLabel} ({l.code})</option>)}
+            </select>
+            <span className="text-xs text-faint">Stored locally in this browser. Per-user server-side persistence lands when the user_preferences table is added.</span>
+          </label>
+        </div>
+        <p className="text-xs text-faint border-t border-line pt-3">
+          Self-profile editing for org-managed fields (name, email aliases) requires the org admin
+          flow under <code className="font-mono">Users</code>. This screen surfaces only the fields
+          you can change yourself.
+        </p>
+      </CardBody>
+    </Card>
   )
 }
