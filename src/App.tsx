@@ -10,6 +10,7 @@ import { ModelingAdminPage } from './pages/ModelingAdmin.js'
 import { WorkspaceAdminPage } from './pages/WorkspaceAdmin.js'
 import { AcceptInvitePage } from './pages/AcceptInvite.js'
 import { RoleProfilePage } from './pages/RoleProfile.js'
+import { TeamDefinitionListPage } from './pages/TeamDefinitionList.js'
 import { TeamDefinitionNewPage } from './pages/TeamDefinitionNew.js'
 import { TeamDefinitionRunPage } from './pages/TeamDefinitionRun.js'
 import { EnvBoundary } from './components/EnvBoundary.js'
@@ -31,6 +32,7 @@ export function App() {
           <Route path="/admin/accept-invite/:token" element={<AcceptInvitePage />} />
           <Route path="/roles/:id" element={<RoleProfilePage />} />
           <Route path="/roles/:id/:version" element={<RoleProfilePage />} />
+          <Route path="/team-def" element={<TeamDefinitionListPage />} />
           <Route path="/team-def/new" element={<TeamDefinitionNewPage />} />
           <Route path="/team-def/runs/:id" element={<TeamDefinitionRunPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

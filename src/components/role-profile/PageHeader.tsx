@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CheckCircle2, FileText, Loader2, Pencil, Send } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { CheckCircle2, FileText, GitMerge, Loader2, Pencil, Send } from 'lucide-react'
 import type { RoleProfileRow } from '../../types/roleProfile.js'
 import { browserSupabase } from '../../lib/browser-supabase.js'
 import { Pill } from '../ui/badges.js'
@@ -66,6 +67,11 @@ export function PageHeader({ row, onChanged }: { row: RoleProfileRow; onChanged:
         <Button variant="ghost" disabled title="Use for requisition — choose a requisition; coming in CP6 follow-up">
           <Send size={14} /> Use for requisition
         </Button>
+        <Link to="/team-def/new" title={canEdit ? 'Start a Delphi-style team-based revision of this role' : 'Requires role.create in this role\'s org'}>
+          <Button variant="ghost" disabled={!canEdit}>
+            <GitMerge size={14} /> Start team-based revision
+          </Button>
+        </Link>
         <Button
           variant="ghost"
           disabled={!canEdit}

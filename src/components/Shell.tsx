@@ -102,7 +102,7 @@ function SectionNav() {
         <NavGroup icon={Briefcase} title="Hiring" defaultOpen>
           <NavSub to="/requisitions/a3000000-0000-0000-0000-000000000001">Requisitions</NavSub>
           <NavSub to="#">Role library</NavSub>
-          <NavSub to="#">Team-based definition</NavSub>
+          <NavSub to="/team-def">Team-based definition</NavSub>
         </NavGroup>
         <NavGroup icon={Users} title="People" defaultOpen>
           <NavSub to="/people">All people</NavSub>
