@@ -34,7 +34,7 @@ export function PublicLayout({
   )
 }
 
-function PublicHeader({ active }: { active?: string }) {
+function PublicHeader({ active }: { active?: string | undefined }) {
   const items: Array<{ to: string; label: string; key: string }> = [
     { to: '/trust', label: 'Methodology', key: 'trust' },
     { to: '/about', label: 'About', key: 'about' },
