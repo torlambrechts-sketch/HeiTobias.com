@@ -86,13 +86,36 @@ export function PersonalityPanel({ sessionId, initialRoleKey, orgId }: Props) {
 
   const load = useCallback(async () => {
     setError(null)
-    // Both queries can run in parallel — they're independent. We resolve
-    // the supabase query-builder thenables via Promise.all, then narrow
-    // the (unknown-shaped) data into the typed accessors below.
+    // CRITICAL: scope trait scores to this session's assessment, not all
+    // org-visible scores. Without this filter the panel would render
+    // every candidate's trait rows the recruiter can read (RLS scopes
+    // to the org, not to one candidate) — the audit caught this as a
+    // real data-leak.
+    //
+    // We resolve the session → invite.assessment_id mapping first, then
+    // fetch scores filtered by it. Role-matches are already session-id-
+    // keyed so they need no extra hop.
+    const sessRaw = await supabase.from('assessment_sessions' as never)
+      .select('invite_id')
+      .eq('id', sessionId)
+      .maybeSingle()
+    const sessRes = sessRaw as { data: { invite_id: string } | null; error: { message: string } | null }
+    if (sessRes.error) { setError(sessRes.error.message); setTraits([]); setMatches([]); return }
+    if (!sessRes.data) { setError('Session not found.'); setTraits([]); setMatches([]); return }
+
+    const invRaw = await supabase.from('assessment_invites' as never)
+      .select('assessment_id')
+      .eq('id', sessRes.data.invite_id)
+      .maybeSingle()
+    const invRes = invRaw as { data: { assessment_id: string } | null; error: { message: string } | null }
+    if (invRes.error) { setError(invRes.error.message); setTraits([]); setMatches([]); return }
+    const assessmentId = invRes.data?.assessment_id ?? null
+
     const [scoresRaw, matchesRaw] = await Promise.all([
       supabase.from('assessment_scores' as never)
         .select('scale_key, raw_score, scaled_score, norm_band, validity_status, _dev_stub, validity_flags_json, assessment_id')
-        .like('scale_key', 'trait:%'),
+        .like('scale_key', 'trait:%')
+        .eq('assessment_id', assessmentId ?? '00000000-0000-0000-0000-000000000000'),
       supabase.from('personality_role_matches' as never)
         .select('id, role_key, match_score, contributions_json, flags_json, validity_status, _dev_stub, session_id')
         .eq('session_id', sessionId),

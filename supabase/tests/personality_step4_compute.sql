@@ -91,18 +91,25 @@ begin
   -- Seed minimal supporting rows. on conflict do nothing in case a
   -- prior test left stale data behind (we rollback, but if the test
   -- file is rerun outside a tx, conflicts shouldn't error).
+  --
+  -- NOTE: schema verification during audit revealed:
+  --   * organizations has no `org_id` defaults; type enum is agency|employer
+  --   * people doesn't take `org_id` directly (membership table separate)
+  --   * assessments has NO consent_id column, uses `instrument_key` (text)
+  --     not `instrument_id`, and requires `type` enum.
+  --   * assessment_responses.consent_id IS NOT NULL.
   insert into public.organizations (id, name, type) values (v_org_id, '__test_org_personality', 'employer')
     on conflict (id) do nothing;
-  insert into public.people (id, org_id, primary_email, full_name)
-    values (v_person_id, v_org_id, '__test_personality@example.test', 'Test Person')
+  insert into public.people (id, primary_email, full_name)
+    values (v_person_id, '__test_personality@example.test', 'Test Person')
     on conflict (id) do nothing;
   -- Consent grant: minimal shape (purpose='hiring_decision').
-  insert into public.consent_grants (id, person_id, granted_to_org_id, purpose, granted_at)
-    values (v_consent_id, v_person_id, v_org_id, 'hiring_decision', now())
+  insert into public.consent_grants (id, person_id, granted_to_org_id, purpose)
+    values (v_consent_id, v_person_id, v_org_id, 'hiring_decision')
     on conflict (id) do nothing;
-  -- Assessment row to anchor responses against.
-  insert into public.assessments (id, org_id, person_id, consent_id, instrument_id, status)
-    values (v_assessment_id, v_org_id, v_person_id, v_consent_id, v_instrument_id, 'in_progress')
+  -- Assessment row uses instrument_key (text) not instrument_id (uuid).
+  insert into public.assessments (id, org_id, person_id, type, instrument_key, status)
+    values (v_assessment_id, v_org_id, v_person_id, 'personality', 'personality_v1', 'in_progress')
     on conflict (id) do nothing;
   -- Invite + session.
   insert into public.assessment_invites (id, org_id, assessment_id, person_id, consent_recorded_id, token, expires_at)

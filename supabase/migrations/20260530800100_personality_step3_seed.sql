@@ -842,226 +842,201 @@ select i.id, 'FTP-10', 'I live mostly in the present without much thought for la
 on conflict (instrument_id, key) do update set prompt = excluded.prompt, item_json = excluded.item_json;
 
 -- ─── 3. Role templates + per-template traits ─────────────────────────
-insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
-values ('lead_software_developer', null, 'Lead / Senior Software Developer', 'Professional / Technical', 'Optimized for system stability, deep work, and long-term architecture. Conscientiousness and reasoning weighted highest; collaboration kept in a healthy band rather than maximized.', ARRAY['Barrick & Mount 1991','Wilmot & Ones 2021','Cacioppo & Petty 1982','Lee, Berry & Gonzalez-Mule 2019']::text[], 0.35, 40, 'dev_stub', true)
-on conflict (role_key, org_id) do update set title=excluded.title, family=excluded.family, summary=excluded.summary, key_citations=excluded.key_citations, weight_cap=excluded.weight_cap, match_tolerance_ref=excluded.match_tolerance_ref;
-delete from public.personality_role_template_traits where role_key = 'lead_software_developer' and org_id is null;
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('lead_software_developer', null, 'conscientiousness', 60, 95, 'higher_better'::public.personality_trait_direction, 0.2, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('lead_software_developer', null, 'need_for_cognition', 60, 95, 'higher_better'::public.personality_trait_direction, 0.18, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('lead_software_developer', null, 'openness', 60, 90, 'higher_better'::public.personality_trait_direction, 0.15, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('lead_software_developer', null, 'emotional_stability', 50, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('lead_software_developer', null, 'honesty_humility', 40, 95, 'higher_better'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('lead_software_developer', null, 'self_efficacy', 55, 90, 'higher_better'::public.personality_trait_direction, 0.08, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('lead_software_developer', null, 'agreeableness', 40, 80, 'target_band'::public.personality_trait_direction, 0.08, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('lead_software_developer', null, 'grit', 55, 90, 'higher_better'::public.personality_trait_direction, 0.07, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('lead_software_developer', null, 'psychopathy', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('lead_software_developer', null, 'machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80);
-insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
-values ('sales_executive', null, 'Sales Executive', 'Sales', 'Optimized for revenue, social influence, and high-velocity pivots. Extraversion, achievement, and proactivity weighted highest. Honesty-Humility kept low-weight so competitive deal-makers are not over-filtered, while integrity flags still surface.', ARRAY['Barrick & Mount 1991','Hurtz & Donovan 2000','Thomas, Whitman & Viswesvaran 2010','Spangler 1992']::text[], 0.35, 40, 'dev_stub', true)
-on conflict (role_key, org_id) do update set title=excluded.title, family=excluded.family, summary=excluded.summary, key_citations=excluded.key_citations, weight_cap=excluded.weight_cap, match_tolerance_ref=excluded.match_tolerance_ref;
-delete from public.personality_role_template_traits where role_key = 'sales_executive' and org_id is null;
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('sales_executive', null, 'extraversion', 65, 95, 'higher_better'::public.personality_trait_direction, 0.2, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('sales_executive', null, 'need_for_achievement', 60, 95, 'higher_better'::public.personality_trait_direction, 0.18, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('sales_executive', null, 'proactive_personality', 60, 95, 'higher_better'::public.personality_trait_direction, 0.15, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('sales_executive', null, 'emotional_stability', 55, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('sales_executive', null, 'conscientiousness', 55, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('sales_executive', null, 'self_efficacy', 60, 95, 'higher_better'::public.personality_trait_direction, 0.1, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('sales_executive', null, 'risk_tolerance', 50, 85, 'higher_better'::public.personality_trait_direction, 0.08, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('sales_executive', null, 'honesty_humility', 40, 90, 'higher_better'::public.personality_trait_direction, 0.05, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('sales_executive', null, 'machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 85);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('sales_executive', null, 'narcissism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 85);
-insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
-values ('project_manager', null, 'Project Manager', 'Management', 'Balances structure, stakeholder communication, and resilience. Conscientiousness, stability, and internal locus of control anchor the profile; agreeableness and extraversion held in bands rather than maximized.', ARRAY['Barrick & Mount 1991','Judge & Bono 2001','Ng, Sorensen & Eby 2006']::text[], 0.35, 40, 'dev_stub', true)
-on conflict (role_key, org_id) do update set title=excluded.title, family=excluded.family, summary=excluded.summary, key_citations=excluded.key_citations, weight_cap=excluded.weight_cap, match_tolerance_ref=excluded.match_tolerance_ref;
-delete from public.personality_role_template_traits where role_key = 'project_manager' and org_id is null;
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('project_manager', null, 'conscientiousness', 65, 95, 'higher_better'::public.personality_trait_direction, 0.2, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('project_manager', null, 'emotional_stability', 55, 90, 'higher_better'::public.personality_trait_direction, 0.15, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('project_manager', null, 'locus_of_control', 55, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('project_manager', null, 'self_efficacy', 60, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('project_manager', null, 'ambiguity_tolerance', 55, 85, 'higher_better'::public.personality_trait_direction, 0.1, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('project_manager', null, 'proactive_personality', 55, 90, 'higher_better'::public.personality_trait_direction, 0.1, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('project_manager', null, 'extraversion', 50, 85, 'target_band'::public.personality_trait_direction, 0.1, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('project_manager', null, 'agreeableness', 45, 80, 'target_band'::public.personality_trait_direction, 0.09, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('project_manager', null, 'machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 85);
-insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
-values ('ux_ui_designer', null, 'UX / UI Designer', 'Professional / Creative', 'Optimized for creativity, user empathy, and comfort with open-ended problems. Openness and ambiguity tolerance weighted highest; detail orientation kept moderate.', ARRAY['Wilmot & Ones 2021','Furnham & Ribchester 1995']::text[], 0.35, 40, 'dev_stub', true)
-on conflict (role_key, org_id) do update set title=excluded.title, family=excluded.family, summary=excluded.summary, key_citations=excluded.key_citations, weight_cap=excluded.weight_cap, match_tolerance_ref=excluded.match_tolerance_ref;
-delete from public.personality_role_template_traits where role_key = 'ux_ui_designer' and org_id is null;
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('ux_ui_designer', null, 'openness', 70, 95, 'higher_better'::public.personality_trait_direction, 0.22, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('ux_ui_designer', null, 'ambiguity_tolerance', 60, 90, 'higher_better'::public.personality_trait_direction, 0.16, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('ux_ui_designer', null, 'need_for_cognition', 55, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('ux_ui_designer', null, 'agreeableness', 50, 85, 'higher_better'::public.personality_trait_direction, 0.14, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('ux_ui_designer', null, 'proactive_personality', 55, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('ux_ui_designer', null, 'conscientiousness', 50, 85, 'higher_better'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('ux_ui_designer', null, 'emotional_stability', 50, 85, 'higher_better'::public.personality_trait_direction, 0.1, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('ux_ui_designer', null, 'psychopathy', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 85);
-insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
-values ('customer_support_rep', null, 'Customer Support / Service Representative', 'Service', 'Optimized for empathy, composure under emotional labour, and dependability. Agreeableness, stability, and EI weighted highest; empathy-critical, so the psychopathy flag uses a lower threshold.', ARRAY['Hurtz & Donovan 2000','Joseph & Newman 2010']::text[], 0.35, 40, 'dev_stub', true)
-on conflict (role_key, org_id) do update set title=excluded.title, family=excluded.family, summary=excluded.summary, key_citations=excluded.key_citations, weight_cap=excluded.weight_cap, match_tolerance_ref=excluded.match_tolerance_ref;
-delete from public.personality_role_template_traits where role_key = 'customer_support_rep' and org_id is null;
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('customer_support_rep', null, 'agreeableness', 60, 95, 'higher_better'::public.personality_trait_direction, 0.2, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('customer_support_rep', null, 'emotional_stability', 60, 95, 'higher_better'::public.personality_trait_direction, 0.18, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('customer_support_rep', null, 'emotional_intelligence', 55, 95, 'higher_better'::public.personality_trait_direction, 0.16, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('customer_support_rep', null, 'conscientiousness', 60, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('customer_support_rep', null, 'honesty_humility', 45, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('customer_support_rep', null, 'extraversion', 50, 85, 'target_band'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('customer_support_rep', null, 'self_efficacy', 55, 90, 'higher_better'::public.personality_trait_direction, 0.08, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('customer_support_rep', null, 'psychopathy', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 75);
-insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
-values ('accountant_finance', null, 'Accountant / Finance Professional', 'Finance', 'Optimized for accuracy, integrity, and risk discipline. Conscientiousness and Honesty-Humility weighted highest; risk tolerance and openness held in deliberately moderate-to-low bands.', ARRAY['Barrick & Mount 1991','Lee, Berry & Gonzalez-Mule 2019','Weber, Blais & Betz 2002']::text[], 0.35, 40, 'dev_stub', true)
-on conflict (role_key, org_id) do update set title=excluded.title, family=excluded.family, summary=excluded.summary, key_citations=excluded.key_citations, weight_cap=excluded.weight_cap, match_tolerance_ref=excluded.match_tolerance_ref;
-delete from public.personality_role_template_traits where role_key = 'accountant_finance' and org_id is null;
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('accountant_finance', null, 'conscientiousness', 70, 98, 'higher_better'::public.personality_trait_direction, 0.24, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('accountant_finance', null, 'honesty_humility', 65, 98, 'higher_better'::public.personality_trait_direction, 0.22, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('accountant_finance', null, 'risk_tolerance', 20, 60, 'target_band'::public.personality_trait_direction, 0.14, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('accountant_finance', null, 'emotional_stability', 55, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('accountant_finance', null, 'need_for_cognition', 55, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('accountant_finance', null, 'locus_of_control', 55, 90, 'higher_better'::public.personality_trait_direction, 0.1, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('accountant_finance', null, 'openness', 30, 70, 'target_band'::public.personality_trait_direction, 0.06, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('accountant_finance', null, 'machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('accountant_finance', null, 'psychopathy', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80);
-insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
-values ('hr_people_manager', null, 'HR / People Manager', 'Management', 'Optimized for interpersonal sensitivity, fairness, and composure with sensitive personal data. Agreeableness, EI, and Honesty-Humility weighted highly.', ARRAY['Joseph & Newman 2010','Pletzer et al. 2021','Lee, Berry & Gonzalez-Mule 2019']::text[], 0.35, 40, 'dev_stub', true)
-on conflict (role_key, org_id) do update set title=excluded.title, family=excluded.family, summary=excluded.summary, key_citations=excluded.key_citations, weight_cap=excluded.weight_cap, match_tolerance_ref=excluded.match_tolerance_ref;
-delete from public.personality_role_template_traits where role_key = 'hr_people_manager' and org_id is null;
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('hr_people_manager', null, 'agreeableness', 60, 90, 'higher_better'::public.personality_trait_direction, 0.18, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('hr_people_manager', null, 'emotional_intelligence', 60, 95, 'higher_better'::public.personality_trait_direction, 0.16, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('hr_people_manager', null, 'honesty_humility', 55, 95, 'higher_better'::public.personality_trait_direction, 0.16, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('hr_people_manager', null, 'emotional_stability', 60, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('hr_people_manager', null, 'conscientiousness', 60, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('hr_people_manager', null, 'extraversion', 55, 85, 'target_band'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('hr_people_manager', null, 'locus_of_control', 55, 90, 'higher_better'::public.personality_trait_direction, 0.1, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('hr_people_manager', null, 'machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('hr_people_manager', null, 'narcissism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80);
-insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
-values ('operations_logistics_manager', null, 'Operations / Logistics Manager', 'Management', 'Optimized for execution, reliability under pressure, and proactive problem-solving. Conscientiousness, stability, internal locus, and perseverance anchor the profile.', ARRAY['Barrick & Mount 1991','Ng, Sorensen & Eby 2006','Thomas, Whitman & Viswesvaran 2010']::text[], 0.35, 40, 'dev_stub', true)
-on conflict (role_key, org_id) do update set title=excluded.title, family=excluded.family, summary=excluded.summary, key_citations=excluded.key_citations, weight_cap=excluded.weight_cap, match_tolerance_ref=excluded.match_tolerance_ref;
-delete from public.personality_role_template_traits where role_key = 'operations_logistics_manager' and org_id is null;
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('operations_logistics_manager', null, 'conscientiousness', 70, 95, 'higher_better'::public.personality_trait_direction, 0.22, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('operations_logistics_manager', null, 'emotional_stability', 55, 90, 'higher_better'::public.personality_trait_direction, 0.15, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('operations_logistics_manager', null, 'grit', 55, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('operations_logistics_manager', null, 'locus_of_control', 55, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('operations_logistics_manager', null, 'proactive_personality', 55, 90, 'higher_better'::public.personality_trait_direction, 0.13, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('operations_logistics_manager', null, 'self_efficacy', 60, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('operations_logistics_manager', null, 'extraversion', 45, 80, 'target_band'::public.personality_trait_direction, 0.1, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('operations_logistics_manager', null, 'machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 85);
-insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
-values ('data_analyst_scientist', null, 'Data Analyst / Scientist', 'Professional / Technical', 'Optimized for analytical depth, intellectual curiosity, and rigor. Need for Cognition and Openness weighted highest; integrity matters for data ethics.', ARRAY['Cacioppo & Petty 1982','Wilmot & Ones 2021']::text[], 0.35, 40, 'dev_stub', true)
-on conflict (role_key, org_id) do update set title=excluded.title, family=excluded.family, summary=excluded.summary, key_citations=excluded.key_citations, weight_cap=excluded.weight_cap, match_tolerance_ref=excluded.match_tolerance_ref;
-delete from public.personality_role_template_traits where role_key = 'data_analyst_scientist' and org_id is null;
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('data_analyst_scientist', null, 'need_for_cognition', 70, 98, 'higher_better'::public.personality_trait_direction, 0.24, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('data_analyst_scientist', null, 'openness', 60, 95, 'higher_better'::public.personality_trait_direction, 0.18, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('data_analyst_scientist', null, 'conscientiousness', 60, 90, 'higher_better'::public.personality_trait_direction, 0.16, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('data_analyst_scientist', null, 'ambiguity_tolerance', 55, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('data_analyst_scientist', null, 'honesty_humility', 50, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('data_analyst_scientist', null, 'emotional_stability', 45, 85, 'higher_better'::public.personality_trait_direction, 0.1, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('data_analyst_scientist', null, 'need_for_achievement', 50, 85, 'higher_better'::public.personality_trait_direction, 0.08, false, null);
-insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
-values ('senior_leader_executive', null, 'Senior Leader / Executive', 'Leadership', 'Optimized for leadership emergence, vision, resilience, and governance integrity. Broad profile led by extraversion, stability, internal locus, self-efficacy, and future orientation; multiple integrity flags given the stakes.', ARRAY['Judge, Bono, Ilies & Gerhardt 2002','Judge & Bono 2001','Thomas, Whitman & Viswesvaran 2010']::text[], 0.35, 40, 'dev_stub', true)
-on conflict (role_key, org_id) do update set title=excluded.title, family=excluded.family, summary=excluded.summary, key_citations=excluded.key_citations, weight_cap=excluded.weight_cap, match_tolerance_ref=excluded.match_tolerance_ref;
-delete from public.personality_role_template_traits where role_key = 'senior_leader_executive' and org_id is null;
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('senior_leader_executive', null, 'emotional_stability', 60, 95, 'higher_better'::public.personality_trait_direction, 0.1339, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('senior_leader_executive', null, 'extraversion', 60, 90, 'higher_better'::public.personality_trait_direction, 0.1339, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('senior_leader_executive', null, 'locus_of_control', 60, 95, 'higher_better'::public.personality_trait_direction, 0.1161, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('senior_leader_executive', null, 'self_efficacy', 65, 95, 'higher_better'::public.personality_trait_direction, 0.1161, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('senior_leader_executive', null, 'conscientiousness', 60, 90, 'higher_better'::public.personality_trait_direction, 0.1161, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('senior_leader_executive', null, 'proactive_personality', 60, 95, 'higher_better'::public.personality_trait_direction, 0.1071, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('senior_leader_executive', null, 'future_time_perspective', 60, 95, 'higher_better'::public.personality_trait_direction, 0.1071, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('senior_leader_executive', null, 'honesty_humility', 50, 95, 'higher_better'::public.personality_trait_direction, 0.0893, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('senior_leader_executive', null, 'openness', 50, 85, 'target_band'::public.personality_trait_direction, 0.0804, false, null);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('senior_leader_executive', null, 'narcissism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('senior_leader_executive', null, 'machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80);
-insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
-values ('senior_leader_executive', null, 'psychopathy', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80);
+-- After the Step 5 audit fixes, role_templates use a surrogate id PK with
+-- a partial-unique index on (role_key) where org_id IS NULL. The seed
+-- uses INSERT...RETURNING + a CTE to capture each template's id, then
+-- inserts the template_traits keyed on template_id (the FK now used).
+-- The trigger _personality_template_trait_sync back-fills role_key+org_id.
+delete from public.personality_role_templates where role_key = 'lead_software_developer' and org_id is null;
+with new_t as (
+  insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
+  values ('lead_software_developer', null, 'Lead / Senior Software Developer', 'Professional / Technical', 'Optimized for system stability, deep work, and long-term architecture. Conscientiousness and reasoning weighted highest; collaboration kept in a healthy band rather than maximized.', ARRAY['Barrick & Mount 1991','Wilmot & Ones 2021','Cacioppo & Petty 1982','Lee, Berry & Gonzalez-Mule 2019']::text[], 0.35, 40, 'dev_stub', true)
+  returning id
+)
+insert into public.personality_role_template_traits(template_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
+select new_t.id, x.trait_key, x.band_low, x.band_high, x.direction, x.weight, x.review_flag, x.flag_threshold
+  from new_t, (values
+         ('conscientiousness', 60, 95, 'higher_better'::public.personality_trait_direction, 0.2, false, null),
+         ('need_for_cognition', 60, 95, 'higher_better'::public.personality_trait_direction, 0.18, false, null),
+         ('openness', 60, 90, 'higher_better'::public.personality_trait_direction, 0.15, false, null),
+         ('emotional_stability', 50, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null),
+         ('honesty_humility', 40, 95, 'higher_better'::public.personality_trait_direction, 0.12, false, null),
+         ('self_efficacy', 55, 90, 'higher_better'::public.personality_trait_direction, 0.08, false, null),
+         ('agreeableness', 40, 80, 'target_band'::public.personality_trait_direction, 0.08, false, null),
+         ('grit', 55, 90, 'higher_better'::public.personality_trait_direction, 0.07, false, null),
+         ('psychopathy', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80),
+         ('machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80)
+       ) as x(trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold);
+delete from public.personality_role_templates where role_key = 'sales_executive' and org_id is null;
+with new_t as (
+  insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
+  values ('sales_executive', null, 'Sales Executive', 'Sales', 'Optimized for revenue, social influence, and high-velocity pivots. Extraversion, achievement, and proactivity weighted highest. Honesty-Humility kept low-weight so competitive deal-makers are not over-filtered, while integrity flags still surface.', ARRAY['Barrick & Mount 1991','Hurtz & Donovan 2000','Thomas, Whitman & Viswesvaran 2010','Spangler 1992']::text[], 0.35, 40, 'dev_stub', true)
+  returning id
+)
+insert into public.personality_role_template_traits(template_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
+select new_t.id, x.trait_key, x.band_low, x.band_high, x.direction, x.weight, x.review_flag, x.flag_threshold
+  from new_t, (values
+         ('extraversion', 65, 95, 'higher_better'::public.personality_trait_direction, 0.2, false, null),
+         ('need_for_achievement', 60, 95, 'higher_better'::public.personality_trait_direction, 0.18, false, null),
+         ('proactive_personality', 60, 95, 'higher_better'::public.personality_trait_direction, 0.15, false, null),
+         ('emotional_stability', 55, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null),
+         ('conscientiousness', 55, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null),
+         ('self_efficacy', 60, 95, 'higher_better'::public.personality_trait_direction, 0.1, false, null),
+         ('risk_tolerance', 50, 85, 'higher_better'::public.personality_trait_direction, 0.08, false, null),
+         ('honesty_humility', 40, 90, 'higher_better'::public.personality_trait_direction, 0.05, false, null),
+         ('machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 85),
+         ('narcissism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 85)
+       ) as x(trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold);
+delete from public.personality_role_templates where role_key = 'project_manager' and org_id is null;
+with new_t as (
+  insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
+  values ('project_manager', null, 'Project Manager', 'Management', 'Balances structure, stakeholder communication, and resilience. Conscientiousness, stability, and internal locus of control anchor the profile; agreeableness and extraversion held in bands rather than maximized.', ARRAY['Barrick & Mount 1991','Judge & Bono 2001','Ng, Sorensen & Eby 2006']::text[], 0.35, 40, 'dev_stub', true)
+  returning id
+)
+insert into public.personality_role_template_traits(template_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
+select new_t.id, x.trait_key, x.band_low, x.band_high, x.direction, x.weight, x.review_flag, x.flag_threshold
+  from new_t, (values
+         ('conscientiousness', 65, 95, 'higher_better'::public.personality_trait_direction, 0.2, false, null),
+         ('emotional_stability', 55, 90, 'higher_better'::public.personality_trait_direction, 0.15, false, null),
+         ('locus_of_control', 55, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null),
+         ('self_efficacy', 60, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null),
+         ('ambiguity_tolerance', 55, 85, 'higher_better'::public.personality_trait_direction, 0.1, false, null),
+         ('proactive_personality', 55, 90, 'higher_better'::public.personality_trait_direction, 0.1, false, null),
+         ('extraversion', 50, 85, 'target_band'::public.personality_trait_direction, 0.1, false, null),
+         ('agreeableness', 45, 80, 'target_band'::public.personality_trait_direction, 0.09, false, null),
+         ('machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 85)
+       ) as x(trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold);
+delete from public.personality_role_templates where role_key = 'ux_ui_designer' and org_id is null;
+with new_t as (
+  insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
+  values ('ux_ui_designer', null, 'UX / UI Designer', 'Professional / Creative', 'Optimized for creativity, user empathy, and comfort with open-ended problems. Openness and ambiguity tolerance weighted highest; detail orientation kept moderate.', ARRAY['Wilmot & Ones 2021','Furnham & Ribchester 1995']::text[], 0.35, 40, 'dev_stub', true)
+  returning id
+)
+insert into public.personality_role_template_traits(template_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
+select new_t.id, x.trait_key, x.band_low, x.band_high, x.direction, x.weight, x.review_flag, x.flag_threshold
+  from new_t, (values
+         ('openness', 70, 95, 'higher_better'::public.personality_trait_direction, 0.22, false, null),
+         ('ambiguity_tolerance', 60, 90, 'higher_better'::public.personality_trait_direction, 0.16, false, null),
+         ('need_for_cognition', 55, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null),
+         ('agreeableness', 50, 85, 'higher_better'::public.personality_trait_direction, 0.14, false, null),
+         ('proactive_personality', 55, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null),
+         ('conscientiousness', 50, 85, 'higher_better'::public.personality_trait_direction, 0.12, false, null),
+         ('emotional_stability', 50, 85, 'higher_better'::public.personality_trait_direction, 0.1, false, null),
+         ('psychopathy', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 85)
+       ) as x(trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold);
+delete from public.personality_role_templates where role_key = 'customer_support_rep' and org_id is null;
+with new_t as (
+  insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
+  values ('customer_support_rep', null, 'Customer Support / Service Representative', 'Service', 'Optimized for empathy, composure under emotional labour, and dependability. Agreeableness, stability, and EI weighted highest; empathy-critical, so the psychopathy flag uses a lower threshold.', ARRAY['Hurtz & Donovan 2000','Joseph & Newman 2010']::text[], 0.35, 40, 'dev_stub', true)
+  returning id
+)
+insert into public.personality_role_template_traits(template_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
+select new_t.id, x.trait_key, x.band_low, x.band_high, x.direction, x.weight, x.review_flag, x.flag_threshold
+  from new_t, (values
+         ('agreeableness', 60, 95, 'higher_better'::public.personality_trait_direction, 0.2, false, null),
+         ('emotional_stability', 60, 95, 'higher_better'::public.personality_trait_direction, 0.18, false, null),
+         ('emotional_intelligence', 55, 95, 'higher_better'::public.personality_trait_direction, 0.16, false, null),
+         ('conscientiousness', 60, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null),
+         ('honesty_humility', 45, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null),
+         ('extraversion', 50, 85, 'target_band'::public.personality_trait_direction, 0.12, false, null),
+         ('self_efficacy', 55, 90, 'higher_better'::public.personality_trait_direction, 0.08, false, null),
+         ('psychopathy', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 75)
+       ) as x(trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold);
+delete from public.personality_role_templates where role_key = 'accountant_finance' and org_id is null;
+with new_t as (
+  insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
+  values ('accountant_finance', null, 'Accountant / Finance Professional', 'Finance', 'Optimized for accuracy, integrity, and risk discipline. Conscientiousness and Honesty-Humility weighted highest; risk tolerance and openness held in deliberately moderate-to-low bands.', ARRAY['Barrick & Mount 1991','Lee, Berry & Gonzalez-Mule 2019','Weber, Blais & Betz 2002']::text[], 0.35, 40, 'dev_stub', true)
+  returning id
+)
+insert into public.personality_role_template_traits(template_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
+select new_t.id, x.trait_key, x.band_low, x.band_high, x.direction, x.weight, x.review_flag, x.flag_threshold
+  from new_t, (values
+         ('conscientiousness', 70, 98, 'higher_better'::public.personality_trait_direction, 0.24, false, null),
+         ('honesty_humility', 65, 98, 'higher_better'::public.personality_trait_direction, 0.22, false, null),
+         ('risk_tolerance', 20, 60, 'target_band'::public.personality_trait_direction, 0.14, false, null),
+         ('emotional_stability', 55, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null),
+         ('need_for_cognition', 55, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null),
+         ('locus_of_control', 55, 90, 'higher_better'::public.personality_trait_direction, 0.1, false, null),
+         ('openness', 30, 70, 'target_band'::public.personality_trait_direction, 0.06, false, null),
+         ('machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80),
+         ('psychopathy', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80)
+       ) as x(trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold);
+delete from public.personality_role_templates where role_key = 'hr_people_manager' and org_id is null;
+with new_t as (
+  insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
+  values ('hr_people_manager', null, 'HR / People Manager', 'Management', 'Optimized for interpersonal sensitivity, fairness, and composure with sensitive personal data. Agreeableness, EI, and Honesty-Humility weighted highly.', ARRAY['Joseph & Newman 2010','Pletzer et al. 2021','Lee, Berry & Gonzalez-Mule 2019']::text[], 0.35, 40, 'dev_stub', true)
+  returning id
+)
+insert into public.personality_role_template_traits(template_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
+select new_t.id, x.trait_key, x.band_low, x.band_high, x.direction, x.weight, x.review_flag, x.flag_threshold
+  from new_t, (values
+         ('agreeableness', 60, 90, 'higher_better'::public.personality_trait_direction, 0.18, false, null),
+         ('emotional_intelligence', 60, 95, 'higher_better'::public.personality_trait_direction, 0.16, false, null),
+         ('honesty_humility', 55, 95, 'higher_better'::public.personality_trait_direction, 0.16, false, null),
+         ('emotional_stability', 60, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null),
+         ('conscientiousness', 60, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null),
+         ('extraversion', 55, 85, 'target_band'::public.personality_trait_direction, 0.12, false, null),
+         ('locus_of_control', 55, 90, 'higher_better'::public.personality_trait_direction, 0.1, false, null),
+         ('machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80),
+         ('narcissism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80)
+       ) as x(trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold);
+delete from public.personality_role_templates where role_key = 'operations_logistics_manager' and org_id is null;
+with new_t as (
+  insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
+  values ('operations_logistics_manager', null, 'Operations / Logistics Manager', 'Management', 'Optimized for execution, reliability under pressure, and proactive problem-solving. Conscientiousness, stability, internal locus, and perseverance anchor the profile.', ARRAY['Barrick & Mount 1991','Ng, Sorensen & Eby 2006','Thomas, Whitman & Viswesvaran 2010']::text[], 0.35, 40, 'dev_stub', true)
+  returning id
+)
+insert into public.personality_role_template_traits(template_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
+select new_t.id, x.trait_key, x.band_low, x.band_high, x.direction, x.weight, x.review_flag, x.flag_threshold
+  from new_t, (values
+         ('conscientiousness', 70, 95, 'higher_better'::public.personality_trait_direction, 0.22, false, null),
+         ('emotional_stability', 55, 90, 'higher_better'::public.personality_trait_direction, 0.15, false, null),
+         ('grit', 55, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null),
+         ('locus_of_control', 55, 90, 'higher_better'::public.personality_trait_direction, 0.14, false, null),
+         ('proactive_personality', 55, 90, 'higher_better'::public.personality_trait_direction, 0.13, false, null),
+         ('self_efficacy', 60, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null),
+         ('extraversion', 45, 80, 'target_band'::public.personality_trait_direction, 0.1, false, null),
+         ('machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 85)
+       ) as x(trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold);
+delete from public.personality_role_templates where role_key = 'data_analyst_scientist' and org_id is null;
+with new_t as (
+  insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
+  values ('data_analyst_scientist', null, 'Data Analyst / Scientist', 'Professional / Technical', 'Optimized for analytical depth, intellectual curiosity, and rigor. Need for Cognition and Openness weighted highest; integrity matters for data ethics.', ARRAY['Cacioppo & Petty 1982','Wilmot & Ones 2021']::text[], 0.35, 40, 'dev_stub', true)
+  returning id
+)
+insert into public.personality_role_template_traits(template_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
+select new_t.id, x.trait_key, x.band_low, x.band_high, x.direction, x.weight, x.review_flag, x.flag_threshold
+  from new_t, (values
+         ('need_for_cognition', 70, 98, 'higher_better'::public.personality_trait_direction, 0.24, false, null),
+         ('openness', 60, 95, 'higher_better'::public.personality_trait_direction, 0.18, false, null),
+         ('conscientiousness', 60, 90, 'higher_better'::public.personality_trait_direction, 0.16, false, null),
+         ('ambiguity_tolerance', 55, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null),
+         ('honesty_humility', 50, 90, 'higher_better'::public.personality_trait_direction, 0.12, false, null),
+         ('emotional_stability', 45, 85, 'higher_better'::public.personality_trait_direction, 0.1, false, null),
+         ('need_for_achievement', 50, 85, 'higher_better'::public.personality_trait_direction, 0.08, false, null)
+       ) as x(trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold);
+delete from public.personality_role_templates where role_key = 'senior_leader_executive' and org_id is null;
+with new_t as (
+  insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)
+  values ('senior_leader_executive', null, 'Senior Leader / Executive', 'Leadership', 'Optimized for leadership emergence, vision, resilience, and governance integrity. Broad profile led by extraversion, stability, internal locus, self-efficacy, and future orientation; multiple integrity flags given the stakes.', ARRAY['Judge, Bono, Ilies & Gerhardt 2002','Judge & Bono 2001','Thomas, Whitman & Viswesvaran 2010']::text[], 0.35, 40, 'dev_stub', true)
+  returning id
+)
+insert into public.personality_role_template_traits(template_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)
+select new_t.id, x.trait_key, x.band_low, x.band_high, x.direction, x.weight, x.review_flag, x.flag_threshold
+  from new_t, (values
+         ('emotional_stability', 60, 95, 'higher_better'::public.personality_trait_direction, 0.1339, false, null),
+         ('extraversion', 60, 90, 'higher_better'::public.personality_trait_direction, 0.1339, false, null),
+         ('locus_of_control', 60, 95, 'higher_better'::public.personality_trait_direction, 0.1161, false, null),
+         ('self_efficacy', 65, 95, 'higher_better'::public.personality_trait_direction, 0.1161, false, null),
+         ('conscientiousness', 60, 90, 'higher_better'::public.personality_trait_direction, 0.1161, false, null),
+         ('proactive_personality', 60, 95, 'higher_better'::public.personality_trait_direction, 0.1071, false, null),
+         ('future_time_perspective', 60, 95, 'higher_better'::public.personality_trait_direction, 0.1071, false, null),
+         ('honesty_humility', 50, 95, 'higher_better'::public.personality_trait_direction, 0.0893, false, null),
+         ('openness', 50, 85, 'target_band'::public.personality_trait_direction, 0.0804, false, null),
+         ('narcissism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80),
+         ('machiavellianism', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80),
+         ('psychopathy', null, null, 'lower_better'::public.personality_trait_direction, 0, true, 80)
+       ) as x(trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold);
 
 -- ─── 4. Synthetic dev_stub norms (one row per trait) ─────────────────
 -- 100 percentile breakpoints per trait. Generated by Acklam inverse-normal

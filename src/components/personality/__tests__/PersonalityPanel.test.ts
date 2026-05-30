@@ -65,6 +65,16 @@ describe('PersonalityPanel — discipline assertions (source-static)', () => {
     expect(src).not.toContain('personality_responses')  // would be a schema split
   })
 
+  it('scopes assessment_scores to this session\'s assessment_id (no cross-candidate leak)', () => {
+    // The audit caught: without an assessment_id filter, the panel rendered
+    // EVERY candidate's trait scores the recruiter could read (RLS scopes
+    // to the org, not to one candidate). Fix: resolve session→invite→
+    // assessment_id, then filter scores by it.
+    expect(src).toMatch(/\.like\('scale_key', 'trait:%'\)[\s\S]*?\.eq\('assessment_id'/)
+    expect(src).toContain("'assessment_sessions'")
+    expect(src).toContain("'assessment_invites'")
+  })
+
   it('exposes a recompute button that calls the SECDEF RPC, not a direct write', () => {
     expect(src).toContain("'personality_compute_scores'")
     expect(src).not.toMatch(/\.insert\(\s*{[^}]*match_score/)  // no direct client INSERTs

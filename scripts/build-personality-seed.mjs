@@ -201,23 +201,37 @@ for (const it of items) {
 }
 lines.push(``)
 lines.push(`-- ─── 3. Role templates + per-template traits ─────────────────────────`)
+lines.push(`-- After the Step 5 audit fixes, role_templates use a surrogate id PK with`)
+lines.push(`-- a partial-unique index on (role_key) where org_id IS NULL. The seed`)
+lines.push(`-- uses INSERT...RETURNING + a CTE to capture each template's id, then`)
+lines.push(`-- inserts the template_traits keyed on template_id (the FK now used).`)
+lines.push(`-- The trigger _personality_template_trait_sync back-fills role_key+org_id.`)
 const WEIGHT_CAP = templatesJson.meta?.weight_cap ?? 0.35
 const REF        = templatesJson.meta?.match_tolerance_REF ?? 40
 for (const r of templatesJson.roles) {
-  lines.push(`insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)`)
-  lines.push(`values (${sqlStr(r.key)}, null, ${sqlStr(r.title)}, ${sqlStr(r.family)}, ${sqlStr(r.summary)}, ${sqlArrayText(r.key_citations)}, ${WEIGHT_CAP}, ${REF}, 'dev_stub', true)`)
-  lines.push(`on conflict (role_key, org_id) do update set title=excluded.title, family=excluded.family, summary=excluded.summary, key_citations=excluded.key_citations, weight_cap=excluded.weight_cap, match_tolerance_ref=excluded.match_tolerance_ref;`)
-  // Clear and re-insert template traits — keeps the seed idempotent
-  // without the FK-aware shape gymnastics of an upsert.
-  lines.push(`delete from public.personality_role_template_traits where role_key = ${sqlStr(r.key)} and org_id is null;`)
-  for (const tt of r.traits) {
+  // Upsert the template. To keep the seed idempotent in the surrogate-PK
+  // world, we DELETE any existing global row first (cascades to its
+  // template_traits via the FK), then INSERT fresh.
+  lines.push(`delete from public.personality_role_templates where role_key = ${sqlStr(r.key)} and org_id is null;`)
+  lines.push(`with new_t as (`)
+  lines.push(`  insert into public.personality_role_templates(role_key, org_id, title, family, summary, key_citations, weight_cap, match_tolerance_ref, validity_status, _dev_stub)`)
+  lines.push(`  values (${sqlStr(r.key)}, null, ${sqlStr(r.title)}, ${sqlStr(r.family)}, ${sqlStr(r.summary)}, ${sqlArrayText(r.key_citations)}, ${WEIGHT_CAP}, ${REF}, 'dev_stub', true)`)
+  lines.push(`  returning id`)
+  lines.push(`)`)
+  // Use a single multi-row INSERT for all traits of this template, sourcing
+  // the template_id from the CTE.
+  const traitValues = r.traits.map(tt => {
     const isFlag = !!tt.review_flag
     const band_low  = isFlag || tt.band == null ? 'null' : sqlNum(tt.band[0])
     const band_high = isFlag || tt.band == null ? 'null' : sqlNum(tt.band[1])
     const threshold = tt.flag_threshold == null ? 'null' : sqlNum(tt.flag_threshold)
-    lines.push(`insert into public.personality_role_template_traits(role_key, org_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)`)
-    lines.push(`values (${sqlStr(r.key)}, null, ${sqlStr(tt.trait)}, ${band_low}, ${band_high}, ${sqlStr(tt.direction)}::public.personality_trait_direction, ${sqlNum(tt.weight)}, ${sqlBool(isFlag)}, ${threshold});`)
-  }
+    return `(${sqlStr(tt.trait)}, ${band_low}, ${band_high}, ${sqlStr(tt.direction)}::public.personality_trait_direction, ${sqlNum(tt.weight)}, ${sqlBool(isFlag)}, ${threshold})`
+  }).join(',\n         ')
+  lines.push(`insert into public.personality_role_template_traits(template_id, trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold)`)
+  lines.push(`select new_t.id, x.trait_key, x.band_low, x.band_high, x.direction, x.weight, x.review_flag, x.flag_threshold`)
+  lines.push(`  from new_t, (values`)
+  lines.push(`         ${traitValues}`)
+  lines.push(`       ) as x(trait_key, band_low, band_high, direction, weight, review_flag, flag_threshold);`)
 }
 lines.push(``)
 lines.push(`-- ─── 4. Synthetic dev_stub norms (one row per trait) ─────────────────`)
