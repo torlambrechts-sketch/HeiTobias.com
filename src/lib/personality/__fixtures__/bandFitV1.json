@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "description": "Cross-engine reference for compute_trait_band_fit_v1 / computeTraitBandFitV1. Every expected value was produced by the PG function and is checked from both the TS engine (vitest) and the PG engine (sql tests). If the two engines diverge, EXACTLY ONE will fail this fixture — that is the design.",
+    "generated_from": "supabase/migrations/20260530900200_h1c_curvilinear_band.sql :: public.compute_trait_band_fit_v1()",
+    "expected_tolerance": 1e-9
+  },
+  "cases": [
+    { "id": 1,  "inputs": { "score": 60, "direction": "higher_better", "bandLow": 50, "bandHigh": null, "inflectionPoint": null, "halfWidth": null }, "expected": 0.0 },
+    { "id": 2,  "inputs": { "score": 40, "direction": "higher_better", "bandLow": 50, "bandHigh": null, "inflectionPoint": null, "halfWidth": null }, "expected": 0.1010101010 },
+    { "id": 3,  "inputs": { "score":  0, "direction": "higher_better", "bandLow": 50, "bandHigh": null, "inflectionPoint": null, "halfWidth": null }, "expected": 0.5050505051 },
+    { "id": 4,  "inputs": { "score": 99, "direction": "higher_better", "bandLow": 50, "bandHigh": null, "inflectionPoint": null, "halfWidth": null }, "expected": 0.0 },
+    { "id": 5,  "inputs": { "score": 50, "direction": "higher_better", "bandLow": 50, "bandHigh": null, "inflectionPoint": null, "halfWidth": null }, "expected": 0.0 },
+    { "id": 6,  "inputs": { "score": 30, "direction": "lower_better",  "bandLow": null, "bandHigh": 50, "inflectionPoint": null, "halfWidth": null }, "expected": 0.0 },
+    { "id": 7,  "inputs": { "score": 80, "direction": "lower_better",  "bandLow": null, "bandHigh": 50, "inflectionPoint": null, "halfWidth": null }, "expected": 0.3030303030 },
+    { "id": 8,  "inputs": { "score": 99, "direction": "lower_better",  "bandLow": null, "bandHigh": 50, "inflectionPoint": null, "halfWidth": null }, "expected": 0.4949494949 },
+    { "id": 9,  "inputs": { "score":  0, "direction": "lower_better",  "bandLow": null, "bandHigh": 50, "inflectionPoint": null, "halfWidth": null }, "expected": 0.0 },
+    { "id": 10, "inputs": { "score": 50, "direction": "lower_better",  "bandLow": null, "bandHigh": 50, "inflectionPoint": null, "halfWidth": null }, "expected": 0.0 },
+    { "id": 11, "inputs": { "score": 60, "direction": "target_band",   "bandLow": 40, "bandHigh": 70, "inflectionPoint": null, "halfWidth": null }, "expected": 0.0 },
+    { "id": 12, "inputs": { "score": 25, "direction": "target_band",   "bandLow": 40, "bandHigh": 70, "inflectionPoint": null, "halfWidth": null }, "expected": 0.1515151515 },
+    { "id": 13, "inputs": { "score": 90, "direction": "target_band",   "bandLow": 40, "bandHigh": 70, "inflectionPoint": null, "halfWidth": null }, "expected": 0.2020202020 },
+    { "id": 14, "inputs": { "score": 40, "direction": "target_band",   "bandLow": 40, "bandHigh": 70, "inflectionPoint": null, "halfWidth": null }, "expected": 0.0 },
+    { "id": 15, "inputs": { "score": 70, "direction": "target_band",   "bandLow": 40, "bandHigh": 70, "inflectionPoint": null, "halfWidth": null }, "expected": 0.0 },
+    { "id": 16, "inputs": { "score":  0, "direction": "target_band",   "bandLow": 40, "bandHigh": 70, "inflectionPoint": null, "halfWidth": null }, "expected": 0.4040404040 },
+    { "id": 17, "inputs": { "score": 99, "direction": "target_band",   "bandLow": 40, "bandHigh": 70, "inflectionPoint": null, "halfWidth": null }, "expected": 0.2929292929 },
+    { "id": 18, "inputs": { "score": 50, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 50, "halfWidth": 20 }, "expected": 0.0 },
+    { "id": 19, "inputs": { "score": 60, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 50, "halfWidth": 20 }, "expected": 0.5 },
+    { "id": 20, "inputs": { "score": 30, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 50, "halfWidth": 20 }, "expected": 1.0 },
+    { "id": 21, "inputs": { "score": 70, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 50, "halfWidth": 20 }, "expected": 1.0 },
+    { "id": 22, "inputs": { "score":  0, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 50, "halfWidth": 20 }, "expected": 1.0 },
+    { "id": 23, "inputs": { "score": 99, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 50, "halfWidth": 20 }, "expected": 1.0 },
+    { "id": 24, "inputs": { "score": 55, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 50, "halfWidth": 20 }, "expected": 0.25 },
+    { "id": 25, "inputs": { "score": 45, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 50, "halfWidth": 20 }, "expected": 0.25 },
+    { "id": 26, "inputs": { "score": 50, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 50, "halfWidth":  5 }, "expected": 0.0 },
+    { "id": 27, "inputs": { "score": 52, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 50, "halfWidth":  5 }, "expected": 0.4 },
+    { "id": 28, "inputs": { "score": 55, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 50, "halfWidth":  5 }, "expected": 1.0 },
+    { "id": 29, "inputs": { "score": 50, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 50, "halfWidth": 99 }, "expected": 0.0 },
+    { "id": 30, "inputs": { "score": 99, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 50, "halfWidth": 99 }, "expected": 0.4949494949 },
+    { "id": 31, "inputs": { "score": 65, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 70, "halfWidth": 25 }, "expected": 0.2 },
+    { "id": 32, "inputs": { "score": 95, "direction": "inverted_u",    "bandLow": null, "bandHigh": null, "inflectionPoint": 70, "halfWidth": 25 }, "expected": 1.0 }
+  ]
+}
