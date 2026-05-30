@@ -199,6 +199,39 @@ this at CI; the query is the post-deploy verification.
 
 ---
 
+## 7.5 — Claiming platform-admin (one-time setup)
+
+The `platform_admin` system-level RBAC role exists (migration
+`20260530600000_a9_platform_admin.sql`) but is not auto-granted to
+anyone — the founder claims it once by running the following SQL
+against the production DB while authenticated as the founder's user
+record:
+
+```sql
+-- Replace <FOUNDER_PERSON_ID> with the founder's people.id.
+insert into public.membership_roles (membership_id, rbac_role_id)
+select
+  m.id,
+  r.id
+from public.memberships m
+cross join public.rbac_roles r
+where m.person_id = '<FOUNDER_PERSON_ID>'
+  and m.status    = 'active'
+  and r.org_id    is null
+  and r.key       = 'platform_admin'
+limit 1
+on conflict do nothing;
+```
+
+After this insert, the founder can navigate to `/platform-admin` and
+use the UI for all subsequent operator actions (org create, suspend,
+reactivate, view metrics, view their own investigation log).
+
+To extend platform_admin to a second person later, the existing
+holder repeats the same SQL against the second person's
+membership_id — or, when the multi-platform-admin team UI lands, via
+the surface.
+
 ## 8 — When to escalate
 
 - **DPO**: any GDPR-relevant incident (data leak, DSR > 30 days overdue,

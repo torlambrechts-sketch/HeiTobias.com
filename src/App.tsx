@@ -7,6 +7,7 @@ import { LocaleProvider } from './lib/i18n.js'
 import { ModuleGate } from './components/ModuleGate.js'
 import { ToastProvider } from './components/ui/Toast.js'
 import { ErrorBoundary } from './components/ErrorBoundary.js'
+import { OrgStatusGuard } from './components/OrgStatusGuard.js'
 
 // Code-split heavy routes (ITEM 6). HomePage stays eager because it's
 // the landing entry point — everything else loads on navigation.
@@ -33,6 +34,7 @@ const DemoPage                  = lazy(() => import('./pages/Demo.js').then(m =>
 const RequisitionsListPage      = lazy(() => import('./pages/RequisitionsList.js').then(m => ({ default: m.RequisitionsListPage })))
 const TeamPage                  = lazy(() => import('./pages/Team.js').then(m => ({ default: m.TeamPage })))
 const MePage                    = lazy(() => import('./pages/Me.js').then(m => ({ default: m.MePage })))
+const PlatformAdminPage         = lazy(() => import('./pages/PlatformAdmin.js').then(m => ({ default: m.PlatformAdminPage })))
 
 function PageFallback() {
   return (
@@ -48,8 +50,9 @@ export function App() {
       <LocaleProvider>
         <ToastProvider>
           <ErrorBoundary>
-            <BrowserRouter>
-              <Suspense fallback={<PageFallback />}>
+            <OrgStatusGuard>
+              <BrowserRouter>
+                <Suspense fallback={<PageFallback />}>
                 <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/people" element={<PeoplePage />} />
@@ -73,10 +76,12 @@ export function App() {
               <Route path="/req" element={<RequisitionsListPage />} />
               <Route path="/team" element={<TeamPage />} />
               <Route path="/me" element={<MePage />} />
+              <Route path="/platform-admin" element={<PlatformAdminPage />} />
               <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </Suspense>
             </BrowserRouter>
+            </OrgStatusGuard>
           </ErrorBoundary>
         </ToastProvider>
       </LocaleProvider>
