@@ -19,6 +19,7 @@ import {
   EvolutionVectorSection, TeamGapSection,
 } from '../components/role-profile/Sections.js'
 import { ValidationCard } from '../components/role-profile/ValidationCard.js'
+import { ShareManager } from '../components/ShareManager.js'
 
 export function RoleProfilePage() {
   const { id, version } = useParams<{ id: string; version?: string }>()
@@ -360,6 +361,16 @@ function ManageTab({ row }: { row: RoleProfileRow }) {
           </p>
         </Link>
       </div>
+      <div className="border-t border-line pt-4">
+        <p className="eyebrow mb-1">Share externally</p>
+        <p className="text-xs text-muted mb-3">
+          Generate a public, field-stripped, watermarked preview link for a stakeholder who
+          isn't in the platform. Recruiter notes and individual evaluator attributions are
+          stripped; every access is logged. Links expire and are revocable.
+        </p>
+        <ShareManager entityKind="role_profile" entityId={row.id} publicPathPrefix="/public/role" />
+      </div>
+
       <div className="border border-line rounded p-3 text-xs text-muted">
         <strong>Archive this version</strong> — not yet implemented. The signed-off role
         version is the system of record for past hiring decisions and cannot be silently
