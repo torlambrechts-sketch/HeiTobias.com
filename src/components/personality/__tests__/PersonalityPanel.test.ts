@@ -27,7 +27,9 @@ describe('PersonalityPanel — discipline assertions (source-static)', () => {
 
   it('renders human-review flags with explicit non-reduction language', () => {
     expect(src).toMatch(/human-review flag/i)
-    expect(src).toMatch(/do not reduce the match number/i)
+    // The JSX line-wraps the copy, so 'do not<newline>reduce' must match
+    // through arbitrary whitespace.
+    expect(src).toMatch(/do not\s+reduce the match number/i)
   })
 
   it('renders flags in a visually distinct (amber-bordered) container', () => {
