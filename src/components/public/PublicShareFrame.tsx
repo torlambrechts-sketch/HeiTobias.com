@@ -13,8 +13,8 @@ export function PublicShareFrame({
   kind,
 }: {
   children: ReactNode
-  sharedByOrg?: string
-  sharedAt?: string
+  sharedByOrg?: string | undefined
+  sharedAt?: string | undefined
   kind: string
 }) {
   return (
@@ -55,7 +55,7 @@ export function PublicShareFrame({
   )
 }
 
-export function ShareError({ reason }: { reason?: string }) {
+export function ShareError({ reason }: { reason?: string | undefined }) {
   const message =
     reason === 'expired' ? 'This share link has expired.'
     : reason === 'revoked' ? 'This share link has been revoked by its owner.'

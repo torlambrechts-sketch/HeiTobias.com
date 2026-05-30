@@ -14,8 +14,8 @@ export function TemplateBanner({
   reviewedAt,
 }: {
   status: 'pending' | 'current' | undefined
-  reviewerName?: string | null
-  reviewedAt?: string | null
+  reviewerName?: string | null | undefined
+  reviewedAt?: string | null | undefined
 }) {
   if (status === 'current') {
     return (

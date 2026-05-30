@@ -5,6 +5,7 @@ import { usePageTitle } from '../lib/usePageTitle.js'
 import { Shell } from '../components/Shell.js'
 import { Button } from '../components/ui/button.js'
 import { Card, CardBody, CardEyebrow, CardTitle } from '../components/ui/card.js'
+import { Pill } from '../components/ui/badges.js'
 import { EmptyState } from '../components/ui/EmptyState.js'
 import { useToast } from '../components/ui/Toast.js'
 

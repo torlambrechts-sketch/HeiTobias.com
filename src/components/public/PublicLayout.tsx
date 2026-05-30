@@ -15,7 +15,7 @@ export function PublicLayout({
   active,
 }: {
   children: ReactNode
-  active?: 'product' | 'trust' | 'about' | 'docs' | 'contact'
+  active?: 'product' | 'trust' | 'about' | 'docs' | 'contact' | undefined
 }) {
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
