@@ -1,0 +1,1277 @@
+{
+  "meta": {
+    "title": "Role Benchmark Templates",
+    "version": "1.0",
+    "scale": "percentile (0-99) per trait",
+    "weight_cap": 0.35,
+    "match_tolerance_REF": 40,
+    "match_algorithm": "weighted band-deviation (see scoring_reference.js / spec section 6)",
+    "flag_policy": "traits with weight 0 and a flag_threshold are HUMAN-REVIEW FLAGS ONLY; a percentile at/above the threshold raises a review flag and never auto-rejects."
+  },
+  "roles": [
+    {
+      "key": "lead_software_developer",
+      "title": "Lead / Senior Software Developer",
+      "family": "Professional / Technical",
+      "summary": "Optimized for system stability, deep work, and long-term architecture. Conscientiousness and reasoning weighted highest; collaboration kept in a healthy band rather than maximized.",
+      "key_citations": [
+        "Barrick & Mount 1991",
+        "Wilmot & Ones 2021",
+        "Cacioppo & Petty 1982",
+        "Lee, Berry & Gonzalez-Mule 2019"
+      ],
+      "weight_sum": 1.0,
+      "traits": [
+        {
+          "trait": "conscientiousness",
+          "trait_name": "Conscientiousness",
+          "domain": "Execution",
+          "band": [
+            60,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.2,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "need_for_cognition",
+          "trait_name": "Need for Cognition",
+          "domain": "Analytical",
+          "band": [
+            60,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.18,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "openness",
+          "trait_name": "Openness to Experience",
+          "domain": "Adaptability",
+          "band": [
+            60,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.15,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "emotional_stability",
+          "trait_name": "Emotional Stability",
+          "domain": "Resilience",
+          "band": [
+            50,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "honesty_humility",
+          "trait_name": "Honesty-Humility",
+          "domain": "Integrity",
+          "band": [
+            40,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "self_efficacy",
+          "trait_name": "Generalized Self-Efficacy",
+          "domain": "Self-Belief",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.08,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "agreeableness",
+          "trait_name": "Agreeableness",
+          "domain": "Cooperation",
+          "band": [
+            40,
+            80
+          ],
+          "direction": "target_band",
+          "weight": 0.08,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "grit",
+          "trait_name": "Grit (Perseverance of Effort)",
+          "domain": "Stamina",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.07,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "psychopathy",
+          "trait_name": "Psychopathy",
+          "domain": "Callousness",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 80
+        },
+        {
+          "trait": "machiavellianism",
+          "trait_name": "Machiavellianism",
+          "domain": "Malevolence",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 80
+        }
+      ]
+    },
+    {
+      "key": "sales_executive",
+      "title": "Sales Executive",
+      "family": "Sales",
+      "summary": "Optimized for revenue, social influence, and high-velocity pivots. Extraversion, achievement, and proactivity weighted highest. Honesty-Humility kept low-weight so competitive deal-makers are not over-filtered, while integrity flags still surface.",
+      "key_citations": [
+        "Barrick & Mount 1991",
+        "Hurtz & Donovan 2000",
+        "Thomas, Whitman & Viswesvaran 2010",
+        "Spangler 1992"
+      ],
+      "weight_sum": 1.0,
+      "traits": [
+        {
+          "trait": "extraversion",
+          "trait_name": "Extraversion",
+          "domain": "Interpersonal",
+          "band": [
+            65,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.2,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "need_for_achievement",
+          "trait_name": "Need for Achievement",
+          "domain": "Motivation",
+          "band": [
+            60,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.18,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "proactive_personality",
+          "trait_name": "Proactive Personality",
+          "domain": "Initiative",
+          "band": [
+            60,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.15,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "emotional_stability",
+          "trait_name": "Emotional Stability",
+          "domain": "Resilience",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "conscientiousness",
+          "trait_name": "Conscientiousness",
+          "domain": "Execution",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "self_efficacy",
+          "trait_name": "Generalized Self-Efficacy",
+          "domain": "Self-Belief",
+          "band": [
+            60,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.1,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "risk_tolerance",
+          "trait_name": "Risk Tolerance",
+          "domain": "Risk Strategy",
+          "band": [
+            50,
+            85
+          ],
+          "direction": "higher_better",
+          "weight": 0.08,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "honesty_humility",
+          "trait_name": "Honesty-Humility",
+          "domain": "Integrity",
+          "band": [
+            40,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.05,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "machiavellianism",
+          "trait_name": "Machiavellianism",
+          "domain": "Malevolence",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 85
+        },
+        {
+          "trait": "narcissism",
+          "trait_name": "Narcissism",
+          "domain": "Ego",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 85
+        }
+      ]
+    },
+    {
+      "key": "project_manager",
+      "title": "Project Manager",
+      "family": "Management",
+      "summary": "Balances structure, stakeholder communication, and resilience. Conscientiousness, stability, and internal locus of control anchor the profile; agreeableness and extraversion held in bands rather than maximized.",
+      "key_citations": [
+        "Barrick & Mount 1991",
+        "Judge & Bono 2001",
+        "Ng, Sorensen & Eby 2006"
+      ],
+      "weight_sum": 1.0,
+      "traits": [
+        {
+          "trait": "conscientiousness",
+          "trait_name": "Conscientiousness",
+          "domain": "Execution",
+          "band": [
+            65,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.2,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "emotional_stability",
+          "trait_name": "Emotional Stability",
+          "domain": "Resilience",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.15,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "locus_of_control",
+          "trait_name": "Locus of Control (Internal)",
+          "domain": "Accountability",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.14,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "self_efficacy",
+          "trait_name": "Generalized Self-Efficacy",
+          "domain": "Self-Belief",
+          "band": [
+            60,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "ambiguity_tolerance",
+          "trait_name": "Tolerance for Ambiguity",
+          "domain": "Agility",
+          "band": [
+            55,
+            85
+          ],
+          "direction": "higher_better",
+          "weight": 0.1,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "proactive_personality",
+          "trait_name": "Proactive Personality",
+          "domain": "Initiative",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.1,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "extraversion",
+          "trait_name": "Extraversion",
+          "domain": "Interpersonal",
+          "band": [
+            50,
+            85
+          ],
+          "direction": "target_band",
+          "weight": 0.1,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "agreeableness",
+          "trait_name": "Agreeableness",
+          "domain": "Cooperation",
+          "band": [
+            45,
+            80
+          ],
+          "direction": "target_band",
+          "weight": 0.09,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "machiavellianism",
+          "trait_name": "Machiavellianism",
+          "domain": "Malevolence",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 85
+        }
+      ]
+    },
+    {
+      "key": "ux_ui_designer",
+      "title": "UX / UI Designer",
+      "family": "Professional / Creative",
+      "summary": "Optimized for creativity, user empathy, and comfort with open-ended problems. Openness and ambiguity tolerance weighted highest; detail orientation kept moderate.",
+      "key_citations": [
+        "Wilmot & Ones 2021",
+        "Furnham & Ribchester 1995"
+      ],
+      "weight_sum": 1.0,
+      "traits": [
+        {
+          "trait": "openness",
+          "trait_name": "Openness to Experience",
+          "domain": "Adaptability",
+          "band": [
+            70,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.22,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "ambiguity_tolerance",
+          "trait_name": "Tolerance for Ambiguity",
+          "domain": "Agility",
+          "band": [
+            60,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.16,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "need_for_cognition",
+          "trait_name": "Need for Cognition",
+          "domain": "Analytical",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.14,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "agreeableness",
+          "trait_name": "Agreeableness",
+          "domain": "Cooperation",
+          "band": [
+            50,
+            85
+          ],
+          "direction": "higher_better",
+          "weight": 0.14,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "proactive_personality",
+          "trait_name": "Proactive Personality",
+          "domain": "Initiative",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "conscientiousness",
+          "trait_name": "Conscientiousness",
+          "domain": "Execution",
+          "band": [
+            50,
+            85
+          ],
+          "direction": "higher_better",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "emotional_stability",
+          "trait_name": "Emotional Stability",
+          "domain": "Resilience",
+          "band": [
+            50,
+            85
+          ],
+          "direction": "higher_better",
+          "weight": 0.1,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "psychopathy",
+          "trait_name": "Psychopathy",
+          "domain": "Callousness",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 85
+        }
+      ]
+    },
+    {
+      "key": "customer_support_rep",
+      "title": "Customer Support / Service Representative",
+      "family": "Service",
+      "summary": "Optimized for empathy, composure under emotional labour, and dependability. Agreeableness, stability, and EI weighted highest; empathy-critical, so the psychopathy flag uses a lower threshold.",
+      "key_citations": [
+        "Hurtz & Donovan 2000",
+        "Joseph & Newman 2010"
+      ],
+      "weight_sum": 1.0,
+      "traits": [
+        {
+          "trait": "agreeableness",
+          "trait_name": "Agreeableness",
+          "domain": "Cooperation",
+          "band": [
+            60,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.2,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "emotional_stability",
+          "trait_name": "Emotional Stability",
+          "domain": "Resilience",
+          "band": [
+            60,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.18,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "emotional_intelligence",
+          "trait_name": "Emotional Intelligence (Trait)",
+          "domain": "Self-Regulation",
+          "band": [
+            55,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.16,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "conscientiousness",
+          "trait_name": "Conscientiousness",
+          "domain": "Execution",
+          "band": [
+            60,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.14,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "honesty_humility",
+          "trait_name": "Honesty-Humility",
+          "domain": "Integrity",
+          "band": [
+            45,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "extraversion",
+          "trait_name": "Extraversion",
+          "domain": "Interpersonal",
+          "band": [
+            50,
+            85
+          ],
+          "direction": "target_band",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "self_efficacy",
+          "trait_name": "Generalized Self-Efficacy",
+          "domain": "Self-Belief",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.08,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "psychopathy",
+          "trait_name": "Psychopathy",
+          "domain": "Callousness",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 75
+        }
+      ]
+    },
+    {
+      "key": "accountant_finance",
+      "title": "Accountant / Finance Professional",
+      "family": "Finance",
+      "summary": "Optimized for accuracy, integrity, and risk discipline. Conscientiousness and Honesty-Humility weighted highest; risk tolerance and openness held in deliberately moderate-to-low bands.",
+      "key_citations": [
+        "Barrick & Mount 1991",
+        "Lee, Berry & Gonzalez-Mule 2019",
+        "Weber, Blais & Betz 2002"
+      ],
+      "weight_sum": 1.0,
+      "traits": [
+        {
+          "trait": "conscientiousness",
+          "trait_name": "Conscientiousness",
+          "domain": "Execution",
+          "band": [
+            70,
+            98
+          ],
+          "direction": "higher_better",
+          "weight": 0.24,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "honesty_humility",
+          "trait_name": "Honesty-Humility",
+          "domain": "Integrity",
+          "band": [
+            65,
+            98
+          ],
+          "direction": "higher_better",
+          "weight": 0.22,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "risk_tolerance",
+          "trait_name": "Risk Tolerance",
+          "domain": "Risk Strategy",
+          "band": [
+            20,
+            60
+          ],
+          "direction": "target_band",
+          "weight": 0.14,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "emotional_stability",
+          "trait_name": "Emotional Stability",
+          "domain": "Resilience",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "need_for_cognition",
+          "trait_name": "Need for Cognition",
+          "domain": "Analytical",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "locus_of_control",
+          "trait_name": "Locus of Control (Internal)",
+          "domain": "Accountability",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.1,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "openness",
+          "trait_name": "Openness to Experience",
+          "domain": "Adaptability",
+          "band": [
+            30,
+            70
+          ],
+          "direction": "target_band",
+          "weight": 0.06,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "machiavellianism",
+          "trait_name": "Machiavellianism",
+          "domain": "Malevolence",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 80
+        },
+        {
+          "trait": "psychopathy",
+          "trait_name": "Psychopathy",
+          "domain": "Callousness",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 80
+        }
+      ]
+    },
+    {
+      "key": "hr_people_manager",
+      "title": "HR / People Manager",
+      "family": "Management",
+      "summary": "Optimized for interpersonal sensitivity, fairness, and composure with sensitive personal data. Agreeableness, EI, and Honesty-Humility weighted highly.",
+      "key_citations": [
+        "Joseph & Newman 2010",
+        "Pletzer et al. 2021",
+        "Lee, Berry & Gonzalez-Mule 2019"
+      ],
+      "weight_sum": 1.0,
+      "traits": [
+        {
+          "trait": "agreeableness",
+          "trait_name": "Agreeableness",
+          "domain": "Cooperation",
+          "band": [
+            60,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.18,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "emotional_intelligence",
+          "trait_name": "Emotional Intelligence (Trait)",
+          "domain": "Self-Regulation",
+          "band": [
+            60,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.16,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "honesty_humility",
+          "trait_name": "Honesty-Humility",
+          "domain": "Integrity",
+          "band": [
+            55,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.16,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "emotional_stability",
+          "trait_name": "Emotional Stability",
+          "domain": "Resilience",
+          "band": [
+            60,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.14,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "conscientiousness",
+          "trait_name": "Conscientiousness",
+          "domain": "Execution",
+          "band": [
+            60,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.14,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "extraversion",
+          "trait_name": "Extraversion",
+          "domain": "Interpersonal",
+          "band": [
+            55,
+            85
+          ],
+          "direction": "target_band",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "locus_of_control",
+          "trait_name": "Locus of Control (Internal)",
+          "domain": "Accountability",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.1,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "machiavellianism",
+          "trait_name": "Machiavellianism",
+          "domain": "Malevolence",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 80
+        },
+        {
+          "trait": "narcissism",
+          "trait_name": "Narcissism",
+          "domain": "Ego",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 80
+        }
+      ]
+    },
+    {
+      "key": "operations_logistics_manager",
+      "title": "Operations / Logistics Manager",
+      "family": "Management",
+      "summary": "Optimized for execution, reliability under pressure, and proactive problem-solving. Conscientiousness, stability, internal locus, and perseverance anchor the profile.",
+      "key_citations": [
+        "Barrick & Mount 1991",
+        "Ng, Sorensen & Eby 2006",
+        "Thomas, Whitman & Viswesvaran 2010"
+      ],
+      "weight_sum": 1.0,
+      "traits": [
+        {
+          "trait": "conscientiousness",
+          "trait_name": "Conscientiousness",
+          "domain": "Execution",
+          "band": [
+            70,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.22,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "emotional_stability",
+          "trait_name": "Emotional Stability",
+          "domain": "Resilience",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.15,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "grit",
+          "trait_name": "Grit (Perseverance of Effort)",
+          "domain": "Stamina",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.14,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "locus_of_control",
+          "trait_name": "Locus of Control (Internal)",
+          "domain": "Accountability",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.14,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "proactive_personality",
+          "trait_name": "Proactive Personality",
+          "domain": "Initiative",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.13,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "self_efficacy",
+          "trait_name": "Generalized Self-Efficacy",
+          "domain": "Self-Belief",
+          "band": [
+            60,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "extraversion",
+          "trait_name": "Extraversion",
+          "domain": "Interpersonal",
+          "band": [
+            45,
+            80
+          ],
+          "direction": "target_band",
+          "weight": 0.1,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "machiavellianism",
+          "trait_name": "Machiavellianism",
+          "domain": "Malevolence",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 85
+        }
+      ]
+    },
+    {
+      "key": "data_analyst_scientist",
+      "title": "Data Analyst / Scientist",
+      "family": "Professional / Technical",
+      "summary": "Optimized for analytical depth, intellectual curiosity, and rigor. Need for Cognition and Openness weighted highest; integrity matters for data ethics.",
+      "key_citations": [
+        "Cacioppo & Petty 1982",
+        "Wilmot & Ones 2021"
+      ],
+      "weight_sum": 1.0,
+      "traits": [
+        {
+          "trait": "need_for_cognition",
+          "trait_name": "Need for Cognition",
+          "domain": "Analytical",
+          "band": [
+            70,
+            98
+          ],
+          "direction": "higher_better",
+          "weight": 0.24,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "openness",
+          "trait_name": "Openness to Experience",
+          "domain": "Adaptability",
+          "band": [
+            60,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.18,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "conscientiousness",
+          "trait_name": "Conscientiousness",
+          "domain": "Execution",
+          "band": [
+            60,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.16,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "ambiguity_tolerance",
+          "trait_name": "Tolerance for Ambiguity",
+          "domain": "Agility",
+          "band": [
+            55,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "honesty_humility",
+          "trait_name": "Honesty-Humility",
+          "domain": "Integrity",
+          "band": [
+            50,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.12,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "emotional_stability",
+          "trait_name": "Emotional Stability",
+          "domain": "Resilience",
+          "band": [
+            45,
+            85
+          ],
+          "direction": "higher_better",
+          "weight": 0.1,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "need_for_achievement",
+          "trait_name": "Need for Achievement",
+          "domain": "Motivation",
+          "band": [
+            50,
+            85
+          ],
+          "direction": "higher_better",
+          "weight": 0.08,
+          "review_flag": false,
+          "flag_threshold": null
+        }
+      ]
+    },
+    {
+      "key": "senior_leader_executive",
+      "title": "Senior Leader / Executive",
+      "family": "Leadership",
+      "summary": "Optimized for leadership emergence, vision, resilience, and governance integrity. Broad profile led by extraversion, stability, internal locus, self-efficacy, and future orientation; multiple integrity flags given the stakes.",
+      "key_citations": [
+        "Judge, Bono, Ilies & Gerhardt 2002",
+        "Judge & Bono 2001",
+        "Thomas, Whitman & Viswesvaran 2010"
+      ],
+      "weight_sum": 1.0,
+      "traits": [
+        {
+          "trait": "emotional_stability",
+          "trait_name": "Emotional Stability",
+          "domain": "Resilience",
+          "band": [
+            60,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.1339,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "extraversion",
+          "trait_name": "Extraversion",
+          "domain": "Interpersonal",
+          "band": [
+            60,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.1339,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "locus_of_control",
+          "trait_name": "Locus of Control (Internal)",
+          "domain": "Accountability",
+          "band": [
+            60,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.1161,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "self_efficacy",
+          "trait_name": "Generalized Self-Efficacy",
+          "domain": "Self-Belief",
+          "band": [
+            65,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.1161,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "conscientiousness",
+          "trait_name": "Conscientiousness",
+          "domain": "Execution",
+          "band": [
+            60,
+            90
+          ],
+          "direction": "higher_better",
+          "weight": 0.1161,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "proactive_personality",
+          "trait_name": "Proactive Personality",
+          "domain": "Initiative",
+          "band": [
+            60,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.1071,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "future_time_perspective",
+          "trait_name": "Future Time Perspective",
+          "domain": "Time Horizon",
+          "band": [
+            60,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.1071,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "honesty_humility",
+          "trait_name": "Honesty-Humility",
+          "domain": "Integrity",
+          "band": [
+            50,
+            95
+          ],
+          "direction": "higher_better",
+          "weight": 0.0893,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "openness",
+          "trait_name": "Openness to Experience",
+          "domain": "Adaptability",
+          "band": [
+            50,
+            85
+          ],
+          "direction": "target_band",
+          "weight": 0.0804,
+          "review_flag": false,
+          "flag_threshold": null
+        },
+        {
+          "trait": "narcissism",
+          "trait_name": "Narcissism",
+          "domain": "Ego",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 80
+        },
+        {
+          "trait": "machiavellianism",
+          "trait_name": "Machiavellianism",
+          "domain": "Malevolence",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 80
+        },
+        {
+          "trait": "psychopathy",
+          "trait_name": "Psychopathy",
+          "domain": "Callousness",
+          "band": null,
+          "direction": "lower_better",
+          "weight": 0.0,
+          "review_flag": true,
+          "flag_threshold": 80
+        }
+      ]
+    }
+  ]
+}
