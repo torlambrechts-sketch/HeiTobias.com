@@ -8,6 +8,7 @@ import { ModuleGate } from './components/ModuleGate.js'
 import { ToastProvider } from './components/ui/Toast.js'
 import { ErrorBoundary } from './components/ErrorBoundary.js'
 import { OrgStatusGuard } from './components/OrgStatusGuard.js'
+import { CookieBanner } from './components/public/CookieBanner.js'
 
 // Code-split heavy routes (ITEM 6). HomePage stays eager because it's
 // the landing entry point — everything else loads on navigation.
@@ -36,6 +37,26 @@ const TeamPage                  = lazy(() => import('./pages/Team.js').then(m =>
 const MePage                    = lazy(() => import('./pages/Me.js').then(m => ({ default: m.MePage })))
 const PlatformAdminPage         = lazy(() => import('./pages/PlatformAdmin.js').then(m => ({ default: m.PlatformAdminPage })))
 
+// ── Public surfaces (Phase 1–5) ──
+const LandingPage               = lazy(() => import('./pages/public/Landing.js').then(m => ({ default: m.LandingPage })))
+const TrustPage                 = lazy(() => import('./pages/public/Trust.js').then(m => ({ default: m.TrustPage })))
+const AboutPage                 = lazy(() => import('./pages/public/About.js').then(m => ({ default: m.AboutPage })))
+const ContactPage               = lazy(() => import('./pages/public/Contact.js').then(m => ({ default: m.ContactPage })))
+const DocsPage                  = lazy(() => import('./pages/public/Docs.js').then(m => ({ default: m.DocsPage })))
+const AccessibilityPage         = lazy(() => import('./pages/public/Accessibility.js').then(m => ({ default: m.AccessibilityPage })))
+const StatusPage                = lazy(() => import('./pages/public/Status.js').then(m => ({ default: m.StatusPage })))
+const PrivacyPolicyPage         = lazy(() => import('./pages/legal/PrivacyPolicy.js').then(m => ({ default: m.PrivacyPolicyPage })))
+const TermsOfServicePage        = lazy(() => import('./pages/legal/TermsOfService.js').then(m => ({ default: m.TermsOfServicePage })))
+const DsrRequestPage            = lazy(() => import('./pages/legal/DsrRequest.js').then(m => ({ default: m.DsrRequestPage })))
+const MePrivacyPage             = lazy(() => import('./pages/MePrivacy.js').then(m => ({ default: m.MePrivacyPage })))
+const PublicRolePreviewPage     = lazy(() => import('./pages/public/PublicRolePreview.js').then(m => ({ default: m.PublicRolePreviewPage })))
+const PublicPlacementReportPage = lazy(() => import('./pages/public/PublicPlacementReport.js').then(m => ({ default: m.PublicPlacementReportPage })))
+const SignupPage                = lazy(() => import('./pages/auth/Signup.js').then(m => ({ default: m.SignupPage })))
+const LoginPage                 = lazy(() => import('./pages/auth/Login.js').then(m => ({ default: m.LoginPage })))
+const ForgotPasswordPage        = lazy(() => import('./pages/auth/ForgotPassword.js').then(m => ({ default: m.ForgotPasswordPage })))
+const ResetPasswordPage         = lazy(() => import('./pages/auth/ResetPassword.js').then(m => ({ default: m.ResetPasswordPage })))
+const NotificationPreferencesPage = lazy(() => import('./pages/auth/NotificationPreferences.js').then(m => ({ default: m.NotificationPreferencesPage })))
+
 function PageFallback() {
   return (
     <div className="min-h-screen flex items-center justify-center text-muted text-sm">
@@ -52,9 +73,39 @@ export function App() {
           <ErrorBoundary>
             <OrgStatusGuard>
               <BrowserRouter>
+                <CookieBanner />
                 <Suspense fallback={<PageFallback />}>
                 <Routes>
-              <Route path="/" element={<HomePage />} />
+              {/* Public marketing perimeter. `/` is the landing page;
+                  signed-in users are bounced to /home by the landing. */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/trust" element={<TrustPage />} />
+              <Route path="/methodology" element={<TrustPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/docs" element={<DocsPage />} />
+              <Route path="/accessibility" element={<AccessibilityPage />} />
+              <Route path="/status" element={<StatusPage />} />
+
+              {/* Legal + DSR */}
+              <Route path="/legal/privacy" element={<PrivacyPolicyPage />} />
+              <Route path="/legal/terms" element={<TermsOfServicePage />} />
+              <Route path="/privacy/request" element={<DsrRequestPage />} />
+              <Route path="/me/privacy" element={<MePrivacyPage />} />
+
+              {/* Public shareable views (token-scoped, field-stripped) */}
+              <Route path="/public/role/:token" element={<PublicRolePreviewPage />} />
+              <Route path="/public/placement-report/:token" element={<PublicPlacementReportPage />} />
+
+              {/* Auth surfaces */}
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/login/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/login/reset-password/:token" element={<ResetPasswordPage />} />
+              <Route path="/preferences/notifications/:token" element={<NotificationPreferencesPage />} />
+
+              {/* Authenticated app */}
               <Route path="/people" element={<PeoplePage />} />
               <Route path="/take/:token" element={<CandidateTakePage />} />
               <Route path="/me/:token" element={<CandidateConsentsPage />} />
