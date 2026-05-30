@@ -71,7 +71,7 @@ export function PlatformAdminPage() {
   const supabase = browserSupabase()
   const toast = useToast()
   const [auth, setAuth] = useState<{ status: 'loading' } | { status: 'denied' } | { status: 'allowed' }>({ status: 'loading' })
-  const [tab, setTab] = useState<'orgs' | 'metrics' | 'investigations'>('orgs')
+  const [tab, setTab] = useState<'orgs' | 'metrics' | 'requests' | 'settings' | 'investigations'>('orgs')
 
   // Permission check on mount. Server-side is the source of truth — every
   // RPC below also checks is_platform_admin() — but rendering the surface
@@ -126,11 +126,15 @@ export function PlatformAdminPage() {
         <TabBand>
           <Tab active={tab === 'orgs'}            onClick={() => setTab('orgs')}>            Organisations </Tab>
           <Tab active={tab === 'metrics'}         onClick={() => setTab('metrics')}>         Platform metrics </Tab>
+          <Tab active={tab === 'requests'}        onClick={() => setTab('requests')}>        Signup requests </Tab>
+          <Tab active={tab === 'settings'}        onClick={() => setTab('settings')}>        Settings </Tab>
           <Tab active={tab === 'investigations'}  onClick={() => setTab('investigations')}>  My investigations </Tab>
         </TabBand>
 
         {tab === 'orgs' && <OrgsTab toast={toast} />}
         {tab === 'metrics' && <MetricsTab />}
+        {tab === 'requests' && <RequestsTab toast={toast} />}
+        {tab === 'settings' && <SettingsTab toast={toast} />}
         {tab === 'investigations' && <InvestigationsTab />}
 
         <div className="flex justify-end pt-4 border-t border-line">
@@ -540,5 +544,195 @@ function InvestigationsTab() {
         )}
       </CardBody>
     </Card>
+  )
+}
+
+// ─── Signup requests tab (Phase 4 approval) ─────────────────────────
+// Lists contact_requests of signup kinds; approving provisions the org
+// via platform_org_create (A9) and marks the request approved.
+function RequestsTab({ toast }: { toast: ReturnType<typeof useToast> }) {
+  const supabase = browserSupabase()
+  type Req = {
+    id: string; kind: string; name: string; email: string; organization: string | null
+    interest: string | null; status: string; created_at: string
+    payload_json: { org_type?: string; country?: string; locale?: string; size?: string } | null
+  }
+  const [rows, setRows] = useState<Req[] | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
+
+  const reload = useCallback(async () => {
+    const { data, error } = await supabase.rpc('contact_requests_list' as never, { p_status: null } as never)
+    if (error) { setRows([]); return }
+    setRows(((data ?? []) as unknown as Req[]).filter(r => r.kind.endsWith('signup')))
+  }, [supabase])
+  useEffect(() => { void reload() }, [reload])
+
+  const approve = useCallback(async (r: Req) => {
+    setBusy(r.id)
+    // Provision the org, then mark the request approved.
+    const { error: ce } = await supabase.rpc('platform_org_create' as never, {
+      p_name: r.organization ?? r.name,
+      p_type: r.payload_json?.org_type === 'agency' ? 'agency' : 'employer',
+      p_country: r.payload_json?.country ?? 'NO',
+      p_locale: r.payload_json?.locale ?? 'nb-NO',
+      p_admin_email: r.email,
+      p_admin_name: r.name,
+      p_is_demo: false,
+    } as never)
+    if (ce) { setBusy(null); toast.error(`Provisioning failed: ${ce.message}`); return }
+    await supabase.rpc('contact_request_set_status' as never, { p_id: r.id, p_status: 'approved' } as never)
+    setBusy(null)
+    toast.success(`Provisioned org for ${r.organization ?? r.name}.`)
+    await reload()
+  }, [supabase, toast, reload])
+
+  const decline = useCallback(async (r: Req) => {
+    setBusy(r.id)
+    await supabase.rpc('contact_request_set_status' as never, { p_id: r.id, p_status: 'declined' } as never)
+    setBusy(null)
+    await reload()
+  }, [supabase, reload])
+
+  if (rows === null) return <Card><CardBody><div className="text-faint text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Loading…</div></CardBody></Card>
+
+  return (
+    <Card><CardBody className="flex flex-col gap-3">
+      <CardEyebrow>Signup requests</CardEyebrow>
+      <CardTitle>Design-partner &amp; commercial applications</CardTitle>
+      {rows.length === 0 ? (
+        <EmptyState icon={Building2} title="No signup requests" body="Applications from /signup land here for review." />
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {rows.map(r => (
+            <li key={r.id} className="border border-line rounded p-3 text-sm flex items-center gap-3 flex-wrap">
+              <div className="flex-1 min-w-[200px]">
+                <div className="font-semibold">{r.organization ?? '(no org name)'} <span className="text-faint font-normal">· {r.payload_json?.org_type ?? r.interest}</span></div>
+                <div className="text-xs text-muted">{r.name} · {r.email}</div>
+                <div className="text-[11px] text-faint mt-0.5">{r.kind.replace('_', ' ')} · {new Date(r.created_at).toLocaleDateString()}</div>
+              </div>
+              <Pill tone={r.status === 'approved' ? 'open' : r.status === 'declined' ? 'reject' : 'draft'}>{r.status}</Pill>
+              {r.status === 'new' && (
+                <>
+                  <Button onClick={() => approve(r)} disabled={busy === r.id} className="text-xs">
+                    {busy === r.id ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />} Approve &amp; provision
+                  </Button>
+                  <Button variant="ghost" onClick={() => decline(r)} disabled={busy === r.id} className="text-xs text-rust">Decline</Button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </CardBody></Card>
+  )
+}
+
+// ─── Settings tab (Phase 1.5) ───────────────────────────────────────
+// platform_settings management: legal entity, DPO, support email, and
+// the legal-review status (which controls the TEMPLATE banner on legal
+// pages). Flipping to 'current' requires a reviewer name.
+function SettingsTab({ toast }: { toast: ReturnType<typeof useToast> }) {
+  const supabase = browserSupabase()
+  type Settings = {
+    platform_legal_entity_name: string | null
+    platform_legal_entity_address: string | null
+    dpo_contact_name: string | null
+    dpo_contact_email: string | null
+    support_email: string | null
+    legal_review_status: 'pending' | 'current'
+    legal_reviewer_name: string | null
+  }
+  const [s, setS] = useState<Settings | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const reload = useCallback(async () => {
+    const { data, error } = await supabase.rpc('platform_settings_get' as never)
+    if (error) { return }
+    setS(data as unknown as Settings)
+  }, [supabase])
+  useEffect(() => { void reload() }, [reload])
+
+  const save = useCallback(async () => {
+    if (!s) return
+    setBusy(true)
+    const { error } = await supabase.rpc('platform_settings_update' as never, {
+      p_legal_entity_name: s.platform_legal_entity_name,
+      p_legal_entity_address: s.platform_legal_entity_address,
+      p_dpo_contact_name: s.dpo_contact_name,
+      p_dpo_contact_email: s.dpo_contact_email,
+      p_support_email: s.support_email,
+      p_legal_review_status: s.legal_review_status,
+      p_legal_reviewer_name: s.legal_reviewer_name,
+    } as never)
+    setBusy(false)
+    if (error) { toast.error(error.message); return }
+    toast.success('Platform settings saved.')
+    await reload()
+  }, [supabase, toast, s, reload])
+
+  if (!s) return <Card><CardBody><div className="text-faint text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Loading…</div></CardBody></Card>
+
+  const field = (label: string, key: keyof Settings, placeholder?: string) => (
+    <label className="flex flex-col gap-1">
+      <span className="text-xs text-muted">{label}</span>
+      <input
+        className="border border-line rounded px-3 py-2 text-sm bg-surface"
+        value={(s[key] as string) ?? ''}
+        placeholder={placeholder}
+        onChange={e => setS({ ...s, [key]: e.target.value })}
+      />
+    </label>
+  )
+
+  return (
+    <Card><CardBody className="flex flex-col gap-4">
+      <div>
+        <CardEyebrow>Platform settings</CardEyebrow>
+        <CardTitle>Legal contact &amp; review status</CardTitle>
+        <p className="text-xs text-muted mt-1">
+          These values appear on the public legal pages. The review status controls the
+          "TEMPLATE PENDING LEGAL REVIEW" banner.
+        </p>
+      </div>
+      {field('Legal entity name', 'platform_legal_entity_name')}
+      {field('Legal entity address', 'platform_legal_entity_address')}
+      {field('DPO contact name', 'dpo_contact_name')}
+      {field('DPO contact email', 'dpo_contact_email', 'dpo@example.com')}
+      {field('Support email', 'support_email', 'support@example.com')}
+
+      <div className="border-t border-line pt-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-muted">Legal review status</span>
+          <select
+            className="border border-line rounded px-3 py-2 text-sm bg-surface"
+            value={s.legal_review_status}
+            onChange={e => setS({ ...s, legal_review_status: e.target.value as 'pending' | 'current' })}
+          >
+            <option value="pending">Pending — show TEMPLATE banner</option>
+            <option value="current">Current — counsel-approved (hides banner)</option>
+          </select>
+        </label>
+        {s.legal_review_status === 'current' && (
+          <label className="flex flex-col gap-1 mt-2">
+            <span className="text-xs text-muted">Reviewer name (required to mark current)</span>
+            <input
+              className="border border-line rounded px-3 py-2 text-sm bg-surface"
+              value={s.legal_reviewer_name ?? ''}
+              onChange={e => setS({ ...s, legal_reviewer_name: e.target.value })}
+            />
+          </label>
+        )}
+        <p className="text-[11px] text-faint mt-2">
+          Marking legal pages "current" removes the template warning. Only do this after
+          counsel has actually reviewed — the reviewer name is recorded in the investigation log.
+        </p>
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={save} disabled={busy}>
+          {busy ? <Loader2 size={14} className="animate-spin" /> : null} Save settings
+        </Button>
+      </div>
+    </CardBody></Card>
   )
 }
