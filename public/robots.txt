@@ -1,11 +1,23 @@
 # HeiTobias — robots.txt
 #
-# Production posture: do not index the app surfaces. The platform is
-# operator-facing, not marketing. Only the architecture reference doc
-# is intentionally crawlable.
+# Public marketing + legal surfaces are crawlable. Authenticated app
+# surfaces, the API, and token-scoped shareable views are not (the
+# share links are unguessable and must not be indexed).
 
 User-agent: *
+Allow: /$
+Allow: /trust
+Allow: /methodology
+Allow: /about
+Allow: /contact
+Allow: /docs
+Allow: /accessibility
+Allow: /status
+Allow: /legal/
+Allow: /architecture.html
+
 Disallow: /admin
+Disallow: /platform-admin
 Disallow: /api/
 Disallow: /take/
 Disallow: /me
@@ -17,11 +29,11 @@ Disallow: /req
 Disallow: /demo
 Disallow: /roles
 Disallow: /employees
-Disallow: /people
 Disallow: /modeling
 Disallow: /activations
+Disallow: /people
+Disallow: /public/
+Disallow: /signup
+Disallow: /login
 
-# Reference doc is intentionally public.
-Allow: /architecture.html
-
-# No sitemap — marketing site lives elsewhere when needed.
+Sitemap: https://app.heitobias.com/sitemap.xml

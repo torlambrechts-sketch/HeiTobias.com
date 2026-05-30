@@ -3,7 +3,6 @@ import { type ReactNode } from 'react'
 import {
   Briefcase,
   Building2,
-  Check,
   ChevronDown,
   ChevronLeft,
   Home,
@@ -17,6 +16,7 @@ import { useLocale, useT, LOCALES, type Locale } from '../lib/i18n.js'
 import { DemoBanner } from './DemoBanner.js'
 import { NotificationBell } from './NotificationBell.js'
 import { CommandPalette } from './CommandPalette.js'
+import { HelpPanel } from './HelpPanel.js'
 
 /**
  * The three-tier canonical app shell (DESIGN.md §2):
@@ -202,7 +202,7 @@ function AppBar({
           <Building2 size={15} className="text-forest" /> {orgLabel}
         </div>
         <LocaleSwitcher />
-        <Check size={18} className="text-muted" />
+        <HelpPanel />
         <NotificationBell />
         <div className="w-9 h-9 rounded-full bg-forest text-white flex items-center justify-center font-bold text-[13px]">
           {signedInLabel ? signedInLabel.slice(0, 2).toUpperCase() : 'SH'}
