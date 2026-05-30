@@ -26,7 +26,7 @@
 
 // ─── Types ──────────────────────────────────────────────────────────
 
-export type Direction = 'higher_better' | 'lower_better' | 'target_band'
+export type Direction = 'higher_better' | 'lower_better' | 'target_band' | 'inverted_u'
 
 export interface KeyedResponse {
   /** 1..points Likert response. null = unanswered / missing. */
@@ -263,4 +263,61 @@ export function infrequencyFlag(infreqResponses: number[], threshold = 2): Infre
 export function inconsistencyFlag(pairs: { a: number; b: number }[], threshold = 2): InconsistencyResult {
   const big = pairs.filter(p => Math.abs(p.a - p.b) >= 3).length
   return { big, flagged: big >= threshold }
+}
+
+// ─── H-1c: Generic Curvilinear Trait-Band Fit (mirror of PG) ─────────
+//
+// Mirrors public.compute_trait_band_fit_v1(score, direction, band_low,
+// band_high, inflection_point, half_width) in PL/pgSQL.
+//
+// CONTRACT: identical output to the PG function for every input.
+// The cross-engine fixture in `src/lib/personality/__fixtures__/bandFitV1.json`
+// is generated from the PG function and tested by BOTH engines.
+//
+// score 0..99 (or null → null out). Severity 0..1; 0 = perfect fit,
+// 1 = worst. The roleMatchScore function further above uses its own
+// (older, linear) math; this V1 helper is the canonical reference for
+// new code and for any consumer that needs inverted-U support.
+
+export interface BandFitV1Inputs {
+  score: number | null
+  direction: Direction
+  bandLow: number | null
+  bandHigh: number | null
+  inflectionPoint?: number | null
+  halfWidth?: number | null
+}
+
+export function computeTraitBandFitV1(inputs: BandFitV1Inputs): number | null {
+  const { score: x, direction, bandLow, bandHigh, inflectionPoint, halfWidth } = inputs
+  if (x === null || x === undefined) return null
+  if (x < 0 || x > 99) {
+    throw new Error(`score ${x} out of [0,99]`)
+  }
+  if (direction === 'higher_better') {
+    if (bandLow === null || bandLow === undefined) throw new Error('higher_better requires bandLow')
+    const dist = Math.max(0, bandLow - x)
+    return Math.min(1, dist / 99)
+  }
+  if (direction === 'lower_better') {
+    if (bandHigh === null || bandHigh === undefined) throw new Error('lower_better requires bandHigh')
+    const dist = Math.max(0, x - bandHigh)
+    return Math.min(1, dist / 99)
+  }
+  if (direction === 'target_band') {
+    if (bandLow === null || bandHigh === null || bandLow === undefined || bandHigh === undefined) {
+      throw new Error('target_band requires bandLow and bandHigh')
+    }
+    if (x >= bandLow && x <= bandHigh) return 0
+    const dist = x < bandLow ? (bandLow - x) : (x - bandHigh)
+    return Math.min(1, dist / 99)
+  }
+  if (direction === 'inverted_u') {
+    if (inflectionPoint === null || inflectionPoint === undefined || halfWidth === null || halfWidth === undefined) {
+      throw new Error('inverted_u requires inflectionPoint and halfWidth')
+    }
+    const dist = Math.abs(x - inflectionPoint)
+    return Math.min(1, dist / halfWidth)
+  }
+  throw new Error(`unknown direction: ${String(direction)}`)
 }

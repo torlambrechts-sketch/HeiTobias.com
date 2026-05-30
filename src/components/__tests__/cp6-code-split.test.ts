@@ -60,7 +60,14 @@ describe('CP6 — Route-level code splitting', () => {
     if (!existsSync(DIST)) {
       // Kick a build so the test has artefacts to inspect on a fresh
       // checkout. ~4s; acceptable for a structural test that runs once.
-      execSync('npm run build', { cwd: PROJECT_ROOT, stdio: 'pipe' })
+      // CI sets NODE_ENV=test for vitest; pin NODE_ENV=production for
+      // the subprocess so vite produces the real prod-minified bundle
+      // (vite's test-mode build leaves dev-only branches in, ~2.5x larger).
+      execSync('npm run build', {
+        cwd: PROJECT_ROOT,
+        stdio: 'pipe',
+        env: { ...process.env, NODE_ENV: 'production' },
+      })
     }
   })
 
