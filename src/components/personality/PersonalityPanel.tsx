@@ -86,15 +86,19 @@ export function PersonalityPanel({ sessionId, initialRoleKey, orgId }: Props) {
 
   const load = useCallback(async () => {
     setError(null)
-    // Both queries can run in parallel — they're independent.
-    const [scoresRes, matchesRes] = await Promise.all([
+    // Both queries can run in parallel — they're independent. We resolve
+    // the supabase query-builder thenables via Promise.all, then narrow
+    // the (unknown-shaped) data into the typed accessors below.
+    const [scoresRaw, matchesRaw] = await Promise.all([
       supabase.from('assessment_scores' as never)
         .select('scale_key, raw_score, scaled_score, norm_band, validity_status, _dev_stub, validity_flags_json, assessment_id')
-        .like('scale_key', 'trait:%') as Promise<{ data: Array<Record<string, unknown>> | null; error: { message: string } | null }>,
+        .like('scale_key', 'trait:%'),
       supabase.from('personality_role_matches' as never)
         .select('id, role_key, match_score, contributions_json, flags_json, validity_status, _dev_stub, session_id')
-        .eq('session_id', sessionId) as Promise<{ data: Array<Record<string, unknown>> | null; error: { message: string } | null }>,
+        .eq('session_id', sessionId),
     ])
+    const scoresRes  = scoresRaw  as { data: unknown[] | null; error: { message: string } | null }
+    const matchesRes = matchesRaw as { data: unknown[] | null; error: { message: string } | null }
     if (scoresRes.error)  { setError(scoresRes.error.message);  setTraits([]);  return }
     if (matchesRes.error) { setError(matchesRes.error.message); setMatches([]); return }
 
@@ -110,10 +114,13 @@ export function PersonalityPanel({ sessionId, initialRoleKey, orgId }: Props) {
       validity_flags_json: { percentile?: number | null; n_keyed_responses?: number | null; note?: string | null } | null
     }>
     const traitKeys = scoreRows.map(s => s.scale_key.replace(/^trait:/, ''))
-    const { data: traitMeta } = await supabase.from('personality_traits' as never)
+    const traitRes = await supabase.from('personality_traits' as never)
       .select('trait_key, name, domain, sensitive')
-      .in('trait_key', traitKeys) as { data: Array<{ trait_key: string; name: string; domain: string; sensitive: boolean }> | null; error: unknown }
-    const metaByKey = new Map((traitMeta ?? []).map(m => [m.trait_key, m]))
+      .in('trait_key', traitKeys)
+    const traitMeta = ((traitRes as { data: unknown[] | null }).data ?? []) as Array<{
+      trait_key: string; name: string; domain: string; sensitive: boolean
+    }>
+    const metaByKey = new Map(traitMeta.map(m => [m.trait_key, m]))
 
     setTraits(scoreRows.map<TraitScore>(s => {
       const key = s.scale_key.replace(/^trait:/, '')
@@ -145,10 +152,13 @@ export function PersonalityPanel({ sessionId, initialRoleKey, orgId }: Props) {
       _dev_stub: boolean
     }>
     const roleKeys = matchRows.map(m => m.role_key)
-    const { data: templates } = await supabase.from('personality_role_templates' as never)
+    const templateRes = await supabase.from('personality_role_templates' as never)
       .select('role_key, title')
-      .in('role_key', roleKeys) as { data: Array<{ role_key: string; title: string }> | null; error: unknown }
-    const titleByKey = new Map((templates ?? []).map(t => [t.role_key, t.title]))
+      .in('role_key', roleKeys)
+    const templates = ((templateRes as { data: unknown[] | null }).data ?? []) as Array<{
+      role_key: string; title: string
+    }>
+    const titleByKey = new Map(templates.map(t => [t.role_key, t.title]))
 
     const matchList = matchRows.map<RoleMatchRow>(m => ({
       id: m.id,
